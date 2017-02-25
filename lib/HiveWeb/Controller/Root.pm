@@ -2,56 +2,54 @@ package HiveWeb::Controller::Root;
 use Moose;
 use namespace::autoclean;
 
+use Data::Dumper;
+
 BEGIN { extends 'Catalyst::Controller' }
 
-#
-# Sets the actions in this controller to be registered with no prefix
-# so they function identically to actions created in MyApp.pm
-#
 __PACKAGE__->config(namespace => '');
 
-=encoding utf-8
+sub index :Path :Args(0)
+	{
+	my ($self, $c) = @_;
+	
+	$c->stash()->{template} = 'index.tt'; 
+	}
 
-=head1 NAME
+sub login :Local
+	{
+	my ($self, $c) = @_;
+	my $params = $c->request()->params();
 
-HiveWeb::Controller::Root - Root Controller for HiveWeb
+	my $auth          = {};
+	$auth->{email}    = $params->{email};
+	$auth->{password} = $params->{password};
+	my $user = $c->authenticate($auth);
+	$c->log()->debug(Dumper($user));
+	if ($user)
+		{
+		$c->response()->redirect($c->uri_for('/'));
+		}
+	else
+		{
+		$c->response()->body('Nope.');
+		}
+	}
 
-=head1 DESCRIPTION
+sub logout :Local
+	{
+	my ($self, $c) = @_;
 
-[enter your description here]
+	$c->logout();
+	$c->response()->redirect($c->uri_for('/'));
+	}
 
-=head1 METHODS
-
-=head2 index
-
-The root page (/)
-
-=cut
-
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    # Hello World
-    $c->response->body( $c->welcome_message );
-}
-
-=head2 default
-
-Standard 404 error page
-
-=cut
-
-sub default :Path {
-    my ( $self, $c ) = @_;
-    $c->response->body( 'Page not found' );
-    $c->response->status(404);
-}
-
-=head2 end
-
-Attempt to render a view, if needed.
-
-=cut
+sub default :Path
+	{
+	my ( $self, $c ) = @_;
+	
+	$c->response->body('Page not found');
+	$c->response->status(404);
+	}
 
 sub end : ActionClass('RenderView') {}
 

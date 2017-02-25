@@ -17,9 +17,14 @@ use Catalyst::Runtime 5.80;
 #                 directory
 
 use Catalyst qw/
-    -Debug
-    ConfigLoader
-    Static::Simple
+	-Debug
+	ConfigLoader
+	Static::Simple
+	
+	Authentication
+	Session
+	Session::Store::File
+	Session::State::Cookie
 /;
 
 extends 'Catalyst';
@@ -38,6 +43,7 @@ our $VERSION = '0.01';
 __PACKAGE__->config
 	(
 	name => 'HiveWeb',
+	default_view => 'HTML',
 	# Disable deprecated behavior needed by old applications
 	disable_component_resolution_regex_fallback => 1,
 	enable_catalyst_header => 1, # Send X-Catalyst header
@@ -45,38 +51,38 @@ __PACKAGE__->config
 		{
 		expose_stash => 'out',
 		},
+	'View::OrderedJSON' =>
+		{
+		expose_stash => 'out',
+		},
+	'View::HTML' =>
+		{
+		INCLUDE_PATH =>
+			[
+			__PACKAGE__->path_to('root', 'src'),
+			],
+		},
+	'Plugin::Authentication' =>
+		{
+		'default_realm' => 'members',
+		members =>
+			{
+			store =>
+				{
+				class      => 'DBIx::Class',
+				user_model => 'DB::Member',
+				id_field   => 'member_id',
+				},
+			credential =>
+				{
+				password_type  => 'self_check',
+				password_field => 'password',
+				class          => 'Password',
+				},
+			},
+		},
 	);
 
-# Start the application
 __PACKAGE__->setup();
-
-=encoding utf8
-
-=head1 NAME
-
-HiveWeb - Catalyst based application
-
-=head1 SYNOPSIS
-
-    script/hiveweb_server.pl
-
-=head1 DESCRIPTION
-
-[enter your description here]
-
-=head1 SEE ALSO
-
-L<HiveWeb::Controller::Root>, L<Catalyst>
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

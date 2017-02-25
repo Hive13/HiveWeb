@@ -9,9 +9,11 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
+use Crypt::Eksblowfish::Bcrypt qw* bcrypt *;
+
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
 __PACKAGE__->table_class("DBIx::Class::ResultSource::View");
-__PACKAGE__->table("member_access_view");
+__PACKAGE__->table("members");
 
 __PACKAGE__->add_columns(
   "member_id",
@@ -22,6 +24,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "email",
   { data_type => "varchar", is_nullable => 1, size => 255 },
+  "encrypted_password",
+  { data_type => "varchar", is_nullable => 1, size => 255, accessor => 'password' },
   "accesscard",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "is_lockedout",
@@ -57,6 +61,15 @@ __PACKAGE__->has_many
 	);
 
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
+
+
+sub check_password
+	{
+	my ($self, $pw) = @_;
+	my $apw = $self->password();
+
+	return ($apw eq bcrypt($pw, $apw));
+	}
 
 __PACKAGE__->meta->make_immutable;
 1;
