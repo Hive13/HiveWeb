@@ -2,7 +2,6 @@ package HiveWeb::Controller::API;
 use Moose;
 use namespace::autoclean;
 
-use Data::Dumper;
 use JSON::PP;
 use Digest::SHA qw(sha512_hex);
 use feature 'state';
@@ -181,7 +180,6 @@ sub access :Local
 		$odata->{error} = 'Invalid operation.';
 		}
 	$c->stash()->{out} = hash_it($odata, $device->key());
-	$c->log()->debug(Dumper($c->stash()->{out}));
 	} 
 
 =encoding utf8

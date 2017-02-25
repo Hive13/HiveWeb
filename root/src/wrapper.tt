@@ -4,17 +4,14 @@
 </head>
 <body>
 	<img src="[% Catalyst.uri_for('static/images/Hive13_Logo.png') %]" width="100" /><br />
+<ul id="nav">
 [%~ IF Catalyst.user_exists %]
-	You is logged in.  <a href="[% Catalyst.uri_for('/logout') %]">Log the hell out.</a><br />
+	<li><a href="[% Catalyst.uri_for('/logout') %]">Log the hell out.</a></li>
 [%~ ELSE %]
-	You is not logged in.
-	<form id="login" method="post" action="[% Catalyst.uri_for('/login') %]">
-		E-amil address: <input type="text" id="email" length="30" name="email" /><br />
-		Passphrase: <input type="password" id="password" length="30" name="password" /><br />
-		<span style="font-size: 5px;">correct horse battery staple</span><br />
-		<input type="submit" value="Log me the fuck In" /><br />
-	</form>
+	<li><a href="[% Catalyst.uri_for('/login') %]">Log the hell in.</a></li>
+	<li>Register me!</li>
 [%~ END %]
+</ul>
 [% content %]
 </body>
 </html>

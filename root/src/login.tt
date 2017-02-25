@@ -1,0 +1,8 @@
+You is not logged in.
+<form id="login" method="post" action="[% Catalyst.uri_for('/login') %]">
+	E-amil address: <input type="text" id="email" length="30" name="email" /><br />
+	Passphrase: <input type="password" id="password" length="30" name="password" /><br />
+	<span style="font-size: 5px;">correct horse battery staple</span><br />
+	<input type="submit" value="Log me the fuck In" /><br />
+</form>
+[%~ # vim:set filetype=tt2html: ~%]

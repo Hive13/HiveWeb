@@ -2,8 +2,6 @@ package HiveWeb::Controller::Root;
 use Moose;
 use namespace::autoclean;
 
-use Data::Dumper;
-
 BEGIN { extends 'Catalyst::Controller' }
 
 __PACKAGE__->config(namespace => '');
@@ -18,13 +16,19 @@ sub index :Path :Args(0)
 sub login :Local
 	{
 	my ($self, $c) = @_;
+
+	if ($c->request()->method() eq 'GET')
+		{
+		$c->stash()->{template} = 'login.tt'; 
+		return;
+		}
+	
 	my $params = $c->request()->params();
 
 	my $auth          = {};
 	$auth->{email}    = $params->{email};
 	$auth->{password} = $params->{password};
 	my $user = $c->authenticate($auth);
-	$c->log()->debug(Dumper($user));
 	if ($user)
 		{
 		$c->response()->redirect($c->uri_for('/'));
