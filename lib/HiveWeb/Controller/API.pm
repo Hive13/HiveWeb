@@ -3,8 +3,6 @@ use Moose;
 use namespace::autoclean;
 
 use JSON::PP;
-use Digest::SHA qw(sha512_hex);
-use feature 'state';
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -24,39 +22,6 @@ Catalyst Controller.
 =head2 index
 
 =cut
-
-sub make_hash
-  {
-	state $js     = JSON::PP->new();
-	state $sorter = sub { $JSON::PP::a cmp $JSON::PP::b; };
-	my $json      = shift;
-	my $key       = shift;
-	my $hash_str  = $js->sort_by($sorter)->encode($json);
-	print STDERR $hash_str . "\n";
-	
-	return uc(sha512_hex($key . $hash_str));
-	}
-
-sub hash_it
-  {
-	my $in_json  = shift;
-	my $key      = shift;
-	my $out_json = {};
-	
-	$out_json->{data} = $in_json;
-	if (defined($key))
-		{
-		my $random = [];
-		for (my $i = 0; $i < 16; $i++)
-			{
-			push(@{$random}, int(rand(256)));
-			}
-		$in_json->{random}    = $random;
-		$out_json->{checksum} = make_hash($in_json, $key);
-		}
-	
-	return $out_json;
-	}
 
 sub has_access :Private
 	{
@@ -83,22 +48,17 @@ sub has_access :Private
 	return "Locked out"
 		if ($member->is_lockedout());
 	
-	# Does the member have access to the item through any groups
-	my $access = $item
-		->search_related('item_mgroups')
-		->search_related('mgroup')
-		->search_related('member_mgroups', { member_id => $member->member_id() })
-		->count();
+	my $access = $member->has_access($item);
 	
 	# Log the access
 	$c->model('DB::AccessLog')->create(
 		{
 		member_id => $member->member_id(),
 		item_id   => $item->item_id(),
-		granted   => ($access > 0) ? 1 : 0,
+		granted   => $access,
 		});
 	
-	return $access > 0 ? undef : "Access denied";
+	return $access ? undef : "Access denied";
 	}
 
 
@@ -108,13 +68,14 @@ sub begin :Private
 
 	$c->stash()->{in} = $c->req()->body_data();
 	$c->stash()->{out} = {};
+	$c->stash()->{view} = $c->view('JSON');
 	}
 
 sub end :Private
 	{
 	my ($self, $c) = @_;
 
-	$c->detach($c->view('JSON'));
+	$c->detach($c->stash()->{view});
 	}
 
 sub index :Path :Args(0)
@@ -129,18 +90,21 @@ sub access :Local
 	my ($self, $c) = @_;
 	my $in     = $c->stash()->{in};
 	my $out    = $c->stash()->{out};
-	my $odata  = {};
 	my $device = $c->model('DB::Device')->find({ name => $in->{device} });
 	my $data   = $in->{data};
+	my $view   = $c->view('ChecksummedJSON');
 
 	if (!defined($device))
 		{
-		$out->{response} = JSON::PP->false();
+		$out->{response} = JSON->false();
 		$out->{error} = 'Cannot find device.';
 		return;
 		}
 	
-	my $shasum = make_hash($data, $device->key());
+	$c->stash()->{view}   = $view;
+	$c->stash()->{device} = $device;
+	
+	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))
 		{
 		$out->{response} = JSON::PP->false();
@@ -148,7 +112,7 @@ sub access :Local
 		return;
 		}
 	
-	$odata->{response} = JSON::PP->true();
+	$out->{response} = JSON::PP->true();
 	my $operation = lc($in->{operation} // 'access');
 	if ($operation eq 'access')
 		{
@@ -161,25 +125,24 @@ sub access :Local
 		
 		if ($d_i->count() < 1)
 			{
-			$odata->{access} = JSON::PP->false();
-			$odata->{error} = "Device not authorized for " . $item;
+			$out->{access} = JSON::PP->false();
+			$out->{error} = "Device not authorized for " . $item;
 			}
 		elsif (defined($access))
 			{
-			$odata->{access} = JSON::PP->false();
-			$odata->{error} = $access;
+			$out->{access} = JSON::PP->false();
+			$out->{error} = $access;
 			}
 		else
 			{
-			$odata->{access} = JSON::PP->true();
+			$out->{access} = JSON::PP->true();
 			}
 		}
 	else
 		{
-		$odata->{response} = JSON::PP->false();
-		$odata->{error} = 'Invalid operation.';
+		$out->{response} = JSON::PP->false();
+		$out->{error} = 'Invalid operation.';
 		}
-	$c->stash()->{out} = hash_it($odata, $device->key());
 	} 
 
 =encoding utf8

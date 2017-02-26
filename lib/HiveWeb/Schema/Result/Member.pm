@@ -71,5 +71,19 @@ sub check_password
 	return ($apw eq bcrypt($pw, $apw));
 	}
 
+sub has_access
+	{
+	my ($self, $item) = @_;
+
+	# Does the member have access to the item through any groups
+	my $access = $self
+		->search_related('member_mgroups')
+		->search_related('mgroup')
+		->search_related('item_mgroups', { item_id => $item->item_id() })
+		->count();
+	
+	return $access > 0;
+	}
+
 __PACKAGE__->meta->make_immutable;
 1;

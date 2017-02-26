@@ -51,7 +51,7 @@ __PACKAGE__->config
 		{
 		expose_stash => 'out',
 		},
-	'View::OrderedJSON' =>
+	'View::ChecksummedJSON' =>
 		{
 		expose_stash => 'out',
 		},
