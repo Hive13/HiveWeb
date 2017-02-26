@@ -3,13 +3,18 @@
 	<title>Hive13 Internal Web</title>
 </head>
 <body>
+[% Catalyst.controller.name %]
 	<img src="[% Catalyst.uri_for('static/images/Hive13_Logo.png') %]" width="100" /><br />
 <ul id="nav">
 [%~ IF Catalyst.user_exists %]
-	<li><a href="[% Catalyst.uri_for('/logout') %]">Log the hell out.</a></li>
+	<li><a href="[% Catalyst.uri_for('/logout') %]">Sign out</a></li>
+[%~ 	IF Catalyst.user.is_admin %]
+	<li><a href="[% Catalyst.uri_for('/admin') %]">Administration</a></li>
+[%~ 	END %]
+	<li><a href="[% Catalyst.uri_for('/profile') %]">My profile</a></li>
 [%~ ELSE %]
-	<li><a href="[% Catalyst.uri_for('/login') %]">Log the hell in.</a></li>
-	<li>Register me!</li>
+	<li><a href="[% Catalyst.uri_for('/login') %]">Sign in</a></li>
+	<li><a href="[% Catalyst.uri_for('/register') %]">Register</a></li>
 [%~ END %]
 </ul>
 [% content %]

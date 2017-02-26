@@ -85,5 +85,13 @@ sub has_access
 	return $access > 0;
 	}
 
+sub is_admin
+	{
+	my $self    = shift;
+	my $officer = $self->mgroups()->find({ name => 'board' });
+
+	return defined($officer);
+	}
+
 __PACKAGE__->meta->make_immutable;
 1;
