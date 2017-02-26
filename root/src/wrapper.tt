@@ -4,7 +4,7 @@
 </head>
 <body>
 [% Catalyst.controller.name %]
-	<img src="[% Catalyst.uri_for('static/images/Hive13_Logo.png') %]" width="100" /><br />
+	<img src="[% Catalyst.uri_for('/static/images/Hive13_Logo.png') %]" width="100" /><br />
 <ul id="nav">
 [%~ IF Catalyst.user_exists %]
 	<li><a href="[% Catalyst.uri_for('/logout') %]">Sign out</a></li>
