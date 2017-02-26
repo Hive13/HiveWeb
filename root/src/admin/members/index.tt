@@ -1,0 +1,50 @@
+[%~
+	SET columns =
+		[
+			{
+			name => 'fname',
+			desc => 'First Name',
+			},
+			{
+			name => 'lname',
+			desc => 'Last Name',
+			},
+			{
+			name => 'email',
+			desc => 'E-mail Address',
+			},
+		];
+~%]
+<table class="member_table">
+	<thead>
+		<tr>
+[%~ FOREACH column IN columns %]
+			<th>
+[%~ IF order != column.name ~%]
+			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name) %]">
+				[%~ column.desc ~%]
+			</a>
+[%~ ELSE;
+			IF dir == "ASC" ~%]
+			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/desc') %]">[%~ column.desc ~%](&darr;)</a>
+[%~		ELSE ~%]
+			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/asc') %]">[%~ column.desc ~%](&uarr;)</a>
+[%~		END;
+		END ~%]
+			</th>
+[%~ END %]
+		</tr>
+	</thead>
+	<tbody>
+[%~ FOREACH member IN members %]
+		<tr>
+[%~ 	FOREACH column IN columns;
+				SET name = column.name %]
+			<td>[% member.$name %]</td>
+[%~ 	END %]
+		</tr>
+[%~ END %]
+	</tbody>
+</table>
+
+[%~ # vim:set filetype=tt2html: ~%]
