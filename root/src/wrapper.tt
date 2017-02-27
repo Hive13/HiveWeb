@@ -1,23 +1,27 @@
 <html>
 <head>
 	<title>Hive13 Internal Web</title>
+	<link rel="stylesheet" href="[% Catalyst.uri_for('/static/css/main.css') %]" type="text/css" />
 </head>
 <body>
-[% Catalyst.controller.name %]
-	<img src="[% Catalyst.uri_for('/static/images/Hive13_Logo.png') %]" width="100" /><br />
-<ul id="nav">
+	<div id="navbar">
+		<img src="[% Catalyst.uri_for('/static/images/Hive13_Logo.png') %]" />
+		<ul>
 [%~ IF Catalyst.user_exists %]
-	<li><a href="[% Catalyst.uri_for('/logout') %]">Sign out</a></li>
+			<li><a href="[% Catalyst.uri_for('/logout') %]">Sign Out</a></li>
 [%~ 	IF Catalyst.user.is_admin %]
-	<li><a href="[% Catalyst.uri_for('/admin') %]">Administration</a></li>
+			<li><a href="[% Catalyst.uri_for('/admin') %]">Administration</a></li>
 [%~ 	END %]
-	<li><a href="[% Catalyst.uri_for('/profile') %]">My profile</a></li>
+			<li><a href="[% Catalyst.uri_for('/profile') %]">My profile</a></li>
 [%~ ELSE %]
-	<li><a href="[% Catalyst.uri_for('/login') %]">Sign in</a></li>
-	<li><a href="[% Catalyst.uri_for('/register') %]">Register</a></li>
+			<li><a href="[% Catalyst.uri_for('/login') %]">Sign In</a></li>
+			<li><a href="[% Catalyst.uri_for('/register') %]">Register</a></li>
 [%~ END %]
-</ul>
+		</ul>
+	</div>
+	<div id="content">
 [% content %]
+	</div>
 </body>
 </html>
 [%~ # vim:set filetype=tt2html: ~%]
