@@ -15,9 +15,30 @@
 			},
 		];
 ~%]
+<style>
+.member_table tbody tr td.edit
+	{
+	opacity: 0;
+	}
+.member_table tbody tr.highlight td.edit
+	{
+	opacity: 1;
+	}
+.member_table tbody tr.highlight td:not(.edit)
+	{
+	background-color: #bbbbff;
+	}
+.member_table td.lock img
+	{
+	width: 20px;
+	height: 20px;
+	}
+</style>
 <table class="member_table">
 	<thead>
 		<tr>
+			<th></th>
+			<th></th>
 [%~ FOREACH column IN columns %]
 			<th>
 [%~ IF order != column.name ~%]
@@ -38,6 +59,16 @@
 	<tbody>
 [%~ FOREACH member IN members %]
 		<tr>
+			<td class="edit">
+				Edit Torch
+			</td>
+			<td class="lock">
+[%~   IF member.is_lockedout %]
+				<img src="/static/icons/unlock.png" title="Unlock" />
+[%~   ELSE %]
+				<img src="/static/icons/lock.png" title="Lock" />
+[%~   END %]
+			</td>
 [%~ 	FOREACH column IN columns;
 				SET name = column.name %]
 			<td>[% member.$name %]</td>
@@ -46,5 +77,21 @@
 [%~ END %]
 	</tbody>
 </table>
+
+<script type="text/javascript">
+$(function ()
+	{
+	$("tr")
+		.mouseover(function ()
+			{
+			$(this).addClass("highlight");
+			})
+		.mouseout(function ()
+			{
+			$(this).removeClass("highlight");
+			});
+	});
+
+</script>
 
 [%~ # vim:set filetype=tt2html: ~%]
