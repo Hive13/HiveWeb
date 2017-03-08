@@ -35,7 +35,9 @@ sub login :Local
 		}
 	else
 		{
-		$c->response()->body('Nope.');
+		$c->stash()->{template} = 'login.tt'; 
+		$c->stash()->{msg} = 'The username or password were invalid.'; 
+		$c->response->status(403);
 		}
 	}
 
@@ -51,7 +53,7 @@ sub default :Path
 	{
 	my ( $self, $c ) = @_;
 	
-	$c->response->body('Page not found');
+	$c->stash()->{template} = '404.tt';
 	$c->response->status(404);
 	}
 

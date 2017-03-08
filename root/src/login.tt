@@ -1,4 +1,9 @@
-You are not logged in.
+[%~
+	IF !msg.defined OR msg.length == 0;
+		SET msg = "You are not logged in.";
+	END;
+~%]
+[% msg %]
 <form id="login" method="post" action="[% Catalyst.uri_for('/login') %]">
 	E-amil address: <input type="text" id="email" length="30" name="email" /><br />
 	Passphrase: <input type="password" id="password" length="30" name="password" /><br />
