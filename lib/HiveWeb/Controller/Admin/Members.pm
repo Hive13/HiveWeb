@@ -31,7 +31,6 @@ sub view :Local
 	$c->stash()->{template} = 'admin/members/index.tt';
 	}
 
-
 =encoding utf8
 
 =head1 AUTHOR

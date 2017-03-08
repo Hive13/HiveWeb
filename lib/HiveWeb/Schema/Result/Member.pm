@@ -33,6 +33,7 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->uuid_columns('member_id');
+__PACKAGE__->set_primary_key('member_id');
 __PACKAGE__->add_unique_constraint('index_members_on_email', ['email']);
 __PACKAGE__->add_unique_constraint('members_member_id_key', ['member_id']);
 

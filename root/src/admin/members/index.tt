@@ -28,7 +28,7 @@
 	{
 	background-color: #bbbbff;
 	}
-.member_table td.lock img
+.member_table td img
 	{
 	width: 20px;
 	height: 20px;
@@ -58,15 +58,16 @@
 	</thead>
 	<tbody>
 [%~ FOREACH member IN members %]
-		<tr>
+		<tr id="[% member.member_id %]">
 			<td class="edit">
-				Edit Torch
+				<img src="/static/icons/edit.png" title="Edit" />
+				<img src="/static/icons/delete.png" title="Delete" class="delete" />
 			</td>
 			<td class="lock">
 [%~   IF member.is_lockedout %]
-				<img src="/static/icons/unlock.png" title="Unlock" />
+				<img title="Unlock" class="unlock" src="/static/icons/unlock.png" />
 [%~   ELSE %]
-				<img src="/static/icons/lock.png" title="Lock" />
+				<img title="Lock" class="lock" src="/static/icons/lock.png" />
 [%~   END %]
 			</td>
 [%~ 	FOREACH column IN columns;
@@ -79,6 +80,9 @@
 </table>
 
 <script type="text/javascript">
+var lock_url = "[% Catalyst.uri_for('/api/admin/members/lock') %]";
+var unlock_url = "[% Catalyst.uri_for('/api/admin/members/unlock') %]";
+
 $(function ()
 	{
 	$("tr")
@@ -90,6 +94,41 @@ $(function ()
 			{
 			$(this).removeClass("highlight");
 			});
+	$("td.lock img").click(function ()
+		{
+		var member_id, url, $this;
+		if (confirm("Are you sure?"))
+			{
+			$this = $(this);
+			member_id = $this.parents("tr").attr("id");
+			if ($this.hasClass("unlock"))
+				url = unlock_url;
+			else
+				url = lock_url;
+			url += "/" + member_id;
+			json = $.getJSON(url, function (data)
+				{
+				if (!data.response)
+					return;
+				if ($this.hasClass("unlock"))
+					{
+					$this
+						.removeClass("unlock")
+						.addClass("lock")
+						.attr("title", "Lock")
+						.attr("src", "/static/icons/lock.png");
+					}
+				else
+					{
+					$this
+						.removeClass("lock")
+						.addClass("unlock")
+						.attr("title", "Unlock")
+						.attr("src", "/static/icons/unlock.png");
+					}
+				});
+			}
+		});
 	});
 
 </script>

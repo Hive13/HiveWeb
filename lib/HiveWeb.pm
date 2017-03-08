@@ -22,6 +22,7 @@ use Catalyst qw/
 	Static::Simple
 	
 	Authentication
+	Authorization::ACL
 	Session
 	Session::Store::File
 	Session::State::Cookie
@@ -84,5 +85,13 @@ __PACKAGE__->config
 	);
 
 __PACKAGE__->setup();
+__PACKAGE__->deny_access_unless("/api/admin", sub
+	{
+	return shift->user()->is_admin();
+	});
+__PACKAGE__->deny_access_unless("/admin", sub
+	{
+	return shift->user()->is_admin();
+	});
 
 1;
