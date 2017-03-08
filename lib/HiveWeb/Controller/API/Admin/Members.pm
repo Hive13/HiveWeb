@@ -44,6 +44,30 @@ sub unlock :Local :Args(1)
 	$c->stash()->{out}->{data}     = "Member unlocked";
 	}
 
+sub info :Local :Args(1)
+	{
+	my ($self, $c, $member_id) = @_;
+
+	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	if (!defined($member))
+		{
+		$c->stash()->{out}->{response} = JSON->false();
+		$c->stash()->{out}->{data}     = "Cannot find member";
+		return;
+		}
+	
+	my @groups = $member->member_mgroups()->all();
+	my @ogroups;
+	foreach my $group (@groups)
+		{
+		my $g = $group->mgroup();
+		push (@ogroups, { $g->get_inflated_columns() });
+		}
+	
+	$c->stash()->{out}->{groups}   = \@ogroups;
+	$c->stash()->{out}->{member}   = { $member->get_inflated_columns() };
+	$c->stash()->{out}->{response} = JSON->true();
+	}
 
 sub begin :Private
 	{

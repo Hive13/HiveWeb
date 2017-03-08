@@ -61,7 +61,7 @@
 [%~ FOREACH member IN members %]
 		<tr id="[% member.member_id %]">
 			<td class="edit">
-				<img src="/static/icons/edit.png" title="Edit" />
+				<img src="/static/icons/edit.png" title="Edit" class="edit" />
 				<img src="/static/icons/delete.png" title="Delete" class="delete" />
 			</td>
 			<td class="lock">
@@ -80,9 +80,39 @@
 	</tbody>
 </table>
 
+<div id="edit_dialogue" style="display: none">
+	Group Membership: <br />
+[%~ FOREACH group IN groups %]
+	<input type="checkbox" class="group" value="[% group.mgroup_id %]" /> [% group.name %]<br />
+[%~ END %]
+
+</div>
+
 <script type="text/javascript">
 var lock_url = "[% Catalyst.uri_for('/api/admin/members/lock') %]";
 var unlock_url = "[% Catalyst.uri_for('/api/admin/members/unlock') %]";
+
+function edit(member_id)
+	{
+	$.ajax(
+		{
+		dataType: "json",
+		url: "[% Catalyst.uri_for('/api/admin/members/info') %]" + "/" + member_id,
+		cache: false,
+		success: function (data)
+			{
+			var i;
+
+			$("input.group[type=\"checkbox\"]").prop("checked", false);
+			for (i = 0; i < data.groups.length; i++)
+				{
+				$("input.group[type=\"checkbox\"][value=\"" + data.groups[i].mgroup_id + "\"]").prop("checked", true);
+				}
+
+			$("#edit_dialogue").dialog();
+			}
+		});
+	}
 
 $(function ()
 	{
@@ -94,7 +124,17 @@ $(function ()
 		.mouseout(function ()
 			{
 			$(this).removeClass("highlight");
+			})
+		.dblclick(function ()
+			{
+			edit($(this).attr("id"));
 			});
+	$("td.edit img.edit").click(function ()
+		{
+		var $this = $(this);
+		var member_id = $this.parents("tr").attr("id");
+		edit(member_id);
+		});
 	$("td.lock img").click(function ()
 		{
 		var member_id, url, $this;

@@ -24,7 +24,9 @@ sub view :Local
 	my $sorder .= "$order $dir";
 
 	my @members = $c->model('DB::Member')->search({}, {order_by => $sorder});
+	my @groups  = $c->model('DB::MGroup')->search({});
 
+	$c->stash()->{groups}   = \@groups;
 	$c->stash()->{members}  = \@members;
 	$c->stash()->{order}    = $order;
 	$c->stash()->{dir}      = $dir;
