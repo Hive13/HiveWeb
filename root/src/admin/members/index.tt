@@ -32,6 +32,7 @@
 	{
 	width: 20px;
 	height: 20px;
+	cursor: pointer;
 	}
 </style>
 <table class="member_table">
