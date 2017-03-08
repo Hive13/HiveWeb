@@ -16,6 +16,7 @@ sub lock :Local :Args(1)
 		{
 		$c->stash()->{out}->{response} = JSON->false();
 		$c->stash()->{out}->{data}     = "Cannot find member";
+		return;
 		}
 	
 	$member->is_lockedout(1);
@@ -34,6 +35,7 @@ sub unlock :Local :Args(1)
 		{
 		$c->stash()->{out}->{response} = JSON->false();
 		$c->stash()->{out}->{data}     = "Cannot find member";
+		return;
 		}
 	
 	$member->is_lockedout(0);
