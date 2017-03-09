@@ -76,6 +76,34 @@ sub info :Local :Args(1)
 	$c->stash()->{out}->{response} = JSON->true();
 	}
 
+sub add_badge :Local :Args(1)
+	{
+	my ($self, $c, $member_id) = @_;
+	my $badge_number = $c->stash()->{in}->{badge_number};
+
+	$c->log()->debug(Data::Dumper::Dumper($c->stash()->{in}));
+
+	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	if (!defined($member))
+		{
+		$c->stash()->{out}->{response} = JSON->false();
+		$c->stash()->{out}->{data}     = "Cannot find member";
+		return;
+		}
+	if (!defined($badge_number))
+		{
+		$c->stash()->{out}->{response} = JSON->false();
+		$c->stash()->{out}->{data}     = "No badge specified";
+		return;
+		}
+	
+	my $badge = $member->create_related('badges', { badge_number => $badge_number });
+	$c->stash()->{out}->{badge_number} = $badge_number;
+	$c->stash()->{out}->{badge_id} = $badge->badge_id();
+	$c->stash()->{out}->{response} = JSON->true();
+	$c->stash()->{out}->{data}     = "Badge created";
+	}
+
 sub begin :Private
 	{
 	my ($self, $c) = @_;

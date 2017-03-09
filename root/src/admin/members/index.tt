@@ -105,7 +105,7 @@ img.icon.icon-disabled
 </div>
 
 <div id="badge_dialogue" style="display: none">
-	<input type="text" id="number" />
+	<input type="text" id="badge_number" />
 </div>
 
 <script type="text/javascript">
@@ -115,6 +115,9 @@ var unlock_url = "[% Catalyst.uri_for('/api/admin/members/unlock') %]";
 function badge_edit(badge_id)
 	{
 	var title = badge_id ? "Edit Badge" : "Add Badge";
+	var member_id = $("#edit_dialogue").data("member_id");
+	
+	$("#badge_number").val("");
 	$("#badge_dialogue").dialog(
 		{
 		title: title,
@@ -122,6 +125,52 @@ function badge_edit(badge_id)
 			{
 			Cancel: function()
 				{
+				$(this).dialog("close");
+				},
+			OK: function()
+				{
+				var url;
+				var data = { badge_number: $("#badge_number").val() };
+				if (badge_id === undefined)
+					{
+					url = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]" + "/" + member_id;
+					$.ajax(
+						{
+						dataType: "json",
+						url: url,
+						type: "POST",
+						processData: false,
+						contentType: "application/json",
+						data: JSON.stringify(data),
+						cache: false,
+						success: function (data)
+							{
+							var $option = $("<option />")
+								.attr("id", data.badge_id)
+								.attr("value", data.badge_number)
+								.text(data.badge_number);
+							if (!data.response)
+								{
+								$.toast(
+									{
+									heading: "Badge add failed",
+									text: data.data,
+									icon: "error",
+									position: "top-right"
+									});
+								return;
+								}
+							$("#edit_dialogue div#badges select").append($option);
+							$.toast(
+								{
+								heading: "Success",
+								text: "Badge added!",
+								icon: "success",
+								position: "top-right"
+								});
+							}
+						});
+					}
 				$(this).dialog("close");
 				}
 			}
@@ -131,6 +180,9 @@ function badge_edit(badge_id)
 function edit(member_id)
 	{
 	var title = member_id ? "Edit Member" : "Add Member";
+	var $dialogue = $("#edit_dialogue");
+	$dialogue.data("member_id", member_id);
+
 	$.ajax(
 		{
 		dataType: "json",
@@ -138,10 +190,10 @@ function edit(member_id)
 		cache: false,
 		success: function (data)
 			{
-			var i, badge, $option, $select, $dialogue = $("#edit_dialogue");
+			var i, badge, $option, $select;
 
 			$("input.group[type=\"checkbox\"]").prop("checked", false);
-			$select = $dialogue.find("div#badges select");
+			$select = $dialogue.find("div#badges select").empty();
 
 			for (i = 0; i < data.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.groups[i].mgroup_id + "\"]").prop("checked", true);
