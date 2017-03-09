@@ -61,9 +61,16 @@ sub info :Local :Args(1)
 	foreach my $group (@groups)
 		{
 		my $g = $group->mgroup();
-		push (@ogroups, { $g->get_inflated_columns() });
+		push(@ogroups, { $g->get_inflated_columns() });
 		}
 	
+	my @badges = $member->badges();
+	my @obadges;
+	foreach my $badge (@badges)
+		{
+		push(@obadges, { $badge->get_inflated_columns() });
+		}
+	$c->stash()->{out}->{badges}   = \@obadges;
 	$c->stash()->{out}->{groups}   = \@ogroups;
 	$c->stash()->{out}->{member}   = { $member->get_inflated_columns() };
 	$c->stash()->{out}->{response} = JSON->true();

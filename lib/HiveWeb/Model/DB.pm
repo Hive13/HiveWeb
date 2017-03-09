@@ -7,7 +7,7 @@ __PACKAGE__->config(
     schema_class => 'HiveWeb::Schema',
     
     connect_info => {
-        dsn => 'dbi:Pg:dbname=door;host=door.at.hive13.org;user=access;password=access',
+        dsn => 'dbi:Pg:dbname=door;host=172.16.3.233;user=access;password=access',
         user => '',
         password => '',
     }
