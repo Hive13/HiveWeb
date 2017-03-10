@@ -219,6 +219,55 @@ function edit(member_id)
 				});
 			
 			$dialogue.find("div#badges img.add").click(function () { badge_edit(undefined) });
+			$dialogue.find("div#badges img.delete").click(function()
+				{
+				var badges = [];
+				var url = "[% Catalyst.uri_for('/api/admin/members/delete_badge') %]" + "/" + member_id;
+
+				$("div#badges select option:selected").each(function ()
+					{
+					badges.push($(this).attr("id"));
+					});
+				if (badges.length <= 0)
+					return;
+				if (!confirm("Are you sure you want to delete " + badges.length + " badges?"))
+					return;
+				$.ajax(
+					{
+					dataType: "json",
+					url: url,
+					type: "POST",
+					processData: false,
+					contentType: "application/json",
+					data: JSON.stringify({ badge_id: badges }),
+					cache: false,
+					success: function (data)
+						{
+						var i;
+
+						if (!data.response)
+							{
+							$.toast(
+								{
+								heading: "Badge delete failed",
+								text: data.data,
+								icon: "error",
+								position: "top-right"
+								});
+							return;
+							}
+						for (i = 0; i < badges.length; i++)
+							$("div#badges select option#" + badges[i]).remove();
+						$.toast(
+							{
+							heading: "Success",
+							text: "Badge(s) deleted!",
+							icon: "success",
+							position: "top-right"
+							});
+						}
+					});
+				});
 			$dialogue.dialog(
 				{
 				title: title,

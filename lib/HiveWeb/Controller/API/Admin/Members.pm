@@ -1,6 +1,7 @@
 package HiveWeb::Controller::API::Admin::Members;
 use Moose;
 use namespace::autoclean;
+use Try::Tiny;
 
 use JSON;
 
@@ -81,8 +82,6 @@ sub add_badge :Local :Args(1)
 	my ($self, $c, $member_id) = @_;
 	my $badge_number = $c->stash()->{in}->{badge_number};
 
-	$c->log()->debug(Data::Dumper::Dumper($c->stash()->{in}));
-
 	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
 	if (!defined($member))
 		{
@@ -102,6 +101,52 @@ sub add_badge :Local :Args(1)
 	$c->stash()->{out}->{badge_id} = $badge->badge_id();
 	$c->stash()->{out}->{response} = JSON->true();
 	$c->stash()->{out}->{data}     = "Badge created";
+	}
+
+sub delete_badge :Local :Args(1)
+	{
+	my ($self, $c, $member_id) = @_;
+	my $badge_ids = $c->stash()->{in}->{badge_ids} // $c->stash()->{in}->{badge_id};
+
+	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	if (!defined($member))
+		{
+		$c->stash()->{out}->{response} = JSON->false();
+		$c->stash()->{out}->{data}     = "Cannot find member";
+		return;
+		}
+	if (!defined($badge_ids))
+		{
+		$c->stash()->{out}->{response} = JSON->false();
+		$c->stash()->{out}->{data}     = "No badge specified";
+		return;
+		}
+	
+	$badge_ids = [ $badge_ids ]
+		if (ref($badge_ids) ne 'ARRAY');
+	
+	$c->stash()->{out}->{response} = JSON->true();
+	$c->stash()->{out}->{data}     = "Badges deleted";
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			foreach my $badge_id (@$badge_ids)
+				{
+				my $badge = $c->model('DB::Badge')->find($badge_id);
+				die
+					if (!defined($badge));
+				$badge->delete();
+				}
+			});
+		}
+	catch
+		{
+		$c->stash()->{out}->{response} = JSON->false();
+		$c->stash()->{out}->{data}     = "One or more badges was invalid";
+		return;
+		};
+	
 	}
 
 sub begin :Private
