@@ -17,7 +17,7 @@ __PACKAGE__->table("members");
 
 __PACKAGE__->add_columns(
   "member_id",
-  { data_type => "uuid", is_nullable => 1, size => 16 },
+  { data_type => "uuid", is_nullable => 0, size => 16 },
   "fname",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "lname",
