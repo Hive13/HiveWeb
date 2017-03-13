@@ -1,0 +1,160 @@
+[%~
+	SET columns =
+		[
+			{
+			name => 'name',
+			desc => 'Group Name',
+			},
+		];
+~%]
+<style>
+
+.member_table tbody tr td.edit
+	{
+	opacity: 0;
+	}
+
+.member_table tbody tr.highlight td.edit
+	{
+	opacity: 1;
+	}
+
+.member_table tbody tr.highlight td:not(.edit)
+	{
+	background-color: #bbbbff;
+	}
+
+img.icon
+	{
+	width: 20px;
+	height: 20px;
+	cursor: pointer;
+	}
+
+img.icon.icon-disabled
+	{
+	cursor: default;
+	opacity: .5;
+	}
+
+</style>
+<table class="member_table">
+	<thead>
+		<tr>
+			<th></th>
+			<th></th>
+[%~ FOREACH column IN columns %]
+			<th>
+[%~ IF order != column.name ~%]
+			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name) %]">
+				[%~ column.desc ~%]
+			</a>
+[%~ ELSE;
+			IF dir == "ASC" ~%]
+			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/desc') %]">[%~ column.desc ~%](&darr;)</a>
+[%~		ELSE ~%]
+			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/asc') %]">[%~ column.desc ~%](&uarr;)</a>
+[%~		END;
+		END ~%]
+			</th>
+[%~ END %]
+		</tr>
+	</thead>
+	<tbody>
+[%~ FOREACH group IN groups %]
+		<tr id="[% group.mgroup_id %]">
+			<td class="edit">
+				<img src="/static/icons/edit.png" title="Edit" class="edit icon" />
+				<img src="/static/icons/delete.png" title="Delete" class="delete icon" />
+			</td>
+[%~ 	FOREACH column IN columns;
+				SET name = column.name %]
+			<td>[% group.$name %]</td>
+[%~ 	END %]
+		</tr>
+[%~ END %]
+	</tbody>
+</table>
+
+<div id="group_dialogue" style="display: none">
+	Group Membership: <br />
+	<table class="3-column">
+[%~ FOREACH member IN members %]
+	[%~ IF loop.index % 4 == 0 %]
+	<tr>
+	[%~ END %]
+		<td>
+			<input type="checkbox" class="member" value="[% member.member_id %]" /> [% member.fname %] [% member.lname %]<br />
+		</td>
+	[%~ IF (loop.index + 1) % 4 == 0 %]
+	</tr>
+	[%~ END %]
+[%~ END %]
+	</table>
+</div>
+
+<script type="text/javascript">
+
+function edit(group_id)
+	{
+	var title = group_id ? "Edit Group" : "Add Group";
+	var $dialogue = $("#group_dialogue");
+	$dialogue.data("group_id", group_id);
+
+	$.ajax(
+		{
+		dataType: "json",
+		url: "[% Catalyst.uri_for('/api/admin/groups/info') %]" + "/" + group_id,
+		cache: false,
+		success: function (data)
+			{
+			var i, badge, $option;
+
+			$("input.member[type=\"checkbox\"]").prop("checked", false);
+
+			for (i = 0; i < data.members.length; i++)
+				$("input.member[type=\"checkbox\"][value=\"" + data.members[i].member_id + "\"]").prop("checked", true);
+			
+			$dialogue.dialog(
+				{
+				title: title,
+				maxHeight: $(window).height(),
+				width: 700,
+				buttons:
+					{
+					Cancel: function()
+						{
+						$(this).dialog("close");
+						}
+					}
+				});
+			}
+		});
+	}
+
+$(function ()
+	{
+	$("tr")
+		.mouseover(function ()
+			{
+			$(this).addClass("highlight");
+			})
+		.mouseout(function ()
+			{
+			$(this).removeClass("highlight");
+			})
+		.dblclick(function ()
+			{
+			edit($(this).attr("id"));
+			});
+	$("td.edit img.edit").click(function ()
+		{
+		var $this = $(this);
+		var group_id = $this.parents("tr").attr("id");
+		edit(group_id);
+		});
+	});
+
+</script>
+
+[%~ # vim:set filetype=tt2html: ~%]

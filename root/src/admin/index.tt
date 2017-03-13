@@ -2,6 +2,7 @@ This is some neat-o Administration shit.
 
 <ul class="subnav">
 	<li><a href="[% Catalyst.uri_for('/admin/members') %]">Member Admin</a></li>
+	<li><a href="[% Catalyst.uri_for('/admin/groups') %]">Group Admin</a></li>
 </ul>
 
 [%~ # vim:set filetype=tt2html: ~%]
