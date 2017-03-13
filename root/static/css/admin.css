@@ -1,3 +1,12 @@
+.data_table
+	{
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	width: 100%;
+	}
+
 .data_table tbody tr td.edit
 	{
 	opacity: 0;
@@ -13,6 +22,16 @@
 	background-color: #bbbbff;
 	}
 
+.data_table tbody tr.locked td:not(.edit)
+	{
+	background-color: #ffdddd;
+	}
+
+.data_table tbody tr.highlight.locked td:not(.edit)
+	{
+	background-color: #ffbbff;
+	}
+
 img.icon
 	{
 	width: 20px;
@@ -24,12 +43,4 @@ img.icon.icon-disabled
 	{
 	cursor: default;
 	opacity: .5;
-	}
-
-.data_table
-	{
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	user-select: none;
 	}

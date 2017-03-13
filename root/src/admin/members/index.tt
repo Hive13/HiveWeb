@@ -39,7 +39,11 @@
 	</thead>
 	<tbody>
 [%~ FOREACH member IN members %]
-		<tr id="[% member.member_id %]">
+		<tr id="[% member.member_id %]"
+		[%~ IF member.is_lockedout =%]
+		class="locked"
+		[%~ END ~%]
+		>
 			<td class="edit">
 				<img src="/static/icons/edit.png" title="Edit" class="edit icon" />
 				<img src="/static/icons/delete.png" title="Delete" class="delete icon" />
