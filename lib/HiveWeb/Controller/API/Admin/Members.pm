@@ -146,7 +146,38 @@ sub delete_badge :Local :Args(1)
 		$c->stash()->{out}->{data}     = "One or more badges was invalid";
 		return;
 		};
-	
+	}
+
+sub edit :Local :Args(1)
+	{
+	my ($self, $c, $member_id) = @_;
+
+	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	if (!defined($member))
+		{
+		$c->stash()->{out}->{response} = JSON->false();
+		$c->stash()->{out}->{data}     = "Cannot find member";
+		return;
+		}
+	my %new_groups = map { $_ => 1; } @{$c->stash()->{in}->{groups}};
+	my @groups = $c->model('DB::MGroup')->all();
+	foreach my $group (@groups)
+		{
+		my $group_id = $group->mgroup_id();
+		if ($new_groups{$group_id} && !$member->find_related('member_mgroups', { mgroup_id => $group_id }))
+			{
+			$c->log()->debug("Into " . $group->name());
+			$member->create_related('member_mgroups', { mgroup_id => $group_id });
+			}
+		my $mg;
+		if (!$new_groups{$group_id} && ($mg = $member->find_related('member_mgroups', { mgroup_id => $group_id })))
+			{
+			$c->log()->debug("Out of " . $group->name());
+			$mg->delete();
+			}
+		}
+	$c->stash()->{out}->{response} = JSON->true();
+	$c->stash()->{out}->{data}     = "Member profile has been updated.";
 	}
 
 sub begin :Private

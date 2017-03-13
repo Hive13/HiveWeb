@@ -177,6 +177,72 @@ function badge_edit(badge_id)
 		});
 	}
 
+function save_member()
+	{
+	var $this = $(this), groups = [], member_id = $this.data("member_id");
+	var url, what;
+
+	if (member_id)
+		{
+		what = "Member edit";
+		url = "[% Catalyst.uri_for('/api/admin/members/edit/') %]" + member_id;
+		}
+	else
+		{
+		what = "Member add";
+		url = "[% Catalyst.uri_for('/api/admin/members/new') %]";
+		}
+
+	$("input.group[type=\"checkbox\"]:checked").each(function()
+		{
+		groups.push($(this).val());
+		});
+	
+	$.ajax(
+		{
+		dataType: "json",
+		url: url,
+		type: "POST",
+		processData: false,
+		contentType: "application/json",
+		data: JSON.stringify({ groups: groups }),
+		cache: false,
+		success: function (data)
+			{
+			if (!data.response)
+				{
+				$.toast(
+					{
+					heading: what + " failed",
+					text: data.data,
+					icon: "error",
+					position: "top-right"
+					});
+				return;
+				}
+			$.toast(
+				{
+				heading: what + " succeeded",
+				text: data.data,
+				icon: "success",
+				position: "top-right"
+				});
+			$this.dialog("close");
+			},
+		error: function(data)
+			{
+			$.toast(
+				{
+				heading: "Oops",
+				text: data.data,
+				icon: "error",
+				position: "top-right"
+				});
+			}
+		});
+
+	}
+
 function edit(member_id)
 	{
 	var title = member_id ? "Edit Member" : "Add Member";
@@ -276,7 +342,8 @@ function edit(member_id)
 					Cancel: function()
 						{
 						$(this).dialog("close");
-						}
+						},
+					OK: save_member
 					}
 				});
 			}
