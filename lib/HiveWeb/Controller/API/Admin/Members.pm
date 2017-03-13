@@ -180,22 +180,6 @@ sub edit :Local :Args(1)
 	$c->stash()->{out}->{data}     = "Member profile has been updated.";
 	}
 
-sub begin :Private
-	{
-	my ($self, $c) = @_;
-
-	$c->stash()->{in} = $c->req()->body_data();
-	$c->stash()->{out} = {};
-	$c->stash()->{view} = $c->view('JSON');
-	}
-
-sub end :Private
-	{
-	my ($self, $c) = @_;
-
-	$c->detach($c->stash()->{view});
-	}
-
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
