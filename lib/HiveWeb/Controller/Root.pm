@@ -6,6 +6,13 @@ BEGIN { extends 'Catalyst::Controller' }
 
 __PACKAGE__->config(namespace => '');
 
+sub begin :Private
+	{
+	my ($self, $c) = @_;
+
+	$c->stash()->{extra_css} = [];
+	}
+
 sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
