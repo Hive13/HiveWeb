@@ -1,0 +1,35 @@
+.data_table tbody tr td.edit
+	{
+	opacity: 0;
+	}
+
+.data_table tbody tr.highlight td.edit
+	{
+	opacity: 1;
+	}
+
+.data_table tbody tr.highlight td:not(.edit)
+	{
+	background-color: #bbbbff;
+	}
+
+img.icon
+	{
+	width: 20px;
+	height: 20px;
+	cursor: pointer;
+	}
+
+img.icon.icon-disabled
+	{
+	cursor: default;
+	opacity: .5;
+	}
+
+.data_table
+	{
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	}

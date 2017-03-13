@@ -15,38 +15,7 @@
 			},
 		];
 ~%]
-<style>
-
-.member_table tbody tr td.edit
-	{
-	opacity: 0;
-	}
-
-.member_table tbody tr.highlight td.edit
-	{
-	opacity: 1;
-	}
-
-.member_table tbody tr.highlight td:not(.edit)
-	{
-	background-color: #bbbbff;
-	}
-
-img.icon
-	{
-	width: 20px;
-	height: 20px;
-	cursor: pointer;
-	}
-
-img.icon.icon-disabled
-	{
-	cursor: default;
-	opacity: .5;
-	}
-
-</style>
-<table class="member_table">
+<table class="data_table">
 	<thead>
 		<tr>
 			<th></th>
