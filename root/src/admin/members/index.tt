@@ -13,6 +13,15 @@
 			name => 'email',
 			desc => 'E-mail Address',
 			},
+			{
+			name => 'accesses',
+			desc => 'Accesses',
+			},
+			{
+			name => 'last_access_time',
+			desc => 'Last Access Time',
+			time => 'M/d/yyyy h:mm:ss a',
+			},
 		];
 ~%]
 <table class="data_table">
@@ -56,9 +65,14 @@
 [%~   END %]
 			</td>
 [%~ 	FOREACH column IN columns;
-				SET name = column.name %]
-			<td>[% member.$name %]</td>
-[%~ 	END %]
+				SET name = column.name;
+				SET value = member.$name;
+				IF column.time;
+					value = value.format_cldr(column.time);
+				END;
+%]
+			<td>[% value %]</td>
+			[%~ END %]
 		</tr>
 [%~ END %]
 	</tbody>
