@@ -16,14 +16,20 @@ sub view :Local
 	{
 	my $self  = shift;
 	my $c     = shift;
-	my $order = shift // "lname";
-	my $dir   = uc(shift // "ASC");
+	my $order = shift // 'lname';
+	my $dir   = uc(shift // 'ASC');
 
-	$dir = "ASC"
-		if ($dir ne "ASC" && $dir ne "DESC");
-	my $sorder .= "$order $dir";
+	$dir = 'ASC'
+		if ($dir ne 'ASC' && $dir ne 'DESC');
+	my $member_attrs = {};
 
-	my @members = $c->model('DB::Member')->search({}, { order_by  => $sorder });
+	if ($order ne 'accesses' && $order ne 'last_access_time')
+		{
+		my $sorder .= "$order $dir";
+		$member_attrs->{order_by} = $sorder;
+		}
+
+	my @members = $c->model('DB::Member')->search({}, $member_attrs);
 	my @omembers;
 	foreach my $member (@members)
 		{
@@ -39,6 +45,57 @@ sub view :Local
 		push (@omembers, \%m);
 		}
 	my @groups  = $c->model('DB::MGroup')->search({});
+
+	if ($order eq 'accesses')
+		{
+		if ($dir eq 'ASC')
+			{
+			@omembers = sort { $a->{accesses} <=> $b->{accesses} } @omembers;
+			}
+		else
+			{
+			@omembers = sort { $b->{accesses} <=> $a->{accesses} } @omembers;
+			}
+		}
+	elsif ($order eq 'last_access_time')
+		{
+		if ($dir eq 'ASC')
+			{
+			@omembers = sort
+				{
+				my $at = $a->{last_access_time};
+				my $bt = $b->{last_access_time};
+				if (!defined($at))
+					{
+					return -1
+						if (defined($bt));
+					return 0;
+					}
+				return 1
+					if (!defined($bt));
+				DateTime->compare($at, $bt);
+				}
+				@omembers;
+			}
+		else
+			{
+			@omembers = sort
+				{
+				my $at = $b->{last_access_time};
+				my $bt = $a->{last_access_time};
+				if (!defined($at))
+					{
+					return -1
+						if (defined($bt));
+					return 0;
+					}
+				return 1
+					if (!defined($bt));
+				DateTime->compare($at, $bt);
+				}
+				@omembers;
+			}
+		}
 
 	$c->stash()->{groups}   = \@groups;
 	$c->stash()->{members}  = \@omembers;
