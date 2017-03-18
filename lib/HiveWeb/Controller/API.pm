@@ -55,7 +55,7 @@ sub has_access :Private
 		{
 		member_id => $member->member_id(),
 		item_id   => $item->item_id(),
-		granted   => $access,
+		granted   => $access ? 1 : 0,
 		});
 	
 	return $access ? undef : "Access denied";
@@ -98,6 +98,8 @@ sub access :Local
 		{
 		$out->{response} = JSON->false();
 		$out->{error} = 'Cannot find device.';
+		$c->response()->status(400)
+			if ($data->{http});
 		return;
 		}
 	
@@ -107,12 +109,14 @@ sub access :Local
 	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))
 		{
-		$out->{response} = JSON::PP->false();
+		$out->{response} = JSON->false();
 		$out->{error} = 'Invalid checksum.';
+		$c->response()->status(400)
+			if ($data->{http});
 		return;
 		}
 	
-	$out->{response} = JSON::PP->true();
+	$out->{response} = JSON->true();
 	my $operation = lc($in->{operation} // 'access');
 	if ($operation eq 'access')
 		{
@@ -125,23 +129,29 @@ sub access :Local
 		
 		if ($d_i->count() < 1)
 			{
-			$out->{access} = JSON::PP->false();
+			$out->{access} = JSON->false();
 			$out->{error} = "Device not authorized for " . $item;
+			$c->response()->status(401)
+				if ($data->{http});
 			}
 		elsif (defined($access))
 			{
-			$out->{access} = JSON::PP->false();
+			$out->{access} = JSON->false();
 			$out->{error} = $access;
+			$c->response()->status(401)
+				if ($data->{http});
 			}
 		else
 			{
-			$out->{access} = JSON::PP->true();
+			$out->{access} = JSON->true();
 			}
 		}
 	else
 		{
-		$out->{response} = JSON::PP->false();
+		$out->{response} = JSON->false();
 		$out->{error} = 'Invalid operation.';
+		$c->response()->status(400)
+			if ($data->{http});
 		}
 	} 
 
