@@ -9,7 +9,7 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-use Crypt::Eksblowfish::Bcrypt qw* bcrypt *;
+use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
 __PACKAGE__->table_class("DBIx::Class::ResultSource::View");
@@ -23,6 +23,8 @@ __PACKAGE__->add_columns(
   "lname",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "email",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
+  "phone",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "encrypted_password",
   { data_type => "varchar", is_nullable => 1, size => 255, accessor => 'password' },
@@ -70,6 +72,15 @@ sub check_password
 	my $apw = $self->password();
 
 	return ($apw eq bcrypt($pw, $apw));
+	}
+
+sub set_password
+	{
+	my ($self, $pw) = @_;
+	my $salt = '$2a$10$' . en_base64("exactly sixteen!");
+
+	$self->password(bcrypt($pw, $salt));
+	$self->update();
 	}
 
 sub has_access
