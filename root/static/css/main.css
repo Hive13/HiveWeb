@@ -63,3 +63,17 @@ div#navbar ul li a::after
 	font-family: "Glyphicons Halflings";
 	margin-left: -1em;
 	}
+
+div#welcome
+	{
+	font-family: sans-serif;
+	width: 30%;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	font-size: 1.1em;
+	border: 1px solid #999999;
+	border-radius: 10px;
+	padding: 10px 0px;
+	background: #cccccc;
+	}

@@ -1,2 +1,5 @@
+[%~ IF Catalyst.user %]
+<div id="welcome">Hi, [% Catalyst.user.fname %]</div>
+[%~ END %]
 Home.  You can do home-tastic things here.
 [%~ # vim:set filetype=tt2html: ~%]
