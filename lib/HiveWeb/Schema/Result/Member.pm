@@ -32,6 +32,12 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "is_lockedout",
   { data_type => "boolean", is_nullable => 1 },
+	"vend_enabled",
+  { data_type => "boolean", is_nullable => 1 },
+	"vend_credits",
+  { data_type => "integer", is_nullable => 1 },
+	"vend_total",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -103,6 +109,27 @@ sub is_admin
 	my $officer = $self->mgroups()->find({ name => 'board' });
 
 	return defined($officer);
+	}
+
+sub do_vend
+	{
+	my $self = shift;
+
+	my $credits = $self->vend_credits();
+
+	return 0
+		if (!defined($credits) || $credits < 1);
+
+	my $count = $self->vend_total() // 0;
+	$count++;
+	$credits--;
+	$self->update(
+		{
+			vend_total   => $count,
+			vend_credits => $credits,
+		});
+
+	return 1;
 	}
 
 __PACKAGE__->meta->make_immutable;

@@ -23,23 +23,24 @@ Catalyst Controller.
 
 =cut
 
+sub find_member :Private
+	{
+	my $c        = shift;
+	my $badge_no = shift;
+	my $badge    = $c->model('DB::Badge')->find( { badge_number => $badge_no } );
+
+	return $badge->member()
+		if (defined($badge));
+	return $c->model('DB::Member')->find( { accesscard => $badge_no } );
+	}
+
 sub has_access :Private
 	{
 	my $c        = shift;
 	my $badge_no = shift;
 	my $iname    = shift;
 	my $item     = $c->model('DB::Item')->find( { name => $iname } );
-	my $badge    = $c->model('DB::Badge')->find( { badge_number => $badge_no } );
-	my $member;
-	
-	if (defined($badge))
-		{
-		$member = $badge->member();
-		}
-	else
-		{
-		$member = $c->model('DB::Member')->find( { accesscard => $badge_no } );
-		}
+	my $member   = find_member($c, $badge_no);
 	
 	return "Invalid badge"
 		if (!defined($member));
@@ -117,7 +118,8 @@ sub access :Local
 		}
 	
 	$out->{response} = JSON->true();
-	my $operation = lc($in->{operation} // 'access');
+	$out->{random_response} = $data->{random_response};
+	my $operation = lc($data->{operation} // 'access');
 	if ($operation eq 'access')
 		{
 		my $badge  = $data->{badge};
@@ -145,6 +147,27 @@ sub access :Local
 			{
 			$out->{access} = JSON->true();
 			}
+		}
+	elsif ($operation eq 'vend')
+		{
+		my $member = find_member($c, $data->{badge});
+
+		if (!$member)
+			{
+			$out->{vend} = JSON::PP->false();
+			$out->{error} = "Cannot find member associated with this badge.";
+			return;
+			}
+
+		if (!$member->do_vend())
+			{
+			$out->{vend} = JSON::PP->false();
+			$out->{error} = "You have no soda credits.";
+			return;
+			}
+
+		$out->{vend} = JSON::PP->true();
+		$out->{error} = "Have a soda!";
 		}
 	else
 		{
