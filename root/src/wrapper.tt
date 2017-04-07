@@ -21,10 +21,10 @@
 [%~ 	IF Catalyst.user.is_admin %]
 			<li><a href="[% Catalyst.uri_for('/admin') %]">Administration</a></li>
 [%~ 	END %]
-			<li><a href="[% Catalyst.uri_for('/profile') %]">My profile</a></li>
+			<li><a href="[% Catalyst.uri_for('/member/profile') %]">My profile</a></li>
 [%~ ELSE %]
 			<li><a href="[% Catalyst.uri_for('/login') %]">Sign In</a></li>
-			<li><a href="[% Catalyst.uri_for('/register') %]">Register</a></li>
+			<li><a href="[% Catalyst.uri_for('/member/register') %]">Register</a></li>
 [%~ END %]
 		</ul>
 	</div>
