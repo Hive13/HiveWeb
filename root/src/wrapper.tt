@@ -8,30 +8,30 @@
 			});
 		links.push(
 			{
-			uri  => Catalyst.uri_for('logout'),
+			uri  => Catalyst.uri_for('/logout'),
 			text => 'Sign Out',
 			});
 		IF Catalyst.user.is_admin;
 			links.push(
 				{
-				uri  => Catalyst.uri_for('admin'),
+				uri  => Catalyst.uri_for('/admin'),
 				text => 'Administration',
 				});
 		END;
 		links.push(
 			{
-			uri  => Catalyst.uri_for('member/profile'),
+			uri  => Catalyst.uri_for('/member/profile'),
 			text => 'My Profile',
 			});
 	ELSE;
 		links.push(
 			{
-			uri  => Catalyst.uri_for('login'),
+			uri  => Catalyst.uri_for('/login'),
 			text => 'Sign In',
 			});
 		links.push(
 			{
-			uri  => Catalyst.uri_for('member/register'),
+			uri  => Catalyst.uri_for('/member/register'),
 			text => 'Register',
 			});
 	END;
