@@ -51,6 +51,11 @@ div#navbar ul li a
 	font-size: 18px;
 	}
 
+div#navbar ul li.active a
+	{
+	color: #333333;
+	}
+
 div#navbar ul li a:hover,
 div#navbar ul li a:focus
 	{

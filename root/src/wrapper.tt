@@ -1,3 +1,41 @@
+[%~
+	SET links = [];
+	IF Catalyst.user_exists;
+		links.push(
+			{
+			uri  => Catalyst.uri_for('/'),
+			text => 'Home',
+			});
+		links.push(
+			{
+			uri  => Catalyst.uri_for('logout'),
+			text => 'Sign Out',
+			});
+		IF Catalyst.user.is_admin;
+			links.push(
+				{
+				uri  => Catalyst.uri_for('admin'),
+				text => 'Administration',
+				});
+		END;
+		links.push(
+			{
+			uri  => Catalyst.uri_for('member/profile'),
+			text => 'My Profile',
+			});
+	ELSE;
+		links.push(
+			{
+			uri  => Catalyst.uri_for('login'),
+			text => 'Sign In',
+			});
+		links.push(
+			{
+			uri  => Catalyst.uri_for('member/register'),
+			text => 'Register',
+			});
+	END;
+~%]
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,17 +54,13 @@
 	<div id="navbar">
 		<img src="[% Catalyst.uri_for('/static/images/Hive13_Logo.png') %]" />
 		<ul>
-[%~ IF Catalyst.user_exists %]
-			<li><a href="[% Catalyst.uri_for('/') %]">Home</a></li>
-			<li><a href="[% Catalyst.uri_for('/logout') %]">Sign Out</a></li>
-[%~ 	IF Catalyst.user.is_admin %]
-			<li><a href="[% Catalyst.uri_for('/admin') %]">Administration</a></li>
-[%~ 	END %]
-			<li><a href="[% Catalyst.uri_for('/member/profile') %]">My profile</a></li>
-[%~ ELSE %]
-			<li><a href="[% Catalyst.uri_for('/login') %]">Sign In</a></li>
-			<li><a href="[% Catalyst.uri_for('/member/register') %]">Register</a></li>
-[%~ END %]
+			[%~ FOREACH link IN links; %]
+			<li
+				[%~ IF link.uri == Catalyst.request.uri; =%]
+					class="active"
+				[%~ END; ~%]
+				><a href="[% link.uri %]">[% link.text %]</a></li>
+			[%~ END; %]
 		</ul>
 	</div>
 	<div id="content">
