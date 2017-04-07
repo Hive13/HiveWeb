@@ -17,6 +17,7 @@
 		<img src="[% Catalyst.uri_for('/static/images/Hive13_Logo.png') %]" />
 		<ul>
 [%~ IF Catalyst.user_exists %]
+			<li><a href="[% Catalyst.uri_for('/') %]">Home</a></li>
 			<li><a href="[% Catalyst.uri_for('/logout') %]">Sign Out</a></li>
 [%~ 	IF Catalyst.user.is_admin %]
 			<li><a href="[% Catalyst.uri_for('/admin') %]">Administration</a></li>
