@@ -86,7 +86,7 @@ sub charge :Local :Args(0)
 
 	my $form    = $c->request()->params();
 	my $config  = $c->config();
-	my $credits = $config->{soda}->{add_amount}
+	my $credits = $config->{soda}->{add_amount};
 
 	die
 		if (!$form);
