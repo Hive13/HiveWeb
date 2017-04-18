@@ -132,5 +132,22 @@ sub do_vend
 	return 1;
 	}
 
+sub add_vend_credits
+	{
+	my $self   = shift;
+	my $amount = shift;
+
+	my $credits = $self->vend_credits() // 0;
+
+	$credits += $amount;
+
+	$self->update(
+		{
+			vend_credits => $credits,
+		});
+
+	return 1;
+	}
+
 __PACKAGE__->meta->make_immutable;
 1;
