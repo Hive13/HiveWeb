@@ -1,6 +1,8 @@
 package HiveWeb::Controller::Member;
 use Moose;
 use namespace::autoclean;
+use LWP::UserAgent;
+use HTTP::Request::Common;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -76,6 +78,38 @@ sub profile :Local :Args(0)
 		
 	$c->user()->update($form) || die $!;
 	$c->response()->redirect($c->uri_for('/'));
+	}
+
+sub charge :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $form    = $c->request()->params();
+	my $config  = $c->config();
+	my $credits = $config->{soda}->{add_amount}
+
+	die
+		if (!$form);
+
+	my $ua  = LWP::UserAgent->new();
+
+	my $data =
+		{
+		amount      => $config->{soda}->{cost},
+		currency    => 'usd',
+		description => $credits . ' Hive Soda Credits',
+		source      => $form->{stripeToken},
+		};
+	my $req = POST 'https://api.stripe.com/v1/charges', $data || die $!;
+	$req->header(Authorization => 'Bearer ' . $c->config()->{stripe}->{secret_key});
+	my $res = $ua->request($req);
+
+	if ($res->code() == 200)
+		{
+		$c->user()->add_vend_credits($credits);
+		}
+	$c->stash()->{response}      = $res->content();
+	$c->stash()->{response_code} = $res->code();
 	}
 
 sub register :Local :Args(0)
