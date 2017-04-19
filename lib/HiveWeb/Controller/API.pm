@@ -2,7 +2,7 @@ package HiveWeb::Controller::API;
 use Moose;
 use namespace::autoclean;
 
-use JSON::PP;
+use JSON;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -154,19 +154,19 @@ sub access :Local
 
 		if (!$member)
 			{
-			$out->{vend} = JSON::PP->false();
+			$out->{vend} = JSON->false();
 			$out->{error} = "Cannot find member associated with this badge.";
 			return;
 			}
 
 		if (!$member->do_vend())
 			{
-			$out->{vend} = JSON::PP->false();
+			$out->{vend} = JSON->false();
 			$out->{error} = "You have no soda credits.";
 			return;
 			}
 
-		$out->{vend} = JSON::PP->true();
+		$out->{vend} = JSON->true();
 		$out->{error} = "Have a soda!";
 		}
 	else
