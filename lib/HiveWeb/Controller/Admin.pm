@@ -4,7 +4,7 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub begin :Private
+sub auto :Private
 	{
 	my ($self, $c) = @_;
 
