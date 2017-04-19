@@ -59,9 +59,9 @@
 			</td>
 			<td class="lock">
 [%~   IF member.is_lockedout %]
-				<img title="Unlock" class="unlock icon" src="/static/icons/unlock.png" />
+				<img title="Unlock" class="unlock icon" src="/static/icons/lock.png" />
 [%~   ELSE %]
-				<img title="Lock" class="lock icon" src="/static/icons/lock.png" />
+				<img title="Lock" class="lock icon" src="/static/icons/unlock.png" />
 [%~   END %]
 			</td>
 [%~ 	FOREACH column IN columns;
@@ -339,19 +339,10 @@ function edit(member_id)
 
 $(function ()
 	{
-	$("tr")
-		.mouseover(function ()
-			{
-			$(this).addClass("highlight");
-			})
-		.mouseout(function ()
-			{
-			$(this).removeClass("highlight");
-			})
-		.dblclick(function ()
-			{
-			edit($(this).attr("id"));
-			});
+	$("tr").dblclick(function ()
+		{
+		edit($(this).attr("id"));
+		});
 	$("td.edit img.edit").click(function ()
 		{
 		var $this = $(this);
@@ -380,7 +371,7 @@ $(function ()
 						.removeClass("unlock")
 						.addClass("lock")
 						.attr("title", "Lock")
-						.attr("src", "/static/icons/lock.png");
+						.attr("src", "/static/icons/unlock.png");
 					}
 				else
 					{
@@ -388,11 +379,29 @@ $(function ()
 						.removeClass("lock")
 						.addClass("unlock")
 						.attr("title", "Unlock")
-						.attr("src", "/static/icons/unlock.png");
+						.attr("src", "/static/icons/lock.png");
 					}
 				});
 			}
-		});
+		})
+		.mouseover(function ()
+			{
+			var $this = $(this);
+
+			if ($this.hasClass("lock"))
+				$this.attr("src", "/static/icons/lock.png");
+			else
+				$this.attr("src", "/static/icons/unlock.png");
+			})
+		.mouseout(function ()
+			{
+			var $this = $(this);
+
+			if ($this.hasClass("lock"))
+				$this.attr("src", "/static/icons/unlock.png");
+			else
+				$this.attr("src", "/static/icons/lock.png");
+			});
 	});
 
 </script>

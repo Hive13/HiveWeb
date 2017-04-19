@@ -12,12 +12,12 @@
 	opacity: 0;
 	}
 
-.data_table tbody tr.highlight td.edit
+.data_table tbody tr:hover td.edit
 	{
 	opacity: 1;
 	}
 
-.data_table tbody tr.highlight td:not(.edit)
+.data_table tbody tr:hover td:not(.edit)
 	{
 	background-color: #bbbbff;
 	}
@@ -27,7 +27,7 @@
 	background-color: #ffdddd;
 	}
 
-.data_table tbody tr.highlight.locked td:not(.edit)
+.data_table tbody tr.locked:hover td:not(.edit)
 	{
 	background-color: #ffbbff;
 	}
