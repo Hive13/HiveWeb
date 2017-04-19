@@ -14,16 +14,19 @@
 
 div#navbar
 	{
-	height: 54px;
+	height: 82px;
 	padding-bottom: 25px;
 	}
 
 div#navbar img
 	{
-	width: 100px;
+	height: 75%;
 	float: left;
 	padding-right: 25px;
 	padding-left: 25px;
+	top: 50%;
+	position: relative;
+	transform: translateY(-50%);
 	}
 
 div#navbar ul
