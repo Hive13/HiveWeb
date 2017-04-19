@@ -3,11 +3,18 @@
 		SET msg = "You are not logged in.";
 	END;
 ~%]
-[% msg %]
-<form id="login" method="post" action="[% Catalyst.uri_for('/login') %]">
-	E-mail address: <input type="text" id="email" length="30" name="email" /><br />
-	Passphrase: <input type="password" id="password" length="30" name="password" /><br />
-	<span style="font-size: 5px;">correct horse battery staple</span><br />
-	<input type="submit" value="Log me in" /><br />
-</form>
+
+<div class="row">
+	<div class="col-xs-12 col-sm-4 col-sm-offset-4">
+		<span>[% msg %]</span>
+		<form id="login" method="post" action="[% Catalyst.uri_for('/login') %]" class="form-signin">
+			<label for="email" class="sr-only">E-mail address</label>
+			<input type="text" id="email" length="30" name="email" required autofocus placeholder="E-mail address" class="form-control" />
+			<label for="password" class="sr-only">Passphrase</label>
+			<input type="password" id="password" length="30" name="password" required placeholder="Passphrase" class="form-control" />
+			<span style="font-size: 5px;">correct horse battery staple</span><br />
+			<input type="submit" value="Log me in" class="btn btn-block btn-primary" /><br />
+		</form>
+	</div>
+</div>
 [%~ # vim:set filetype=tt2html: ~%]

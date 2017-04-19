@@ -23,74 +23,78 @@ table.register span.error
 	background-color: #EEEEEE;
 	}
 </style>
-<form method=post>
-	<table class="register">
-		<tr>
-			<th><label for="fname">First Name:</label></th>
-			<td><input type="text" name="fname" id="fname" maxlength="255" value="[% vals.fname %]" /></td>
-			<td>
-				[%~
-					IF message.fname.defined && message.fname.length > 0;
-						GET '<span class="error">' _ message.fname _ '</span>';
-					END;
-				~%]
-			</td>
-		</tr>
-		<tr>
-			<th><label for="lname">Last Name:</label></th>
-			<td><input type="text" name="lname" id="lname" maxlength="255" value="[% vals.lname %]" /></td>
-			<td>
-				[%~
-					IF message.lname.defined && message.lname.length > 0;
-						GET '<span class="error">' _ message.lname _ '</span>';
-					END;
-				~%]
-			</td>
-		</tr>
-		<tr>
-			<th><label for="email">E-mail Address:</label></th>
-			<td><input type="text" name="email" id="email" maxlength="255" value="[% vals.email %]" /></td>
-			<td>
-				[%~
-					IF message.email.defined && message.email.length > 0;
-						GET '<span class="error">' _ message.email _ '</span>';
-					END;
-				~%]
-			</td>
-		</tr>
-		<tr>
-			<th><label for="phone">Phone Number:</label></th>
-			<td><input type="text" name="phone" id="phone" maxlength="255" value="[% vals.phone %]" /></td>
-			<td>
-				[%~
-					IF message.phone.defined && message.phone.length > 0;
-						GET '<span class="error">' _ message.phone _ '</span>';
-					END;
-				~%]
-			</td>
-		</tr>
-[%~ IF show_pass; %]
-		<tr>
-			<th><label for="password1">Password:</label></th>
-			<td><input type="password" name="password1" id="password1" maxlength="255" value="[% vals.password1 %]" /></td>
-			<td rowspan="2">
-				[%~
-					IF message.password.defined && message.password.length > 0;
-						GET '<span class="error">' _ message.password _ '</span>';
-					END;
-				~%]
-			</td>
-		</tr>
-		<tr>
-			<th><label for="password2">Confirm Password:</label></th>
-			<td><input type="password" name="password2" id="password2" maxlength="255" value="[% vals.password2 %]" /></td>
-		</tr>
-[%~ END; %]
-		<tr>
-			<td colspan="2">
-				<input type="submit" value="[% submit %]" />
-			</td>
-		</tr>
-	</table>
-</form>
+<div class="row">
+	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info" style="text-align: center; padding: 20px;">
+		<form method="post">
+			<table class="register" style="margin-left: auto; margin-right: auto; position: relative;">
+				<tr>
+					<th><label for="fname">First Name:</label></th>
+					<td><input type="text" name="fname" id="fname" maxlength="255" value="[% vals.fname %]" /></td>
+					<td>
+						[%~
+							IF message.fname.defined && message.fname.length > 0;
+								GET '<span class="error">' _ message.fname _ '</span>';
+							END;
+						~%]
+					</td>
+				</tr>
+				<tr>
+					<th><label for="lname">Last Name:</label></th>
+					<td><input type="text" name="lname" id="lname" maxlength="255" value="[% vals.lname %]" /></td>
+					<td>
+						[%~
+							IF message.lname.defined && message.lname.length > 0;
+								GET '<span class="error">' _ message.lname _ '</span>';
+							END;
+						~%]
+					</td>
+				</tr>
+				<tr>
+					<th><label for="email">E-mail Address:</label></th>
+					<td><input type="text" name="email" id="email" maxlength="255" value="[% vals.email %]" /></td>
+					<td>
+						[%~
+							IF message.email.defined && message.email.length > 0;
+								GET '<span class="error">' _ message.email _ '</span>';
+							END;
+						~%]
+					</td>
+				</tr>
+				<tr>
+					<th><label for="phone">Phone Number:</label></th>
+					<td><input type="text" name="phone" id="phone" maxlength="255" value="[% vals.phone %]" /></td>
+					<td>
+						[%~
+							IF message.phone.defined && message.phone.length > 0;
+								GET '<span class="error">' _ message.phone _ '</span>';
+							END;
+						~%]
+					</td>
+				</tr>
+		[%~ IF show_pass; %]
+				<tr>
+					<th><label for="password1">Password:</label></th>
+					<td><input type="password" name="password1" id="password1" maxlength="255" value="[% vals.password1 %]" /></td>
+					<td rowspan="2">
+						[%~
+							IF message.password.defined && message.password.length > 0;
+								GET '<span class="error">' _ message.password _ '</span>';
+							END;
+						~%]
+					</td>
+				</tr>
+				<tr>
+					<th><label for="password2">Confirm Password:</label></th>
+					<td><input type="password" name="password2" id="password2" maxlength="255" value="[% vals.password2 %]" /></td>
+				</tr>
+		[%~ END; %]
+				<tr>
+					<td colspan="2">
+						<input type="submit" value="[% submit %]" class="btn btn-lg btn-block btn-success" style="margin-top: 10px;" />
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
 [%~ # vim:set filetype=tt2html: ~%]
