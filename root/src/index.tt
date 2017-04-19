@@ -5,16 +5,15 @@ IF Catalyst.user;
 
 <div id="welcome">Hi, [% Catalyst.user.fname %]</div>
 
-<div id="soda">
+<div id="soda" class="info-box blue-info-box">
 	You have [% vend %] soda credit
 	[%~ IF vend != 1 ~%]
 		s
 	[%~ END =%]
 	remaining.
-
-	<div id="add">
+	<div id="add" class="info-box red-info-box u-mb-0">
 		<form method="post" action="[% Catalyst.uri_for('/member/charge') %]">
-			Add [% Catalyst.config.soda.add_amount %] credits to your account for $[% Catalyst.config.soda.cost / 100 %].
+			Add [% Catalyst.config.soda.add_amount %] credits to your account for $[% Catalyst.config.soda.cost / 100 %].<br />
 			<script src="https://checkout.stripe.com/v2/checkout.js" class="stripe-button"
 				data-key="[% Catalyst.config.stripe.public_key %]"
 				data-description="[% Catalyst.config.soda.add_amount %] Soda Credits"
