@@ -14,7 +14,7 @@
 
 div#navbar
 	{
-	height: 82px;
+	height: 80px;
 	padding-bottom: 25px;
 	}
 
@@ -33,6 +33,7 @@ div#navbar ul
 	{
 	margin: 0;
 	padding: 0;
+	height: 100%;
 	}
 
 div#navbar ul li
@@ -42,8 +43,9 @@ div#navbar ul li
 	float: left;
 	padding: 0 2em 0 0;
 	margin: 0;
-	line-height: 54px;
 	vertical-align: middle;
+	top: 50%;
+	transform: translateY(-50%);
 	}
 
 div#navbar ul li a
@@ -62,7 +64,7 @@ div#navbar ul li.active a
 div#navbar ul li a:hover,
 div#navbar ul li a:focus
 	{
-	color: 333333;
+	color: #555555;
 	}
 
 div#navbar ul li a::after
