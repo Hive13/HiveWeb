@@ -24,59 +24,66 @@
 			},
 		];
 ~%]
-<table class="data_table">
-	<thead>
-		<tr>
-			<th></th>
-			<th></th>
-[%~ FOREACH column IN columns %]
-			<th>
-[%~ IF order != column.name ~%]
-			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name) %]">
-				[%~ column.desc ~%]
-			</a>
-[%~ ELSE;
-			IF dir == "ASC" ~%]
-			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/desc') %]">[%~ column.desc ~%](&darr;)</a>
-[%~		ELSE ~%]
-			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/asc') %]">[%~ column.desc ~%](&uarr;)</a>
-[%~		END;
-		END ~%]
-			</th>
-[%~ END %]
-		</tr>
-	</thead>
-	<tbody>
-[%~ FOREACH member IN members %]
-		<tr id="[% member.member_id %]"
-		[%~ IF member.is_lockedout =%]
-		class="locked"
-		[%~ END ~%]
-		>
-			<td class="edit">
-				<img src="/static/icons/edit.png" title="Edit" class="edit icon" />
-				<img src="/static/icons/delete.png" title="Delete" class="delete icon" />
-			</td>
-			<td class="lock">
-[%~   IF member.is_lockedout %]
-				<img title="Unlock" class="unlock icon" src="/static/icons/lock.png" />
-[%~   ELSE %]
-				<img title="Lock" class="lock icon" src="/static/icons/unlock.png" />
-[%~   END %]
-			</td>
-[%~ 	FOREACH column IN columns;
-				SET name = column.name;
-				SET value = member.$name;
-				IF column.time;
-					value = value.format_cldr(column.time);
-				END;
-%]
-			<td>[% value %]</td>
-			[%~ END %]
-		</tr>
-[%~ END %]
-	</tbody>
-</table>
+<div class="row">
+	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+		<div class="panel-heading">
+			<h3>Members</h3>
+		</div>
+		<table class="data_table table">
+			<thead>
+				<tr>
+					<th></th>
+					<th></th>
+					[%~ FOREACH column IN columns %]
+					<th>
+					[%~ IF order != column.name ~%]
+						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name) %]">
+							[%~ column.desc ~%]
+						</a>
+					[%~ ELSE; ~%]
+						[%~	IF dir == "ASC"; ~%]
+						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/desc') %]">[%~ column.desc ~%](&darr;)</a>
+						[%~	ELSE; ~%]
+						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/asc') %]">[%~ column.desc ~%](&uarr;)</a>
+						[%~	END; ~%]
+					[%~ END; ~%]
+					</th>
+					[%~ END; %]
+				</tr>
+			</thead>
+			<tbody>
+		[%~ FOREACH member IN members %]
+				<tr id="[% member.member_id %]"
+				[%~ IF member.is_lockedout =%]
+				class="locked"
+				[%~ END ~%]
+				>
+					<td class="edit">
+						<img src="/static/icons/edit.png" title="Edit" class="edit icon" />
+						<img src="/static/icons/delete.png" title="Delete" class="delete icon" />
+					</td>
+					<td class="lock">
+		[%~   IF member.is_lockedout %]
+						<img title="Unlock" class="unlock icon" src="/static/icons/lock.png" />
+		[%~   ELSE %]
+						<img title="Lock" class="lock icon" src="/static/icons/unlock.png" />
+		[%~   END %]
+					</td>
+		[%~ 	FOREACH column IN columns;
+						SET name = column.name;
+						SET value = member.$name;
+						IF column.time;
+							value = value.format_cldr(column.time);
+						END;
+		%]
+					<td>[% value %]</td>
+					[%~ END %]
+				</tr>
+		[%~ END %]
+			</tbody>
+		</table>
+	</div>
+</div>
 
 <div id="edit_dialogue" style="display: none">
 	Group Membership: <br />

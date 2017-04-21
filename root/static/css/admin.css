@@ -32,6 +32,11 @@
 	background-color: #ffbbff;
 	}
 
+.data_table tbody td
+	{
+	padding: 4px 8px !important;
+	}
+
 img.icon
 	{
 	width: 1.2em;
