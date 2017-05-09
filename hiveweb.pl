@@ -1,4 +1,14 @@
 	{
+	'Model::DB' =>
+		{
+		schema_class => 'HiveWeb::Schema',
+		connect_info =>
+			{
+			dsn      => 'dbi:Pg:dbname=door;host=honeycomb.at.hive13.org;sslmode=require',
+			user     => 'access',
+			password => '< password >',
+			},
+		},
 	soda =>
 		{
 		add_amount => 20,
