@@ -1,0 +1,7 @@
+[%~ IF response_code >= 400 AND response_code < 600; %]
+	Something went wrong with the vend.
+[%~ ELSE %]
+	Twenty soda credits have been added to your account.
+[%~ END %]
+
+[%~ # vim:set filetype=tt2html: ~%]
