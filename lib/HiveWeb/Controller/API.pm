@@ -169,6 +169,11 @@ sub access :Local
 		$out->{vend} = JSON->true();
 		$out->{error} = "Have a soda!";
 		}
+	elsif ($operation eq 'log')
+		{
+		$out->{response} = \1;
+		$out->{error}    = 'Data discarded for now.';
+		}
 	else
 		{
 		$out->{response} = JSON->false();
