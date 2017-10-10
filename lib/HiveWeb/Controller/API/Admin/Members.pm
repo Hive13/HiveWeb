@@ -159,8 +159,10 @@ sub edit :Local :Args(1)
 		$c->stash()->{out}->{data}     = "Cannot find member";
 		return;
 		}
-	my %new_groups = map { $_ => 1; } @{$c->stash()->{in}->{groups}};
-	my @groups = $c->model('DB::MGroup')->all();
+	my %new_groups   = map { $_ => 1; } @{$c->stash()->{in}->{groups}};
+	my @groups       = $c->model('DB::MGroup')->all();
+	my $vend_credits = int($c->stash()->{in}->{vend_credits}) || $member->vend_credits();
+	$member->update({ vend_credits => $vend_credits });
 	foreach my $group (@groups)
 		{
 		my $group_id = $group->mgroup_id();

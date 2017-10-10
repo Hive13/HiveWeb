@@ -96,6 +96,11 @@
 		<img title="Add" class="add icon" src="/static/icons/add.png" />
 		<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
 	</div>
+	<div id="soda_credit_div">
+		<label>Soda Credits:<br />
+			<input type=text id="soda_credits" size="3" />
+		</label>
+	</div>
 </div>
 
 <div id="badge_dialogue" style="display: none">
@@ -174,6 +179,7 @@ function badge_edit(badge_id)
 function save_member()
 	{
 	var $this = $(this), groups = [], member_id = $this.data("member_id");
+	var soda_credits = $this.find("input#soda_credits").val();
 	var url, what;
 
 	if (member_id)
@@ -199,7 +205,7 @@ function save_member()
 		type: "POST",
 		processData: false,
 		contentType: "application/json",
-		data: JSON.stringify({ groups: groups }),
+		data: JSON.stringify({ groups: groups, vend_credits: soda_credits }),
 		cache: false,
 		success: function (data)
 			{
@@ -250,10 +256,13 @@ function edit(member_id)
 		cache: false,
 		success: function (data)
 			{
-			var i, badge, $option, $select;
+			var i, badge, $option, $select, $soda_credits;
 
 			$("input.group[type=\"checkbox\"]").prop("checked", false);
-			$select = $dialogue.find("div#badges select").empty();
+			$select       = $dialogue.find("div#badges select").empty();
+			$soda_credits = $dialogue.find("input#soda_credits");
+
+			$soda_credits.val(data.member.vend_credits);
 
 			for (i = 0; i < data.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.groups[i].mgroup_id + "\"]").prop("checked", true);
