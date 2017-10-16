@@ -16,10 +16,17 @@
 			{
 			name => 'accesses',
 			desc => 'Accesses',
+			get  => 1,
 			},
 			{
 			name => 'last_access_time',
 			desc => 'Last Access Time',
+			#time => 'M/d/yyyy h:mm:ss a',
+			get  => 1,
+			},
+			{
+			name => 'created_at',
+			desc => 'Create Time'
 			time => 'M/d/yyyy h:mm:ss a',
 			},
 		];
@@ -71,7 +78,11 @@
 					</td>
 		[%~ 	FOREACH column IN columns;
 						SET name = column.name;
-						SET value = member.$name;
+						IF column.get;
+							SET value = member.get_column(name);
+						ELSE;
+							SET value = member.$name;
+						END;
 						IF column.time;
 							value = value.format_cldr(column.time);
 						END;

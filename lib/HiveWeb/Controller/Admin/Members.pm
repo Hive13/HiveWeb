@@ -21,7 +21,32 @@ sub view :Local
 
 	$dir = 'ASC'
 		if ($dir ne 'ASC' && $dir ne 'DESC');
-	my $member_attrs = {};
+
+	my $count_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		alias => 'al_count',
+		})->count_rs()->as_query();
+
+	my $last_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		select => { to_char => [ { max => 'access_time' }, \"'MM/DD/YYYY HH12:MI:SS AM'" ] },
+		alias  => 'al_time',
+		}
+	)->as_query();
+
+	my $member_attrs =
+		{
+		'+select' => [ $count_query, $last_query ],
+		'+as'     => [ 'accesses', 'last_access_time' ],
+		};
 
 	if ($order ne 'accesses' && $order ne 'last_access_time')
 		{
@@ -30,38 +55,24 @@ sub view :Local
 		}
 
 	my @members = $c->model('DB::Member')->search({}, $member_attrs);
-	my @omembers;
-	foreach my $member (@members)
-		{
-		my %m = $member->get_columns();
-		$m{accesses} = $member->search_related('access_logs')->count();
-		my $lat = $member
-			->search_related('access_logs', { granted => 1 }, { order_by => { -desc => [ 'access_time' ] } })
-			->first();
-		if (defined($lat))
-			{
-			$m{last_access_time} = $lat->access_time();
-			}
-		push (@omembers, \%m);
-		}
 	my @groups  = $c->model('DB::MGroup')->search({});
 
 	if ($order eq 'accesses')
 		{
 		if ($dir eq 'ASC')
 			{
-			@omembers = sort { $a->{accesses} <=> $b->{accesses} } @omembers;
+			@members = sort { $a->{accesses} <=> $b->{accesses} } @members;
 			}
 		else
 			{
-			@omembers = sort { $b->{accesses} <=> $a->{accesses} } @omembers;
+			@members = sort { $b->{accesses} <=> $a->{accesses} } @members;
 			}
 		}
 	elsif ($order eq 'last_access_time')
 		{
 		if ($dir eq 'ASC')
 			{
-			@omembers = sort
+			@members = sort
 				{
 				my $at = $a->{last_access_time};
 				my $bt = $b->{last_access_time};
@@ -75,11 +86,11 @@ sub view :Local
 					if (!defined($bt));
 				DateTime->compare($at, $bt);
 				}
-				@omembers;
+				@members;
 			}
 		else
 			{
-			@omembers = sort
+			@members = sort
 				{
 				my $at = $b->{last_access_time};
 				my $bt = $a->{last_access_time};
@@ -93,12 +104,12 @@ sub view :Local
 					if (!defined($bt));
 				DateTime->compare($at, $bt);
 				}
-				@omembers;
+				@members;
 			}
 		}
 
 	$c->stash()->{groups}   = \@groups;
-	$c->stash()->{members}  = \@omembers;
+	$c->stash()->{members}  = \@members;
 	$c->stash()->{order}    = $order;
 	$c->stash()->{dir}      = $dir;
 	$c->stash()->{template} = 'admin/members/index.tt';

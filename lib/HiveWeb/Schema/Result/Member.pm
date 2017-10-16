@@ -38,6 +38,20 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
 	"vend_total",
   { data_type => "integer", is_nullable => 1 },
+	"created_at",
+  {
+    data_type     => "timestamp without time zone",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+    original      => { default_value => \"now()" },
+  },
+	"updated_at",
+  {
+    data_type     => "timestamp without time zone",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+    original      => { default_value => \"now()" },
+  },
 );
 
 __PACKAGE__->uuid_columns('member_id');
