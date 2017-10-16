@@ -1,6 +1,6 @@
 [%~ 
-IF Catalyst.user;
-	SET vend = Catalyst.user.vend_credits;
+IF Catalyst.user_exists;
+	SET vend = Catalyst.user.vend_credits || 0;
 %]
 <div class="jumbotron">
 	<h3>Hi, [% Catalyst.user.fname %]</h3>
