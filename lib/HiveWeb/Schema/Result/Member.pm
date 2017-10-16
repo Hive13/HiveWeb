@@ -69,6 +69,14 @@ __PACKAGE__->has_many
 
 __PACKAGE__->has_many
 	(
+	'vend_logs',
+	'HiveWeb::Schema::Result::VendLog',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many
+	(
 	'badges',
 	'HiveWeb::Schema::Result::Badge',
 	{ 'foreign.member_id' => 'self.member_id' },
@@ -127,14 +135,21 @@ sub is_admin
 
 sub do_vend
 	{
-	my $self = shift;
+	my $self   = shift;
+	my $device = shift // return;
 
-	my $credits = $self->vend_credits();
+	my $credits = $self->vend_credits() || 0;
+
+	$self->create_related('vend_logs',
+		{
+		vended    => $credits > 0,
+		device_id => $device->device_id(),
+		});
 
 	return 0
-		if (!defined($credits) || $credits < 1);
+		if $credits < 1;
 
-	my $count = $self->vend_total() // 0;
+	my $count = $self->vend_total() || 0;
 	$count++;
 	$credits--;
 	$self->update(

@@ -52,11 +52,10 @@ sub has_access :Private
 	my $access = $member->has_access($item);
 	
 	# Log the access
-	$c->model('DB::AccessLog')->create(
+	$member->create_related('access_logs',
 		{
-		member_id => $member->member_id(),
-		item_id   => $item->item_id(),
-		granted   => $access ? 1 : 0,
+		item_id     => $item->item_id(),
+		granted     => $access ? 1 : 0,
 		});
 	
 	return $access ? undef : "Access denied";
