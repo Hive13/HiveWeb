@@ -158,7 +158,7 @@ sub access :Local
 			return;
 			}
 
-		if (!$member->do_vend())
+		if (!$member->do_vend($device))
 			{
 			$out->{vend} = JSON->false();
 			$out->{error} = "You have no soda credits.";
