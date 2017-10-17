@@ -50,11 +50,19 @@ __PACKAGE__->config
 	enable_catalyst_header => 1, # Send X-Catalyst header
 	'View::JSON' =>
 		{
-		expose_stash => 'out',
+		expose_stash      => 'out',
+		json_encoder_args =>
+			{
+			convert_blessed => 1,
+			},
 		},
 	'View::ChecksummedJSON' =>
 		{
-		expose_stash => 'out',
+		expose_stash      => 'out',
+		json_encoder_args =>
+			{
+			convert_blessed => 1,
+			},
 		},
 	'View::HTML' =>
 		{

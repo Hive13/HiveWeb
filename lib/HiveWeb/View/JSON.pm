@@ -14,4 +14,10 @@ it under the same terms as Perl itself.
 
 =cut
 
+sub DateTime::TO_JSON
+	{
+	my $dt = shift;
+	return $dt->iso8601() . 'Z';
+	}
+
 1;
