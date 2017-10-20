@@ -116,9 +116,11 @@ sub access :Local
 		return;
 		}
 	
-	$out->{response} = JSON->true();
+	$out->{response}        = \1;
 	$out->{random_response} = $data->{random_response};
+
 	my $operation = lc($data->{operation} // 'access');
+
 	if ($operation eq 'access')
 		{
 		my $badge  = $data->{badge};
@@ -130,22 +132,21 @@ sub access :Local
 		
 		if ($d_i->count() < 1)
 			{
-			$out->{access} = JSON->false();
-			$out->{error} = "Device not authorized for " . $item;
+			$out->{access} = \0;
+			$out->{error}  = "Device not authorized for " . $item;
 			$c->response()->status(401)
 				if ($data->{http});
+			return;
 			}
-		elsif (defined($access))
+		if (defined($access))
 			{
-			$out->{access} = JSON->false();
-			$out->{error} = $access;
+			$out->{access} = \0;
+			$out->{error}  = $access;
 			$c->response()->status(401)
 				if ($data->{http});
+			return;
 			}
-		else
-			{
-			$out->{access} = JSON->true();
-			}
+		$out->{access} = \1;
 		}
 	elsif ($operation eq 'vend')
 		{
@@ -153,25 +154,61 @@ sub access :Local
 
 		if (!$member)
 			{
-			$out->{vend} = JSON->false();
+			$out->{vend}  = \0;
 			$out->{error} = "Cannot find member associated with this badge.";
 			return;
 			}
 
 		if (!$member->do_vend($device))
 			{
-			$out->{vend} = JSON->false();
+			$out->{vend}  = \0;
 			$out->{error} = "You have no soda credits.";
 			return;
 			}
 
-		$out->{vend} = JSON->true();
+		$out->{vend}  = \1;
 		$out->{error} = "Have a soda!";
 		}
 	elsif ($operation eq 'log')
 		{
-		$out->{response} = \1;
-		$out->{error}    = 'Data discarded for now.';
+		my $iname = $data->{log_data}->{item};
+		my $item  = $c->model('DB::Item')->find( { name => $iname } );
+		if (!$item)
+			{
+			$out->{response} = \0;
+			$out->{error}    = "Unknown item " . $iname;
+			$c->response()->status(401)
+				if ($data->{http});
+			return;
+			}
+
+		my $d_i = $device
+			->search_related('device_items', { item_id => $item->item_id() });
+
+		if ($d_i->count() < 1)
+			{
+			$out->{response} = \0;
+			$out->{error}    = "Device not authorized for " . $iname;
+			$c->response()->status(401)
+				if ($data->{http});
+			return;
+			}
+
+		my $temp_log = $item->create_related('temp_logs',
+			{
+			temperature => $data->{log_data}->{temperature},
+			});
+		if ($temp_log)
+			{
+			$out->{response}    = \1;
+			$out->{error}       = 'Data logged.';
+			$out->{temp_log_id} = $temp_log->temp_log_id();
+			}
+		else
+			{
+			$out->{response} = \0;
+			$out->{error}    = 'Could not log temperature.';
+			}
 		}
 	else
 		{
