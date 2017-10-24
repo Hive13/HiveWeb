@@ -13,6 +13,20 @@ sub verify_user_data
 	my $message = {};
 	my $fail    = 0;
 
+	my $different_paypal = delete($form->{different_paypal});
+
+	if ($different_paypal)
+		{
+		if ($form->{paypal_email} && $form->{paypal_email} !~ /.+@.+\..+/)
+			{
+			$message->{paypal_email} = "You must specify a valid PayPal e-mail address or leave it blank if you do not use PayPal.";
+			$fail = 1;
+			}
+		}
+	else
+		{
+		$form->{paypal_email} = undef;
+		}
 	if (!$form->{email} || $form->{email} eq '' || $form->{email} !~ /.+@.+\..+/)
 		{
 		$message->{email} = "You must specify a valid e-mail address.";

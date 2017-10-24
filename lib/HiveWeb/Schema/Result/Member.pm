@@ -24,6 +24,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "email",
   { data_type => "varchar", is_nullable => 1, size => 255 },
+  "paypal_email",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
   "phone",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "encrypted_password",
