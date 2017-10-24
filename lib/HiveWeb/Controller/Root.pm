@@ -36,6 +36,13 @@ sub login :Local
 	$auth->{email}    = $params->{email};
 	$auth->{password} = $params->{password};
 	my $user = $c->authenticate($auth);
+	my $log  = $c->model('DB::SignInLog')->create(
+		{
+		email     => $params->{email},
+		valid     => $user ? 1 : 0,
+		member_id => $user ? $user->member_id() : undef,
+		remote_ip => $c->request()->address(),
+		}) || die $!;
 	if ($user)
 		{
 		$c->response()->redirect($c->uri_for('/'));
