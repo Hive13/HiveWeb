@@ -25,7 +25,7 @@ __PACKAGE__->add_columns(
   "member_id",
   { data_type => "uuid", is_foreign_key => 1, is_nullable => 0, size => 16 },
   "valid",
-  { data_type => "boolean", is_nullable => 0 },
+  { data_type => "boolean", is_nullable => 1 },
   "remote_ip",
   { data_type => "inet", is_nullable => 0 },
   "email",
@@ -33,7 +33,7 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->set_primary_key("sign_in_id");
-__PACKAGE__->uuid_columns(qw{ sign_in_id member_id });
+__PACKAGE__->uuid_columns(qw{ sign_in_id });
 
 __PACKAGE__->belongs_to(
   "member",
