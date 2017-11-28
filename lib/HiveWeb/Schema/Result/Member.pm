@@ -93,23 +93,48 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'reset_tokens',
+	'HiveWeb::Schema::Result::ResetToken',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 
+sub make_salt
+	{
+	my $self   = shift;
+	my $length = shift // 2;
+	my @chars  = ( '.', '/', 0 .. 9, 'A' .. 'Z', 'a' .. 'z' );
+	my $salt   = '';
+
+	for (my $i = 0; $i < $length; $i++)
+		{
+		$salt .= $chars[int(rand(scalar(@chars)))];
+		}
+
+	return $salt;
+	}
 
 sub check_password
 	{
 	my ($self, $pw) = @_;
 	my $apw = $self->password();
 
-	return ($apw eq bcrypt($pw, $apw));
+	return ($apw eq bcrypt($pw, $apw))
+		if ($apw =~ /^\$2/);
+
+	return ($apw eq crypt($pw, $apw));
 	}
 
 sub set_password
 	{
 	my ($self, $pw) = @_;
-	my $salt = '$2a$10$' . en_base64("exactly sixteen!");
+	my $salt = '$6$' . $self->make_salt(16) . '$';
 
-	$self->password(bcrypt($pw, $salt));
+	$self->password(crypt($pw, $salt));
 	$self->update();
 	}
 
