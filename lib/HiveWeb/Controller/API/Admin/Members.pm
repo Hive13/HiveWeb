@@ -148,6 +148,32 @@ sub delete_badge :Local :Args(1)
 		};
 	}
 
+sub password :Local :Args(1)
+	{
+	my ($self, $c, $member_id) = @_;
+
+	my $out = $c->stash()->{out};
+
+	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	if (!defined($member))
+		{
+		$out->{response} = JSON->false();
+		$out->{data}     = "Cannot find member";
+		return;
+		}
+
+	$out->{response} = \0;
+	$out->{data}     = 'Blank or invalid password supplied.';
+
+	my $password = $c->stash()->{in}->{password};
+	if ($password)
+		{
+		$member->set_password($password);
+		$out->{data}     = "Member password has been updated.";
+		$out->{response} = \1;
+		}
+	}
+
 sub edit :Local :Args(1)
 	{
 	my ($self, $c, $member_id) = @_;

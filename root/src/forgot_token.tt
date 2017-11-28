@@ -1,0 +1,18 @@
+<div class="row">
+	<div class="col-xs-12 col-sm-4 col-sm-offset-4 col-xl-2 col-xl-offset-5">
+		[%~ IF token AND token.valid %]
+		<form id="forgot" method="post" action="[% Catalyst.uri_for('/forgot_password') _ '/' _ token.token_id %]">
+			[%~ IF message %]
+			<div class="alert alert-danger">[% message %]</div>
+			[%~ END %]
+			<span>Please select a new password.</span>
+			<input type="password" id="password1" length="30" name="password1" required autofocus placeholder="Password" class="form-control" />
+			<input type="password" id="password2" length="30" name="password2" required placeholder="Confirm Password" class="form-control" />
+			<input type="submit" value="Update my password" class="btn btn-block btn-primary" /><br />
+		</form>
+		[%~ ELSE %]
+		The token specified is invalid.
+		[%~ END %]
+	</div>
+</div>
+[%~ # vim:set filetype=tt2html: ~%]

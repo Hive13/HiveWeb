@@ -17,7 +17,7 @@ sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	$c->stash()->{template} = 'index.tt'; 
+	$c->stash()->{template} = 'index.tt';
 	}
 
 sub login :Local
@@ -26,7 +26,7 @@ sub login :Local
 
 	if ($c->request()->method() eq 'GET')
 		{
-		$c->stash()->{template} = 'login.tt'; 
+		$c->stash()->{template} = 'login.tt';
 		return;
 		}
 	
@@ -49,8 +49,8 @@ sub login :Local
 		}
 	else
 		{
-		$c->stash()->{template} = 'login.tt'; 
-		$c->stash()->{msg} = 'The username or password were invalid.'; 
+		$c->stash()->{template} = 'login.tt';
+		$c->stash()->{msg} = 'The username or password were invalid.';
 		$c->response->status(403);
 		}
 	}
@@ -61,6 +61,78 @@ sub logout :Local
 
 	$c->logout();
 	$c->response()->redirect($c->uri_for('/'));
+	}
+
+sub forgot :Local
+	{
+	my $self     = shift;
+	my $c        = shift;
+	my $token_id = shift;
+	my $stash    = $c->stash();
+
+	if ($token_id)
+		{
+		my $token = $c->model('DB::ResetToken')->find($token_id);
+		$stash->{template} = 'forgot_token.tt';
+		$stash->{token}    = $token;
+		return;
+		}
+
+	if ($c->request()->method() eq 'GET')
+		{
+		$stash->{template} = 'forgot.tt';
+		return;
+		}
+
+	my $params = $c->request()->params();
+	my $email  = $params->{email};
+
+	my $member = $c->model('DB::Member')->find({ email => $email });
+
+	if ($member)
+		{
+		my $token = $member->create_related('reset_tokens', { valid => 1 });
+		$stash->{token_id} = $token->token_id();
+		}
+
+	$stash->{email}    = $email;
+	$stash->{template} = 'forgot_sent.tt';
+	}
+
+sub forgot_password :Local
+	{
+	my $self     = shift;
+	my $c        = shift;
+	my $token_id = shift;
+	my $stash    = $c->stash();
+	my $params   = $c->request()->params();
+	my $token    = $c->model('DB::ResetToken')->find($token_id);
+
+	$token = undef
+		if ($token && !$token->valid());
+
+	$stash->{token}    = $token;
+	$stash->{template} = 'forgot_token.tt';
+
+	return
+		if (!$token || $c->request()->method() eq 'GET');
+
+	my $member   = $token->member();
+	my $password = $params->{password1};
+
+	if ($password ne $params->{password2})
+		{
+		$stash->{message} = 'The passwords do not match.';
+		return;
+		}
+
+	$c->model('DB')->txn_do(sub
+		{
+		$member->set_password($password);
+		$token->update({ valid => 0 });
+		});
+
+	$stash->{template} = 'forgot_updated.tt';
 	}
 
 sub default :Path

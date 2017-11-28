@@ -66,6 +66,7 @@
 				[%~ END ~%]
 				>
 					<td class="edit">
+						<img src="/static/icons/key.png" title="Change Password" class="password icon" />
 						<img src="/static/icons/edit.png" title="Edit" class="edit icon" />
 						<img src="/static/icons/delete.png" title="Delete" class="delete icon" />
 					</td>
@@ -112,6 +113,11 @@
 			<input type=text id="soda_credits" size="3" />
 		</label>
 	</div>
+</div>
+
+<div id="password_dialogue" style="display: none">
+	<input type="password" id="password1" length="30" name="password1" required autofocus placeholder="Password" class="form-control" />
+	<input type="password" id="password2" length="30" name="password2" required placeholder="Confirm Password" class="form-control" />
 </div>
 
 <div id="badge_dialogue" style="display: none">
@@ -187,6 +193,69 @@ function badge_edit(badge_id)
 		});
 	}
 
+function save_password()
+	{
+	var $this = $(this), groups = [], member_id = $this.data("member_id");
+	var password  = $this.find("input#password1").val();
+	var password2 = $this.find("input#password2").val();
+	var url = "[% Catalyst.uri_for('/api/admin/members/password') %]/" + member_id;
+
+	if (password != password2)
+		{
+		$.toast(
+			{
+			heading: "Passwords aren't the same",
+			text: "Please make sure they match.  Please.",
+			icon: "error",
+			position: "top-right"
+			});
+		return;
+		}
+
+	$.ajax(
+		{
+		dataType: "json",
+		url: url,
+		type: "POST",
+		processData: false,
+		contentType: "application/json",
+		data: JSON.stringify({ password: password }),
+		cache: false,
+		success: function (data)
+			{
+			if (!data.response)
+				{
+				$.toast(
+					{
+					heading: "Password update failed",
+					text: data.data,
+					icon: "error",
+					position: "top-right"
+					});
+				return;
+				}
+			$.toast(
+				{
+				heading: "Password update succeeded",
+				text: data.data,
+				icon: "success",
+				position: "top-right"
+				});
+			$this.dialog("close");
+			},
+		error: function(data)
+			{
+			$.toast(
+				{
+				heading: "Oops",
+				text: data.data,
+				icon: "error",
+				position: "top-right"
+				});
+			}
+		});
+	}
+
 function save_member()
 	{
 	var $this = $(this), groups = [], member_id = $this.data("member_id");
@@ -251,7 +320,26 @@ function save_member()
 				});
 			}
 		});
+	}
 
+function change_password(member_id)
+	{
+	var title = "Change Member Password";
+	var $dialogue = $("#password_dialogue");
+	$dialogue.data("member_id", member_id);
+
+	$dialogue.dialog(
+		{
+		title: title,
+		buttons:
+			{
+			Cancel: function()
+				{
+				$(this).dialog("close");
+				},
+			OK: save_password
+			}
+		});
 	}
 
 function edit(member_id)
@@ -369,6 +457,12 @@ $(function ()
 	$("tr").dblclick(function ()
 		{
 		edit($(this).attr("id"));
+		});
+	$("td.edit img.password").click(function ()
+		{
+		var $this = $(this);
+		var member_id = $this.parents("tr").attr("id");
+		change_password(member_id);
 		});
 	$("td.edit img.edit").click(function ()
 		{
