@@ -171,7 +171,7 @@ sub access :Local
 		}
 	elsif ($operation eq 'log')
 		{
-		my $iname = $data->{log_data}->{item};
+		my $iname = $data->{log_data}->{item} // '';
 		my $item  = $c->model('DB::Item')->find( { name => $iname } );
 		if (!$item)
 			{

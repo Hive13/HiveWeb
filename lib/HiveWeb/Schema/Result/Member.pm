@@ -169,7 +169,7 @@ sub do_vend
 
 	$self->create_related('vend_logs',
 		{
-		vended    => $credits > 0,
+		vended    => $credits > 0 ? 1 : 0,
 		device_id => $device->device_id(),
 		});
 
