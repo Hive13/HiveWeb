@@ -95,6 +95,13 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+  "vend_logs",
+  "HiveWeb::Schema::Result::VendLog",
+  { "foreign.device_id" => "self.device_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 items
 
 Type: many_to_many

@@ -30,6 +30,12 @@ sub index :Path :Args(0)
 			}
 		}
 
+	if ($c->user()->is_admin())
+		{
+		my @accesses = $c->model('DB::AccessLog')->search({}, { order_by => { -desc => 'me.access_time' }, rows => 10 });
+		$c->stash()->{accesses} = \@accesses;
+		}
+
 	$c->stash(
 		{
 		template => 'index.tt',

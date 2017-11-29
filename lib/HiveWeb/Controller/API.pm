@@ -41,23 +41,30 @@ sub has_access :Private
 	my $iname    = shift;
 	my $item     = $c->model('DB::Item')->find( { name => $iname } );
 	my $member   = find_member($c, $badge_no);
+	my $access   = 0;
+	my $member_id;
+	
+	return "Invalid item"
+		if (!defined($item));
+	
+	if ($member)
+		{
+		$member_id = $member->member_id();
+		$access    = $member->has_access($item);
+		}
+	
+	my $access = $c->model('DB::AccessLog')->create(
+		{
+		item_id   => $item->item_id(),
+		granted   => $access ? 1 : 0,
+		member_id => $member_id,
+		badge_id  => $badge_no,
+		});
 	
 	return "Invalid badge"
 		if (!defined($member));
-	return "Invalid item"
-		if (!defined($item));
 	return "Locked out"
 		if ($member->is_lockedout());
-	
-	my $access = $member->has_access($item);
-	
-	# Log the access
-	$member->create_related('access_logs',
-		{
-		item_id     => $item->item_id(),
-		granted     => $access ? 1 : 0,
-		});
-	
 	return $access ? undef : "Access denied";
 	}
 
@@ -151,23 +158,28 @@ sub access :Local
 	elsif ($operation eq 'vend')
 		{
 		my $member = find_member($c, $data->{badge});
+		my $vend   = 0;
+		my $member_id;
 
-		if (!$member)
+		$out->{error} = 'Cannot find member associated with this badge.';
+		if ($member)
 			{
-			$out->{vend}  = \0;
-			$out->{error} = "Cannot find member associated with this badge.";
-			return;
+			$member_id    = $member->member_id();
+			$out->{error} = 'Have a soda!';
+
+			$vend = $member->do_vend();
+			$out->{error} = 'You have no soda credits.'
+				if (!$vend);
 			}
 
-		if (!$member->do_vend($device))
+		$device->create_related('vend_logs',
 			{
-			$out->{vend}  = \0;
-			$out->{error} = "You have no soda credits.";
-			return;
-			}
+			member_id => $member_id,
+			vended    => $vend ? 1 : 0,
+			badge_id  => $data->{badge},
+			});
 
-		$out->{vend}  = \1;
-		$out->{error} = "Have a soda!";
+		$out->{vend} = $vend ? \1 : \0;
 		}
 	elsif ($operation eq 'log')
 		{

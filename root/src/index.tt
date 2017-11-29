@@ -1,12 +1,17 @@
 [%~ 
+SET panel_style  = 'col-sm-10 col-lg-6 col-sm-offset-1 col-lg-offset-3';
 IF Catalyst.user_exists;
+	SET panel_style = 'col-sm-6';
+	IF accesses;
+		SET panel_style = 'col-md-4';
+	END;
 	SET vend = Catalyst.user.vend_credits || 0;
 %]
 <div class="jumbotron">
 	<h3>Hi, [% Catalyst.user.fname %]</h3>
 </div>
 <div class="row">
-	<div class="col-sm-6">
+	<div class="[% panel_style %]">
 		You have [% vend %] soda credit
 		[%~ IF vend != 1 ~%]
 			s
@@ -23,17 +28,49 @@ IF Catalyst.user_exists;
 		</div>
 	</div>
 [%~ END %]
-	<div class="col-sm-6 panel panel-default" style="padding: 0">
-		<div class="panel-heading">
-			<h5>Current Hive Temperatures</h5>
-		</div>
-		<div class="panel-body">
-			[%~ FOREACH temp IN temps %]
-			[% temp.name %]:
-			[%= temp.value ~%]
-			&deg;F<br />
-			[%~ END %]
+	<div class="[% panel_style %]">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h5>Current Hive Temperatures</h5>
+			</div>
+			<div class="panel-body">
+				[%~ FOREACH temp IN temps %]
+				[% temp.name %]:
+				[%= temp.value ~%]
+				&deg;F<br />
+				[%~ END %]
+			</div>
 		</div>
 	</div>
+[%~ IF accesses %]
+	<div class="[% panel_style %]">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h5>Recent Accesses</h5>
+			</div>
+			<div class="panel-body">
+			<ol class="accesses">
+				[%~ FOREACH access IN accesses %]
+				[%~
+					SET member = access.member;
+					IF member;
+						SET display = member.fname _ ' ' _ member.lname;
+					ELSE;
+						SET display = 'Unknown badge ' _ access.badge_id;
+					END;
+				%]
+				<li
+					[%~ IF access.denied =%]
+						class="denied"
+					[%~ END ~%]
+				>
+					[% access.item.display_name %] by [% display %]
+				</li>
+				[%~ END %]
+			</ol>
+			</div>
+		</div>
+	</div>
+[%~ END %]
 </div>
 [%~ # vim:set filetype=tt2html: ~%]

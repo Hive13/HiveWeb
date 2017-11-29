@@ -74,3 +74,7 @@ div#navbar ul li a::after
 	margin-left: -1em;
 	}
 
+ol.accesses li.denied
+	{
+	background-color: #ff0000;
+	}
