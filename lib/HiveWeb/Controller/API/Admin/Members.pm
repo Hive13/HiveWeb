@@ -178,17 +178,23 @@ sub edit :Local :Args(1)
 	{
 	my ($self, $c, $member_id) = @_;
 
+	my $in  = $c->stash()->{in};
+	my $out = $c->stash()->{out};
+
 	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
 	if (!defined($member))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "Cannot find member";
+		$out->{response} = JSON->false();
+		$out->{data}     = "Cannot find member";
 		return;
 		}
-	my %new_groups   = map { $_ => 1; } @{$c->stash()->{in}->{groups}};
+	my %new_groups   = map { $_ => 1; } @{$in->{groups}};
 	my @groups       = $c->model('DB::MGroup')->all();
-	my $vend_credits = int($c->stash()->{in}->{vend_credits}) || $member->vend_credits();
-	$member->update({ vend_credits => $vend_credits });
+	if (exists($in->{vend_credits}))
+		{
+		my $vend_credits = int($in->{vend_credits});
+		$member->update({ vend_credits => $vend_credits });
+		}
 	foreach my $group (@groups)
 		{
 		my $group_id = $group->mgroup_id();
@@ -204,8 +210,8 @@ sub edit :Local :Args(1)
 			$mg->delete();
 			}
 		}
-	$c->stash()->{out}->{response} = JSON->true();
-	$c->stash()->{out}->{data}     = "Member profile has been updated.";
+	$out->{response} = JSON->true();
+	$out->{data}     = "Member profile has been updated.";
 	}
 
 sub index :Path :Args(0)
