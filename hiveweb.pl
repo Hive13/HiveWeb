@@ -19,4 +19,21 @@
 		public_key => 'pk_live_rP6E92Gc8FKq7yOLGk0kTPmi',
 		secret_key => '< put secret key here >',
 		},
+	email =>
+		{
+		from        => 'donotreply@hive13.org',
+		from_name   => 'Hive13 intweb',
+		auth        => '< put auth password here >',
+		'Net::SMTP' =>
+			{
+			Hello => 'intweb.at.hive13.org',
+			Host  => 'smtp.gmail.com',
+			SSL   => 1
+			},
+		forgot =>
+			{
+			temp_plain => 'email/forgot_password_plain.tt',
+			subject    => 'Hive13 intweb password reset',
+			},
+		},
 	}

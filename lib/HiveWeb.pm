@@ -70,6 +70,15 @@ __PACKAGE__->config
 			[
 			__PACKAGE__->path_to('root', 'src'),
 			],
+		EVAL_PERL => 1,
+		},
+	'View::TT' =>
+		{
+		INCLUDE_PATH =>
+			[
+			__PACKAGE__->path_to('root', 'src'),
+			],
+		EVAL_PERL => 1,
 		},
 	'Plugin::Authentication' =>
 		{
