@@ -17,6 +17,8 @@ __PACKAGE__->add_columns(
   { data_type => "uuid", is_nullable => 0, size => 16 },
   "name",
   { data_type => "char", is_nullable => 0, size => 32 },
+  "display_name",
+  { data_type => "character varying", is_nullable => 0 },
 );
 
 __PACKAGE__->set_primary_key("item_id");

@@ -23,8 +23,17 @@ IF Catalyst.user_exists;
 		</div>
 	</div>
 [%~ END %]
-	<div class="col-sm-6">
-		Home.  You can do home-tastic things here.
+	<div class="col-sm-6 panel panel-default" style="padding: 0">
+		<div class="panel-heading">
+			<h5>Current Hive Temperatures</h5>
+		</div>
+		<div class="panel-body">
+			[%~ FOREACH temp IN temps %]
+			[% temp.name %]:
+			[%= temp.value ~%]
+			&deg;F<br />
+			[%~ END %]
+		</div>
 	</div>
 </div>
 [%~ # vim:set filetype=tt2html: ~%]
