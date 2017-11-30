@@ -53,7 +53,7 @@ sub has_access :Private
 		$access    = $member->has_access($item);
 		}
 	
-	my $access = $c->model('DB::AccessLog')->create(
+	my $access_log = $c->model('DB::AccessLog')->create(
 		{
 		item_id   => $item->item_id(),
 		granted   => $access ? 1 : 0,
