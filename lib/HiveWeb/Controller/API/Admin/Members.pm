@@ -7,42 +7,41 @@ use JSON;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub lock :Local :Args(1)
+sub lock :Local :Args(0)
 	{
-	my ($self, $c, $member_id) = @_;
+	my ($self, $c) = @_;
 
-	$member_id //= $c->stash()->{in}->{member_id};
-	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	my $out       = $c->stash()->{out};
+	my $member_id = $c->stash()->{in}->{member_id};
+	my $lock      = $c->stash()->{in}->{lock} // 1;
+	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
 	if (!defined($member))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "Cannot find member";
+		$out->{response} = \0;
+		$out->{data}     = "Cannot find member " . $member_id;
 		return;
 		}
 	
-	$member->is_lockedout(1);
-	$member->update();
-	$c->stash()->{out}->{response} = JSON->true();
-	$c->stash()->{out}->{data}     = "Member locked out";
-	}
-
-sub unlock :Local :Args(1)
-	{
-	my ($self, $c, $member_id) = @_;
-
-	$member_id //= $c->stash()->{in}->{member_id};
-	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
-	if (!defined($member))
+	$out->{response} = \1;
+	$out->{data}     = 'Member ' . ($lock ? 'locked out' : 'unlocked');
+	try
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "Cannot find member";
-		return;
+		$c->model('DB')->txn_do(sub
+			{
+			$member->create_related('changed_audits',
+				{
+				change_type        => $lock ? 'lock' : 'unlock',
+				changing_member_id => $c->user()->member_id(),
+				});
+			$member->is_lockedout($lock);
+			$member->update();
+			});
 		}
-	
-	$member->is_lockedout(0);
-	$member->update();
-	$c->stash()->{out}->{response} = JSON->true();
-	$c->stash()->{out}->{data}     = "Member unlocked";
+	catch
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update member.';
+		};
 	}
 
 sub info :Local :Args(1)
@@ -77,56 +76,79 @@ sub info :Local :Args(1)
 	$c->stash()->{out}->{response} = JSON->true();
 	}
 
-sub add_badge :Local :Args(1)
+sub add_badge :Local :Args(0)
 	{
-	my ($self, $c, $member_id) = @_;
-	my $badge_number = $c->stash()->{in}->{badge_number};
+	my ($self, $c) = @_;
 
-	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	my $out          = $c->stash()->{out};
+	my $member_id    = $c->stash()->{in}->{member_id};
+	my $badge_number = $c->stash()->{in}->{badge_number};
+	my $member       = $c->model('DB::Member')->find({ member_id => $member_id });
+
 	if (!defined($member))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "Cannot find member";
+		$out->{response} = \0;
+		$out->{data}     = 'Cannot find member';
 		return;
 		}
 	if (!defined($badge_number))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "No badge specified";
+		$out->{response} = \0;
+		$out->{data}     = 'No badge specified';
 		return;
 		}
 	
-	my $badge = $member->create_related('badges', { badge_number => $badge_number });
-	$c->stash()->{out}->{badge_number} = $badge_number;
-	$c->stash()->{out}->{badge_id} = $badge->badge_id();
-	$c->stash()->{out}->{response} = JSON->true();
-	$c->stash()->{out}->{data}     = "Badge created";
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'add_badge',
+				notes              => 'Badge number ' . $badge_number,
+				changing_member_id => $c->user()->member_id(),
+				});
+			my $badge = $member->create_related('badges', { badge_number => $badge_number });
+			$out->{badge_number} = $badge_number;
+			$out->{badge_id}     = $badge->badge_id();
+			$out->{response}     = \1;
+			$out->{data}         = 'Badge created';
+			});
+		}
+	catch
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update member.';
+		};
 	}
 
-sub delete_badge :Local :Args(1)
+sub delete_badge :Local :Args(0)
 	{
-	my ($self, $c, $member_id) = @_;
-	my $badge_ids = $c->stash()->{in}->{badge_ids} // $c->stash()->{in}->{badge_id};
+	my ($self, $c) = @_;
 
-	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	my $out          = $c->stash()->{out};
+	my $member_id    = $c->stash()->{in}->{member_id};
+	my $badge_ids    = $c->stash()->{in}->{badge_ids} // $c->stash()->{in}->{badge_id};
+	my $member       = $c->model('DB::Member')->find({ member_id => $member_id });
+
 	if (!defined($member))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "Cannot find member";
+		$out->{response} = \0;
+		$out->{data}     = 'Cannot find member';
 		return;
 		}
 	if (!defined($badge_ids))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "No badge specified";
+		$out->{response} = \0;
+		$out->{data}     = 'No badge specified';
 		return;
 		}
 	
 	$badge_ids = [ $badge_ids ]
 		if (ref($badge_ids) ne 'ARRAY');
 	
-	$c->stash()->{out}->{response} = JSON->true();
-	$c->stash()->{out}->{data}     = "Badges deleted";
+	$out->{response} = \1;
+	$out->{data}     = "Badges deleted";
 	try
 		{
 		$c->model('DB')->txn_do(sub
@@ -136,25 +158,32 @@ sub delete_badge :Local :Args(1)
 				my $badge = $c->model('DB::Badge')->find($badge_id);
 				die
 					if (!defined($badge));
+				$member->create_related('changed_audits',
+					{
+					change_type        => 'delete_badge',
+					notes              => 'Badge number ' . $badge->badge_number(),
+					changing_member_id => $c->user()->member_id(),
+					});
 				$badge->delete();
 				}
 			});
 		}
 	catch
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "One or more badges was invalid";
-		return;
+		$out->{response} = \0;
+		$out->{data}     = "One or more badges was invalid";
 		};
 	}
 
-sub password :Local :Args(1)
+sub password :Local :Args(0)
 	{
-	my ($self, $c, $member_id) = @_;
+	my ($self, $c) = @_;
 
-	my $out = $c->stash()->{out};
+	my $out       = $c->stash()->{out};
+	my $member_id = $c->stash()->{in}->{member_id};
+	my $password  = $c->stash()->{in}->{password};
+	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
 
-	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
 	if (!defined($member))
 		{
 		$out->{response} = JSON->false();
@@ -162,16 +191,32 @@ sub password :Local :Args(1)
 		return;
 		}
 
-	$out->{response} = \0;
-	$out->{data}     = 'Blank or invalid password supplied.';
-
-	my $password = $c->stash()->{in}->{password};
-	if ($password)
+	if (!$password)
 		{
-		$member->set_password($password);
-		$out->{data}     = "Member password has been updated.";
-		$out->{response} = \1;
+		$out->{response} = \0;
+		$out->{data}     = 'Blank or invalid password supplied.';
+		return;
 		}
+
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'change_password',
+				changing_member_id => $c->user()->member_id(),
+				});
+			$member->set_password($password);
+			$out->{data}     = "Member password has been updated.";
+			$out->{response} = \1;
+			});
+		}
+	catch
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Could not change password.';
+		};
 	}
 
 sub edit :Local :Args(1)

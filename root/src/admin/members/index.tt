@@ -126,7 +126,46 @@
 
 <script type="text/javascript">
 var lock_url = "[% Catalyst.uri_for('/api/admin/members/lock') %]";
-var unlock_url = "[% Catalyst.uri_for('/api/admin/members/unlock') %]";
+
+function api_json(url, data, what, success)
+	{
+	$.ajax(
+		{
+		dataType: "json",
+		url: url,
+		type: "POST",
+		processData: false,
+		contentType: "application/json",
+		data: JSON.stringify(data),
+		cache: false,
+		success: function (data)
+			{
+			if (!data.response)
+				{
+				$.toast(
+					{
+					heading: what + " failed",
+					text: data.data,
+					icon: "error",
+					position: "top-right"
+					});
+				return;
+				}
+			if (success)
+				success(data);
+			else
+				{
+				$.toast(
+					{
+					heading: what + " succeeded",
+					text: data.data,
+					icon: "success",
+					position: "top-right"
+					});
+				}
+			}
+		});
+	}
 
 function badge_edit(badge_id)
 	{
@@ -145,46 +184,28 @@ function badge_edit(badge_id)
 				},
 			OK: function()
 				{
-				var url;
-				var data = { badge_number: $("#badge_number").val() };
+				var url = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]";
+				var data =
+					{
+					badge_number: $("#badge_number").val(),
+					member_id:    member_id
+					};
 				if (badge_id === undefined)
 					{
-					url = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]" + "/" + member_id;
-					$.ajax(
+					api_json(url, data, "Badge add", function (data)
 						{
-						dataType: "json",
-						url: url,
-						type: "POST",
-						processData: false,
-						contentType: "application/json",
-						data: JSON.stringify(data),
-						cache: false,
-						success: function (data)
+						var $option = $("<option />")
+							.attr("id", data.badge_id)
+							.attr("value", data.badge_number)
+							.text(data.badge_number);
+						$("#edit_dialogue div#badges select").append($option);
+						$.toast(
 							{
-							var $option = $("<option />")
-								.attr("id", data.badge_id)
-								.attr("value", data.badge_number)
-								.text(data.badge_number);
-							if (!data.response)
-								{
-								$.toast(
-									{
-									heading: "Badge add failed",
-									text: data.data,
-									icon: "error",
-									position: "top-right"
-									});
-								return;
-								}
-							$("#edit_dialogue div#badges select").append($option);
-							$.toast(
-								{
-								heading: "Success",
-								text: "Badge added!",
-								icon: "success",
-								position: "top-right"
-								});
-							}
+							heading: "Success",
+							text: "Badge added!",
+							icon: "success",
+							position: "top-right"
+							});
 						});
 					}
 				$(this).dialog("close");
@@ -195,10 +216,15 @@ function badge_edit(badge_id)
 
 function save_password()
 	{
-	var $this = $(this), groups = [], member_id = $this.data("member_id");
+	var $this = $(this), member_id = $this.data("member_id");
 	var password  = $this.find("input#password1").val();
 	var password2 = $this.find("input#password2").val();
-	var url = "[% Catalyst.uri_for('/api/admin/members/password') %]/" + member_id;
+	var url = "[% Catalyst.uri_for('/api/admin/members/password') %]";
+	var data =
+		{
+		member_id: member_id,
+		password:  password
+		};
 
 	if (password != password2)
 		{
@@ -211,48 +237,17 @@ function save_password()
 			});
 		return;
 		}
-
-	$.ajax(
+	
+	api_json(url, data, "Password update", function (data)
 		{
-		dataType: "json",
-		url: url,
-		type: "POST",
-		processData: false,
-		contentType: "application/json",
-		data: JSON.stringify({ password: password }),
-		cache: false,
-		success: function (data)
+		$.toast(
 			{
-			if (!data.response)
-				{
-				$.toast(
-					{
-					heading: "Password update failed",
-					text: data.data,
-					icon: "error",
-					position: "top-right"
-					});
-				return;
-				}
-			$.toast(
-				{
-				heading: "Password update succeeded",
-				text: data.data,
-				icon: "success",
-				position: "top-right"
-				});
-			$this.dialog("close");
-			},
-		error: function(data)
-			{
-			$.toast(
-				{
-				heading: "Oops",
-				text: data.data,
-				icon: "error",
-				position: "top-right"
-				});
-			}
+			heading: "Password update succeeded",
+			text: data.data,
+			icon: "success",
+			position: "top-right"
+			});
+		$this.dialog("close");
 		});
 	}
 
@@ -260,12 +255,17 @@ function save_member()
 	{
 	var $this = $(this), groups = [], member_id = $this.data("member_id");
 	var soda_credits = $this.find("input#soda_credits").val();
-	var url, what;
+	var url, what, data =
+		{
+		groups: groups,
+		vend_credits: soda_credits
+		};
 
 	if (member_id)
 		{
 		what = "Member edit";
-		url = "[% Catalyst.uri_for('/api/admin/members/edit/') %]" + member_id;
+		url = "[% Catalyst.uri_for('/api/admin/members/edit') %]";
+		data.member_id = member_id;
 		}
 	else
 		{
@@ -278,47 +278,16 @@ function save_member()
 		groups.push($(this).val());
 		});
 	
-	$.ajax(
+	api_json(url, data, what, function (data)
 		{
-		dataType: "json",
-		url: url,
-		type: "POST",
-		processData: false,
-		contentType: "application/json",
-		data: JSON.stringify({ groups: groups, vend_credits: soda_credits }),
-		cache: false,
-		success: function (data)
+		$.toast(
 			{
-			if (!data.response)
-				{
-				$.toast(
-					{
-					heading: what + " failed",
-					text: data.data,
-					icon: "error",
-					position: "top-right"
-					});
-				return;
-				}
-			$.toast(
-				{
-				heading: what + " succeeded",
-				text: data.data,
-				icon: "success",
-				position: "top-right"
-				});
-			$this.dialog("close");
-			},
-		error: function(data)
-			{
-			$.toast(
-				{
-				heading: "Oops",
-				text: data.data,
-				icon: "error",
-				position: "top-right"
-				});
-			}
+			heading: what + " succeeded",
+			text: data.data,
+			icon: "success",
+			position: "top-right"
+			});
+		$this.dialog("close");
 		});
 	}
 
@@ -390,7 +359,12 @@ function edit(member_id)
 			$dialogue.find("div#badges img.delete").click(function()
 				{
 				var badges = [];
-				var url = "[% Catalyst.uri_for('/api/admin/members/delete_badge') %]" + "/" + member_id;
+				var url = "[% Catalyst.uri_for('/api/admin/members/delete_badge') %]";
+				var data =
+					{
+					member_id: member_id,
+					badge_id:  badges
+					};
 
 				$("div#badges select option:selected").each(function ()
 					{
@@ -400,40 +374,19 @@ function edit(member_id)
 					return;
 				if (!confirm("Are you sure you want to delete " + badges.length + " badges?"))
 					return;
-				$.ajax(
+				api_json(url, data, "Badge delete", function (data)
 					{
-					dataType: "json",
-					url: url,
-					type: "POST",
-					processData: false,
-					contentType: "application/json",
-					data: JSON.stringify({ badge_id: badges }),
-					cache: false,
-					success: function (data)
-						{
-						var i;
+					var i;
 
-						if (!data.response)
-							{
-							$.toast(
-								{
-								heading: "Badge delete failed",
-								text: data.data,
-								icon: "error",
-								position: "top-right"
-								});
-							return;
-							}
-						for (i = 0; i < badges.length; i++)
-							$("div#badges select option#" + badges[i]).remove();
-						$.toast(
-							{
-							heading: "Success",
-							text: "Badge(s) deleted!",
-							icon: "success",
-							position: "top-right"
-							});
-						}
+					for (i = 0; i < badges.length; i++)
+						$("div#badges select option#" + badges[i]).remove();
+					$.toast(
+						{
+						heading: "Success",
+						text: "Badge(s) deleted!",
+						icon: "success",
+						position: "top-right"
+						});
 					});
 				});
 			$dialogue.dialog(
@@ -472,35 +425,55 @@ $(function ()
 		});
 	$("td.lock img").click(function ()
 		{
-		var member_id, url, $this;
+		var $this, req_data = {};
 		if (confirm("Are you sure?"))
 			{
 			$this = $(this);
-			member_id = $this.parents("tr").attr("id");
+			req_data.member_id = $this.parents("tr").attr("id");
 			if ($this.hasClass("unlock"))
-				url = unlock_url;
+				req_data.lock = 0;
 			else
-				url = lock_url;
-			url += "/" + member_id;
-			json = $.getJSON(url, function (data)
+				req_data.lock = 1;
+			$.ajax(
 				{
-				if (!data.response)
-					return;
-				if ($this.hasClass("unlock"))
+				url: lock_url,
+				dataType: "json",
+				type: "POST",
+				processData: false,
+				contentType: "application/json",
+				data: JSON.stringify(req_data),
+				cache: false,
+				success: function (data)
 					{
-					$this
-						.removeClass("unlock")
-						.addClass("lock")
-						.attr("title", "Lock")
-						.attr("src", "/static/icons/unlock.png");
-					}
-				else
-					{
-					$this
-						.removeClass("lock")
-						.addClass("unlock")
-						.attr("title", "Unlock")
-						.attr("src", "/static/icons/lock.png");
+					if (!data.response)
+						{
+						$.toast(
+							{
+							heading: "Lock/unlock failed",
+							text: data.data,
+							icon: "error",
+							position: "top-right"
+							});
+						return;
+						}
+					if ($this.hasClass("unlock"))
+						{
+						$this
+							.removeClass("unlock")
+							.addClass("lock")
+							.attr("title", "Lock")
+							.attr("src", "/static/icons/unlock.png");
+						$this.parents("tr").removeClass("locked");
+						}
+					else
+						{
+						$this
+							.removeClass("lock")
+							.addClass("unlock")
+							.attr("title", "Unlock")
+							.attr("src", "/static/icons/lock.png");
+						$this.parents("tr").addClass("locked");
+						}
 					}
 				});
 			}
