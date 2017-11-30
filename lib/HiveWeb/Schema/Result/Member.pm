@@ -101,6 +101,22 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'changed_audits',
+	'HiveWeb::Schema::Result::AuditLog',
+	{ 'foreign.changed_member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many
+	(
+	'changing_audits',
+	'HiveWeb::Schema::Result::AuditLog',
+	{ 'foreign.changing_member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 
 sub make_salt
