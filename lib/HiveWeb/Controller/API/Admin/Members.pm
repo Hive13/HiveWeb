@@ -219,14 +219,15 @@ sub password :Local :Args(0)
 		};
 	}
 
-sub edit :Local :Args(1)
+sub edit :Local :Args(0)
 	{
-	my ($self, $c, $member_id) = @_;
+	my ($self, $c) = @_;
 
-	my $in  = $c->stash()->{in};
-	my $out = $c->stash()->{out};
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $member_id = $c->stash()->{in}->{member_id};
+	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
 
-	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
 	if (!defined($member))
 		{
 		$out->{response} = JSON->false();
@@ -235,28 +236,59 @@ sub edit :Local :Args(1)
 		}
 	my %new_groups   = map { $_ => 1; } @{$in->{groups}};
 	my @groups       = $c->model('DB::MGroup')->all();
-	if (exists($in->{vend_credits}))
+	try
 		{
-		my $vend_credits = int($in->{vend_credits});
-		$member->update({ vend_credits => $vend_credits });
+		$c->model('DB')->txn_do(sub
+			{
+			if (exists($in->{vend_credits}))
+				{
+				my $vend_credits = int($in->{vend_credits});
+				if ($member->vend_credits() != $vend_credits)
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'change_credits',
+						changing_member_id => $c->user()->member_id(),
+						notes              => 'Set credits to ' . $vend_credits,
+						});
+					$member->update({ vend_credits => $vend_credits });
+					}
+				}
+
+			foreach my $group (@groups)
+				{
+				my $group_id = $group->mgroup_id();
+				if ($new_groups{$group_id} && !$member->find_related('member_mgroups', { mgroup_id => $group_id }))
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'add_group',
+						changing_member_id => $c->user()->member_id(),
+						notes              => 'Added group ' . $group_id
+						});
+					$member->create_related('member_mgroups', { mgroup_id => $group_id });
+					}
+				my $mg;
+				if (!$new_groups{$group_id} && ($mg = $member->find_related('member_mgroups', { mgroup_id => $group_id })))
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'remove_group',
+						changing_member_id => $c->user()->member_id(),
+						notes              => 'Removed group ' . $group_id
+						});
+					$mg->delete();
+					}
+				}
+			$out->{response} = \1;
+			$out->{data}     = 'Member profile has been updated.';
+			});
 		}
-	foreach my $group (@groups)
+	catch
 		{
-		my $group_id = $group->mgroup_id();
-		if ($new_groups{$group_id} && !$member->find_related('member_mgroups', { mgroup_id => $group_id }))
-			{
-			$c->log()->debug("Into " . $group->name());
-			$member->create_related('member_mgroups', { mgroup_id => $group_id });
-			}
-		my $mg;
-		if (!$new_groups{$group_id} && ($mg = $member->find_related('member_mgroups', { mgroup_id => $group_id })))
-			{
-			$c->log()->debug("Out of " . $group->name());
-			$mg->delete();
-			}
-		}
-	$out->{response} = JSON->true();
-	$out->{data}     = "Member profile has been updated.";
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update member profile.';
+		};
 	}
 
 sub index :Path :Args(0)
