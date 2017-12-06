@@ -19,28 +19,13 @@ sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $items = $c->model('DB::Item')->search({}, { order_by => 'me.display_name' });
-	my $temps = [];
-	while (my $item = $items->next())
-		{
-		my $temp = $item->search_related('temp_logs', {}, { order_by => { -desc => 'create_time' } })->first();
-		if ($temp)
-			{
-			push (@$temps, { name => $item->display_name(), value => ($temp->temperature() / 10) });
-			}
-		}
-
 	if ($c->user() && $c->user()->is_admin())
 		{
 		my @accesses = $c->model('DB::AccessLog')->search({}, { order_by => { -desc => 'me.access_time' }, rows => 10 });
 		$c->stash()->{accesses} = \@accesses;
 		}
 
-	$c->stash(
-		{
-		template => 'index.tt',
-		temps    => $temps,
-		});
+	#$c->stash()->{template} = 'index.tt';
 	}
 
 sub login :Local

@@ -1,3 +1,10 @@
+<script src="[% Catalyst.uri_for('/static/js/panels.js') %]" type="text/javascript"></script>
+<script>
+var panel_urls =
+	{
+	temp: "[% Catalyst.uri_for('/api/temperature/current').dquote %]"
+	};
+</script>
 [%~ 
 SET panels = [];
 IF Catalyst.user_exists;
@@ -25,7 +32,7 @@ END;
 	FOREACH panel IN panels;
 %]
 	<div class="[% panel_style %]">
-		<div class="panel [% panel.style %]">
+		<div class="panel [% panel.style %] hive-panel-[% panel.name %]">
 			<div class="panel-heading">
 				<h5>[% panel.title %]</h5>
 			</div>
@@ -50,9 +57,7 @@ END;
 				</div>
 [%~
 			CASE 'temp';
-				FOREACH temp IN temps;
-					GET temp.name _ ': ' _ temp.value _ '&deg;F<br />';
-				END;
+				GET 'Loading temperatures...';
 			CASE 'access';
 %]
 				<ol class="accesses">

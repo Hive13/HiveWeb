@@ -38,5 +38,18 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
+sub TO_JSON
+	{
+	my $self = shift;
+	my $item = $self->item();
+
+	return
+		{
+		display_name => $item->display_name(),
+		name         => $item->name(),
+		value        => $self->temperature() / 10,
+		};
+	}
+
 __PACKAGE__->meta->make_immutable;
 1;
