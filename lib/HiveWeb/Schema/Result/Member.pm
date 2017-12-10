@@ -119,6 +119,31 @@ __PACKAGE__->has_many
 
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 
+sub TO_JSON
+	{
+	my $self    = shift;
+	my @groups  = $self->member_mgroups()->get_column('mgroup_id')->all();
+	my $columns = { $self->get_columns() };
+	my $dtp     = $self->result_source()->schema()->storage()->datetime_parser();
+	my $lat;
+	$lat = $dtp->parse_datetime($columns->{last_access_time})
+		if (exists($columns->{last_access_time}) && $columns->{last_access_time});
+
+	return
+		{
+		member_id   => $self->member_id(),
+		fname       => $self->fname(),
+		lname       => $self->lname(),
+		email       => $self->email(),
+		created_at  => $self->created_at(),
+		groups      => \@groups,
+		locked_out  => $self->is_lockedout() ? \1 : \0,
+		create_time => $self->created_at(),
+		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
+		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
+		};
+	}
+
 sub make_salt
 	{
 	my $self   = shift;
