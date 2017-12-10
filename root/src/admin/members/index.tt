@@ -1,112 +1,24 @@
-[%~
-	SET columns =
-		[
-			{
-			name => 'fname',
-			desc => 'First Name',
-			},
-			{
-			name => 'lname',
-			desc => 'Last Name',
-			},
-			{
-			name => 'email',
-			desc => 'E-mail Address',
-			},
-			{
-			name => 'accesses',
-			desc => 'Accesses',
-			get  => 1,
-			},
-			{
-			name => 'last_access_time',
-			desc => 'Last Access Time',
-			#time => 'M/d/yyyy h:mm:ss a',
-			get  => 1,
-			},
-			{
-			name => 'created_at',
-			desc => 'Create Time'
-			time => 'M/d/yyyy h:mm:ss a',
-			},
-		];
-~%]
 <div class="row">
 	<div class="col-sm-12 panel panel-default" style="padding: 0;">
 		<div class="panel-heading">
 			<h3>Members</h3>
 		</div>
-		<table class="data_table table">
-			<thead>
-				<tr>
-					<th></th>
-					<th></th>
-					[%~ FOREACH column IN columns %]
-					<th>
-					[%~ IF order != column.name ~%]
-						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name) %]">
-							[%~ column.desc ~%]
-						</a>
-					[%~ ELSE; ~%]
-						[%~	IF dir == "ASC"; ~%]
-						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/desc') %]">[%~ column.desc ~%](&darr;)</a>
-						[%~	ELSE; ~%]
-						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/asc') %]">[%~ column.desc ~%](&uarr;)</a>
-						[%~	END; ~%]
-					[%~ END; ~%]
-					</th>
-					[%~ END; %]
-				</tr>
-			</thead>
-			<tbody>
-		[%~ FOREACH member IN members %]
-				<tr id="[% member.member_id %]"
-				[%~ IF member.is_lockedout =%]
-				class="locked"
-				[%~ END ~%]
-				>
-					<td class="edit">
-						<img src="/static/icons/key.png" title="Change Password" class="password icon" />
-						<img src="/static/icons/edit.png" title="Edit" class="edit icon" />
-						<img src="/static/icons/delete.png" title="Delete" class="delete icon" />
-					</td>
-					<td class="lock">
-		[%~   IF member.is_lockedout %]
-						<img title="Unlock" class="unlock icon" src="/static/icons/lock.png" />
-		[%~   ELSE %]
-						<img title="Lock" class="lock icon" src="/static/icons/unlock.png" />
-		[%~   END %]
-					</td>
-		[%~ 	FOREACH column IN columns;
-						SET name = column.name;
-						IF column.get;
-							SET value = member.get_column(name);
-						ELSE;
-							SET value = member.$name;
-						END;
-						IF column.time;
-							value = value.format_cldr(column.time);
-						END;
-		%]
-					<td>[% value %]</td>
-					[%~ END %]
-				</tr>
-		[%~ END %]
-			</tbody>
+		<table class="data_table table hive-member-table">
+			<thead></thead>
+			<tbody></tbody>
 		</table>
 	</div>
 </div>
 
 <div id="edit_dialogue" style="display: none">
 	Group Membership: <br />
-[%~ FOREACH group IN groups %]
-	<input type="checkbox" class="group" value="[% group.mgroup_id %]" /> [% group.name %]<br />
-[%~ END %]
+	<div id="groups">
+	</div>
 	<div id="badges">
 		Badges:<br />
 		<select size="2" multiple="multiple"></select><br />
-		<img title="Add" class="add icon" src="/static/icons/add.png" />
-		<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
+		<img title="Add" class="add icon" src="[% Catalyst.uri_for('/static/icons/add.png').dquote %]" />
+		<img title="Delete" class="delete icon icon-disabled" src="[% Catalyst.uri_for('/static/icons/delete.png').dquote %]" />
 	</div>
 	<div id="soda_credit_div">
 		<label>Soda Credits:<br />
@@ -125,53 +37,247 @@
 </div>
 
 <script type="text/javascript">
-var lock_url = "[% Catalyst.uri_for('/api/admin/members/lock') %]";
-
-function api_json(url, data, what, success)
-	{
-	$.ajax(
+var lock_url   = "[% Catalyst.uri_for('/api/admin/members/lock').dquote %]";
+var load_url   = "[% Catalyst.uri_for('/api/admin/members').dquote %]";
+var order      = "lname";
+var dir        = "ASC";
+var all_groups = [];
+var columns    =
+	[
 		{
-		dataType: "json",
-		url: url,
-		type: "POST",
-		processData: false,
-		contentType: "application/json",
-		data: JSON.stringify(data),
-		cache: false,
-		success: function (data)
+		name: "fname",
+		desc: "First Name"
+		},
+		{
+		name: "lname",
+		desc: "Last Name"
+		},
+		{
+		name: "email",
+		desc: "E-mail Address"
+		},
+		{
+		name: "accesses",
+		desc: "Accesses",
+		hidden: "xs"
+		},
+		{
+		name: "last_access_time",
+		desc: "Last Access Time",
+		date: true,
+		hidden: "xs"
+		},
+		{
+		name: "created_at",
+		desc: "Create Time",
+		date: true,
+		hidden: "sm"
+		},
+	];
+
+function sort_click()
+	{
+	var $this     = $(this);
+	var new_dir   = $this.hasClass("sort-asc") ? "ASC" : "DESC";
+	var new_order = $this.attr("id").substring(5);
+
+	order = new_order;
+	dir   = new_dir;
+	load_members();
+	}
+
+function hidden_styles(which)
+	{
+	var styles = "", j, sz = ["xs", "sm", "md", "lg"], disp = 0;
+
+	for (j = sz.length - 1; j >= 0; j--)
+		if (disp || which === sz[j])
 			{
-			if (!data.response)
-				{
-				$.toast(
-					{
-					heading: what + " failed",
-					text: data.data,
-					icon: "error",
-					position: "top-right"
-					});
-				return;
-				}
-			if (success)
-				success(data);
-			else
-				{
-				$.toast(
-					{
-					heading: what + " succeeded",
-					text: data.data,
-					icon: "success",
-					position: "top-right"
-					});
-				}
+			if (disp)
+				styles += " ";
+			disp = 1;
+			styles += "hidden-" + sz[j];
 			}
+
+	return styles;
+	}
+
+function load_header($table)
+	{
+	var html, $thead = $table.find("thead"), i, j, sz = ["xs", "sm", "md", "lg"], disp;
+
+	html = "<tr><th></th>";
+
+	html += "<th>"
+		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" />"
+		+ "</th>";
+
+	for (i = 0; i < columns.length; i++)
+		{
+		html += "<th";
+		if ("hidden" in columns[i])
+			html += " class=\"" + hidden_styles(columns[i].hidden) + "\"";
+		html += "><a id=\"sort-" + columns[i].name + "\" class=\"anchor-style sort sort-";
+		html += (order === columns[i].name && dir === "ASC") ? "desc" : "asc";
+		html += "\">" + columns[i].desc;
+		if (order === columns[i].name)
+			html += ((dir === "ASC") ? "(&darr;)" : "(&uarr;)");
+		html += "</a></th>";
+		}
+	$thead.html(html);
+	$thead.find("a.sort").click(sort_click);
+	}
+
+function load_members()
+	{
+	var html = "", $table = $("table.hive-member-table");
+	var $tbody = $table.find("tbody");
+	var params =
+		{
+		order: order,
+		dir: dir
+		};
+
+	load_header($table);
+
+	$tbody.html("<tr class=\"loading\"><td colspan=\"8\">" + loading_icon() + "</td></tr>");
+	api_json(load_url, params, "Member load", function (data)
+		{
+		var i, j, date_obj, member, val;
+
+		all_groups = data.groups;
+
+		for (i = 0; i < data.members.length; i++)
+			{
+			member = data.members[i];
+			create = new Date(member.create_time);
+			access = new Date(member.last_access_time);
+
+			html += "<tr id=\""
+				+ member.member_id + "\""
+				+ (member.locked_out ? " class=\"locked\"" : "")
+				+ ">";
+
+			html += "<td class=\"edit\">"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/key.png').dquote %]\" title=\"Change Password\" class=\"password icon\" />"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/edit.png').dquote %]\" title=\"Edit\" class=\"edit icon\" />"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/delete.png').dquote %]\" title=\"Delete\" class=\"delete icon\" />"
+				+ "</td>";
+			html += "<td class=\"lock\">";
+			if (member.locked_out)
+				html += "<img title=\"Unlock\" class=\"unlock icon\" src=\"[% Catalyst.uri_for('/static/icons/lock.png').dquote %]\" />";
+			else
+				html += "<img title=\"Lock\" class=\"lock icon\" src=\"[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]\" />";
+			html += "</td>";
+
+			for (j = 0; j < columns.length; j++)
+				{
+				val = member[columns[j].name];
+				html += "<td";
+				if ("hidden" in columns[j])
+					html += " class=\"" + hidden_styles(columns[j].hidden) + "\"";
+				html += ">";
+
+				if ("date" in columns[j] && columns[j].date)
+					{
+					if (val)
+						{
+						date_obj = new Date(val);
+						html += date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString();
+						}
+					else
+						html += "--";
+					}
+				else
+					html += member[columns[j].name];
+
+				html += "</td>";
+				}
+
+			html += "</tr>";
+			}
+		$tbody.html(html);
+		$tbody.find("tr").dblclick(function ()
+			{
+			edit($(this).attr("id"));
+			});
+
+		$table.find("thead img.icon.filter").click(function ()
+			{
+			});
+		$tbody.find("td.edit img.password").click(function ()
+			{
+			var $this = $(this);
+			var member_id = $this.parents("tr").attr("id");
+			change_password(member_id);
+			});
+		$tbody.find("td.edit img.edit").click(function ()
+			{
+			var $this = $(this);
+			var member_id = $this.parents("tr").attr("id");
+			edit(member_id);
+			});
+		$tbody.find("td.lock img").click(function ()
+			{
+			var $this, req_data = {};
+			if (confirm("Are you sure?"))
+				{
+				$this = $(this);
+				req_data.member_id = $this.parents("tr").attr("id");
+				if ($this.hasClass("unlock"))
+					req_data.lock = 0;
+				else
+					req_data.lock = 1;
+				api_json(lock_url, req_data, "Lock/unlock", function (data)
+					{
+					if ($this.hasClass("unlock"))
+						{
+						$this
+							.removeClass("unlock")
+							.addClass("lock")
+							.attr("title", "Lock")
+							.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+						$this.parents("tr").removeClass("locked");
+						}
+					else
+						{
+						$this
+							.removeClass("lock")
+							.addClass("unlock")
+							.attr("title", "Unlock")
+							.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
+						$this.parents("tr").addClass("locked");
+						}
+					});
+				}
+			})
+			.mouseover(function ()
+				{
+				var $this = $(this);
+
+				if ($this.hasClass("lock"))
+					$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
+				else
+					$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+				})
+			.mouseout(function ()
+				{
+				var $this = $(this);
+
+				if ($this.hasClass("lock"))
+					$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+				else
+					$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
+				});
 		});
+
 	}
 
 function badge_edit(badge_id)
 	{
 	var title = badge_id ? "Edit Badge" : "Add Badge";
 	var member_id = $("#edit_dialogue").data("member_id");
-	
+
 	$("#badge_number").val("");
 	$("#badge_dialogue").dialog(
 		{
@@ -237,7 +343,7 @@ function save_password()
 			});
 		return;
 		}
-	
+
 	api_json(url, data, "Password update", function (data)
 		{
 		$.toast(
@@ -277,7 +383,7 @@ function save_member()
 		{
 		groups.push($(this).val());
 		});
-	
+
 	api_json(url, data, what, function (data)
 		{
 		$.toast(
@@ -313,9 +419,16 @@ function change_password(member_id)
 
 function edit(member_id)
 	{
+	var i, html = "";
 	var title = member_id ? "Edit Member" : "Add Member";
 	var $dialogue = $("#edit_dialogue");
 	$dialogue.data("member_id", member_id);
+
+	for (i = 0; i < all_groups.length; i++)
+		html += "<label><input type=\"checkbox\" class=\"group\" value=\""
+			+ all_groups[i].mgroup_id + "\" /> " + all_groups[i].name
+			+ "</label><br />";
+	$dialogue.find("div#groups").html(html);
 
 	$.ajax(
 		{
@@ -334,7 +447,7 @@ function edit(member_id)
 
 			for (i = 0; i < data.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.groups[i].mgroup_id + "\"]").prop("checked", true);
-			
+
 			for (i = 0; i < data.badges.length; i++)
 				{
 				badge = data.badges[i];
@@ -354,7 +467,7 @@ function edit(member_id)
 				else
 					$dialogue.find("img.delete").addClass("icon-disabled");
 				});
-			
+
 			$dialogue.find("div#badges img.add").click(function () { badge_edit(undefined) });
 			$dialogue.find("div#badges img.delete").click(function()
 				{
@@ -405,98 +518,7 @@ function edit(member_id)
 		});
 	}
 
-$(function ()
-	{
-	$("tr").dblclick(function ()
-		{
-		edit($(this).attr("id"));
-		});
-	$("td.edit img.password").click(function ()
-		{
-		var $this = $(this);
-		var member_id = $this.parents("tr").attr("id");
-		change_password(member_id);
-		});
-	$("td.edit img.edit").click(function ()
-		{
-		var $this = $(this);
-		var member_id = $this.parents("tr").attr("id");
-		edit(member_id);
-		});
-	$("td.lock img").click(function ()
-		{
-		var $this, req_data = {};
-		if (confirm("Are you sure?"))
-			{
-			$this = $(this);
-			req_data.member_id = $this.parents("tr").attr("id");
-			if ($this.hasClass("unlock"))
-				req_data.lock = 0;
-			else
-				req_data.lock = 1;
-			$.ajax(
-				{
-				url: lock_url,
-				dataType: "json",
-				type: "POST",
-				processData: false,
-				contentType: "application/json",
-				data: JSON.stringify(req_data),
-				cache: false,
-				success: function (data)
-					{
-					if (!data.response)
-						{
-						$.toast(
-							{
-							heading: "Lock/unlock failed",
-							text: data.data,
-							icon: "error",
-							position: "top-right"
-							});
-						return;
-						}
-					if ($this.hasClass("unlock"))
-						{
-						$this
-							.removeClass("unlock")
-							.addClass("lock")
-							.attr("title", "Lock")
-							.attr("src", "/static/icons/unlock.png");
-						$this.parents("tr").removeClass("locked");
-						}
-					else
-						{
-						$this
-							.removeClass("lock")
-							.addClass("unlock")
-							.attr("title", "Unlock")
-							.attr("src", "/static/icons/lock.png");
-						$this.parents("tr").addClass("locked");
-						}
-					}
-				});
-			}
-		})
-		.mouseover(function ()
-			{
-			var $this = $(this);
-
-			if ($this.hasClass("lock"))
-				$this.attr("src", "/static/icons/lock.png");
-			else
-				$this.attr("src", "/static/icons/unlock.png");
-			})
-		.mouseout(function ()
-			{
-			var $this = $(this);
-
-			if ($this.hasClass("lock"))
-				$this.attr("src", "/static/icons/unlock.png");
-			else
-				$this.attr("src", "/static/icons/lock.png");
-			});
-	});
+$(load_members);
 
 </script>
 
