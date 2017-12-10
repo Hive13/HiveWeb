@@ -15,7 +15,21 @@ sub current :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $wanted = $c->stash()->{in}->{temp};
+	$c->stash()->{in}->{period} = 'current';
+	$c->detach('retrieve');
+	}
+
+sub retrieve :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in     = $c->stash()->{in};
+	my $out    = $c->stash()->{out};
+	my $wanted = $in->{temp};
+	my $period = lc($in->{period});
+
+	$period = 'current'
+		if ($period ne 'current' && $period ne 'day');
 
 	if ($wanted)
 		{
@@ -30,19 +44,38 @@ sub current :Local :Args(0)
 		{
 		next
 			if ($wanted && !$wanted->{ $item->name() });
-		my $temp = $item->search_related('temp_logs', {}, { order_by => { -desc => 'create_time' } })->first();
-		push (@$temps, $temp)
-			if ($temp);
+		if ($period eq 'current')
+			{
+			my $temp = $item->search_related('temp_logs', {}, { order_by => { -desc => 'create_time' } })->first();
+			push (@$temps,
+				{
+				name         => $item->display_name(),
+				display_name => $item->display_name(),
+				temperature  => $temp,
+				})
+				if ($temp);
+			}
+		elsif ($period eq 'day')
+			{
+			my @item_temps = $item->search_related('temp_logs', { create_time => \"now() - interval '1 day'" }, { order_by => { -desc => 'create_time' } })->all();
+			push (@$temps,
+				{
+				name         => $item->display_name(),
+				display_name => $item->display_name(),
+				temperatures => @item_temps,
+				})
+				if (@item_temps);
+			}
 		}
 	
 	if ($temps)
 		{
-		$c->stash()->{out}->{temps}    = $temps;
-		$c->stash()->{out}->{response} = \1;
+		$out->{temps}    = $temps;
+		$out->{response} = \1;
 		}
 	else
 		{
-		$c->stash()->{out}->{response} = \0;
+		$out->{response} = \0;
 		}
 	}
 

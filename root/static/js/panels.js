@@ -10,7 +10,7 @@ function display_temp_data(data, $temp_panel)
 	for (i = 0; i < data.temps.length; i++)
 		{
 		temp = data.temps[i];
-		html += temp.display_name + ": " + temp.value.toFixed(1) + "&deg;F<br />";
+		html += temp.display_name + ": " + temp.temperature.value.toFixed(1) + "&deg;F<br />";
 		}
 	$temp_panel.find(".panel-body").html(html);
 	}

@@ -45,9 +45,8 @@ sub TO_JSON
 
 	return
 		{
-		display_name => $item->display_name(),
-		name         => $item->name(),
-		value        => $self->temperature() / 10,
+		value => $self->temperature() / 10,
+		time  => $self->create_time(),
 		};
 	}
 
