@@ -4,6 +4,7 @@ use namespace::autoclean;
 use Try::Tiny;
 
 use JSON;
+use DateTime;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -21,7 +22,7 @@ sub lock :Local :Args(0)
 		$out->{data}     = "Cannot find member " . $member_id;
 		return;
 		}
-	
+
 	$out->{response} = \1;
 	$out->{data}     = 'Member ' . ($lock ? 'locked out' : 'unlocked');
 	try
@@ -55,7 +56,7 @@ sub info :Local :Args(1)
 		$c->stash()->{out}->{data}     = "Cannot find member";
 		return;
 		}
-	
+
 	my @groups = $member->member_mgroups()->all();
 	my @ogroups;
 	foreach my $group (@groups)
@@ -63,7 +64,7 @@ sub info :Local :Args(1)
 		my $g = $group->mgroup();
 		push(@ogroups, { $g->get_inflated_columns() });
 		}
-	
+
 	my @badges = $member->badges();
 	my @obadges;
 	foreach my $badge (@badges)
@@ -97,7 +98,7 @@ sub add_badge :Local :Args(0)
 		$out->{data}     = 'No badge specified';
 		return;
 		}
-	
+
 	try
 		{
 		$c->model('DB')->txn_do(sub
@@ -143,10 +144,10 @@ sub delete_badge :Local :Args(0)
 		$out->{data}     = 'No badge specified';
 		return;
 		}
-	
+
 	$badge_ids = [ $badge_ids ]
 		if (ref($badge_ids) ne 'ARRAY');
-	
+
 	$out->{response} = \1;
 	$out->{data}     = "Badges deleted";
 	try
@@ -294,8 +295,87 @@ sub edit :Local :Args(0)
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
-	
-	$c->response->body('Matched HiveWeb::Controller::API in API.');
+
+	my $in    = $c->stash()->{in};
+	my $out   = $c->stash()->{out};
+	my $order = $in->{order} || 'lname';
+	my $dir   = uc($in->{dir} || 'ASC');
+
+	my $dtp   = $c->model('DB')->storage()->datetime_parser();
+
+	$dir = 'ASC'
+		if ($dir ne 'ASC' && $dir ne 'DESC');
+
+	my $count_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		alias => 'al_count',
+		})->count_rs()->as_query();
+
+	my $last_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		select => { max => 'access_time' },
+		as     => [ 'last_access_time' ],
+		alias  => 'al_time',
+		}
+	)->get_column('last_access_time')->as_query();
+
+	my $member_attrs =
+		{
+		'+select' => [ $count_query, $last_query ],
+		'+as'     => [ 'accesses', 'last_access_time' ],
+		};
+
+	if ($order ne 'accesses' && $order ne 'last_access_time')
+		{
+		my $sorder .= "$order $dir";
+		$member_attrs->{order_by} = $sorder;
+		}
+
+	my @members = $c->model('DB::Member')->search({}, $member_attrs);
+	my @groups  = $c->model('DB::MGroup')->search({});
+
+	if ($order eq 'accesses')
+		{
+		@members = sort { $a->get_column('accesses') - $b->get_column('accesses') } @members;
+		@members = reverse(@members)
+			if ($dir eq 'DESC');
+		}
+	elsif ($order eq 'last_access_time')
+		{
+		@members = sort
+			{
+			my $ad = $a->get_column('last_access_time');
+			my $bd = $b->get_column('last_access_time');
+
+			if (!defined($ad))
+				{
+				return -1
+					if (defined($bd));
+				return 0;
+				}
+			return 1
+				if (!defined($bd));
+
+			my $at = $dtp->parse_datetime($ad);
+			my $bt = $dtp->parse_datetime($bd);
+			DateTime->compare($at, $bt);
+			}
+			@members;
+		@members = reverse(@members)
+			if ($dir eq 'DESC');
+		}
+
+	$out->{groups}   = \@groups;
+	$out->{members}  = \@members;
+	$out->{response} = \1;
 	}
 
 =encoding utf8
