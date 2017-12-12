@@ -342,9 +342,8 @@ sub index :Path :Args(0)
 	$filters->{is_lockedout} = ($in->{filters}->{active} ? 0 : 1)
 		if (defined($in->{filters}->{active}));
 
-	if (defined($in->{filters}->{paypal}))
+	if (defined(my $pp = $in->{filters}->{paypal}))
 		{
-		my $pp = $in->{filters}->{paypal};
 		$pp = [ $pp ]
 			if (ref($pp) ne 'ARRAY');
 
@@ -376,6 +375,51 @@ sub index :Path :Args(0)
 				}
 			}
 		$filters->{paypal_email} = \@pp_filters;
+		}
+
+	if (defined(my $list = $in->{filters}->{group_list}) && defined(my $type = $in->{filters}->{group_type}))
+		{
+		$list = [ $list ]
+			if (ref($list) ne 'ARRAY');
+		$type = lc($type);
+
+		if ($type eq 'all')
+			{
+			my $i;
+			$member_attrs->{join} = [];
+			my $g_where = [];
+			for (my $i = 0; $i < scalar(@$list); $i++)
+				{
+				my $join_name = 'member_mgroups_' . ($i + 1);
+				$join_name = 'member_mgroups'
+					if (!$i);
+
+				push(@{ $member_attrs->{join} }, 'member_mgroups');
+				push(@$g_where, { ($join_name . '.mgroup_id') => $list->[$i] });
+				}
+			$filters->{'-and'} = $g_where;
+			}
+		elsif ($type eq 'any')
+			{
+			$member_attrs->{join}     = 'member_mgroups';
+			$member_attrs->{distinct} = 1;
+			$filters->{'member_mgroups.mgroup_id'} = $list;
+			}
+		elsif ($type eq 'not_any')
+			{
+			#$member_attrs->{join}     = 'member_mgroups';
+			#$member_attrs->{distinct} = 1;
+			#$filters->{'member_mgroups.mgroup_id'} = [ { 'not_in' => $list }, undef ];
+			}
+		elsif ($type eq 'not_all')
+			{
+			}
+		else
+			{
+			$out->{error}    = 'Unknown group filter type ' . $type;
+			$out->{response} = \0;
+			return;
+			}
 		}
 
 	my @members = $c->model('DB::Member')->search($filters, $member_attrs);
