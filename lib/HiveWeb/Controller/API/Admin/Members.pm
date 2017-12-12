@@ -296,12 +296,12 @@ sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
 
-	my $in    = $c->stash()->{in};
-	my $out   = $c->stash()->{out};
-	my $order = $in->{order} || 'lname';
-	my $dir   = uc($in->{dir} || 'ASC');
-
-	my $dtp   = $c->model('DB')->storage()->datetime_parser();
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	my $order   = $in->{order} || 'lname';
+	my $dir     = uc($in->{dir} || 'ASC');
+	my $dtp     = $c->model('DB')->storage()->datetime_parser();
+	my $filters = {};
 
 	$dir = 'ASC'
 		if ($dir ne 'ASC' && $dir ne 'DESC');
@@ -339,7 +339,10 @@ sub index :Path :Args(0)
 		$member_attrs->{order_by} = $sorder;
 		}
 
-	my @members = $c->model('DB::Member')->search({}, $member_attrs);
+	$filters->{is_lockedout} = ($in->{filters}->{active} ? 0 : 1)
+		if (defined($in->{filters}->{active}));
+
+	my @members = $c->model('DB::Member')->search($filters, $member_attrs);
 	my @groups  = $c->model('DB::MGroup')->search({});
 
 	if ($order eq 'accesses')

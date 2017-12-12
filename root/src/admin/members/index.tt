@@ -36,12 +36,27 @@
 	<input type="text" id="badge_number" />
 </div>
 
+<div id="filter_dialogue" style="display: none">
+	<div class="row">
+		<div class="col-xs-12">
+			<h2>Active or Inactive</h2>
+			<label>All: <input type="radio" name="active" value="null" /></label><br />
+			<label>Active: <input type="radio" name="active" value="true" /></label><br />
+			<label>Inactive: <input type="radio" name="active" value="false" /></label><br />
+		</div>
+	</div>
+</div>
+
 <script type="text/javascript">
 var lock_url   = "[% Catalyst.uri_for('/api/admin/members/lock').dquote %]";
 var load_url   = "[% Catalyst.uri_for('/api/admin/members').dquote %]";
 var order      = "lname";
 var dir        = "ASC";
 var all_groups = [];
+var filters    =
+	{
+	active: null
+	}
 var columns    =
 	[
 		{
@@ -134,8 +149,9 @@ function load_members()
 	var $tbody = $table.find("tbody");
 	var params =
 		{
-		order: order,
-		dir: dir
+		order:   order,
+		dir:     dir,
+		filters: filters
 		};
 
 	load_header($table);
@@ -204,6 +220,37 @@ function load_members()
 
 		$table.find("thead img.icon.filter").click(function ()
 			{
+			var $filter = $("div#filter_dialogue");
+			if (filters.active === true)
+				$filter.find("input[name=active][value=true]").prop("checked", true);
+			else if (filters.active === false)
+				$filter.find("input[name=active][value=false]").prop("checked", true);
+			else
+				$filter.find("input[name=active][value=null]").prop("checked", true);
+			$filter.dialog(
+				{
+				title: "Filter Members",
+				buttons:
+					{
+					Cancel: function() { $(this).dialog("close"); },
+					OK: function()
+						{
+						var $this = $(this), active;
+
+						$this.dialog("close");
+
+						active = $this.find("input[name=active]:checked").val();
+						if (active === "true")
+							filters.active = true;
+						else if (active === "false")
+							filters.active = false;
+						else
+							filters.active = null;
+
+						load_members();
+						}
+					}
+				});
 			});
 		$tbody.find("td.edit img.password").click(function ()
 			{
