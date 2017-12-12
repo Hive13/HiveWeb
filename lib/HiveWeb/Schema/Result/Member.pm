@@ -54,6 +54,11 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+	"handle",
+	{
+		data_type     => 'character varying',
+		is_nullable   => 1,
+	}
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -137,11 +142,11 @@ sub TO_JSON
 		email       => $self->email(),
 		created_at  => $self->created_at(),
 		groups      => \@groups,
+		handle      => $self->handle(),
 		locked_out  => $self->is_lockedout() ? \1 : \0,
 		create_time => $self->created_at(),
 		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
 		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
-		};
 	}
 
 sub make_salt
