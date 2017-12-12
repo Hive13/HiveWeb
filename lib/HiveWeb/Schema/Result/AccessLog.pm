@@ -50,4 +50,19 @@ __PACKAGE__->belongs_to(
 );
 
 __PACKAGE__->meta->make_immutable;
+
+sub TO_JSON
+	{
+	my $self = shift;
+
+	return
+		{
+		access_id    => $self->access_id(),
+		access_time  => $self->access_time(),
+		item         => $self->item(),
+		member       => $self->member(),
+		granted      => $self->granted() ? \1 : \0,
+		badge_number => $self->badge_id(),
+		};
+	}
 1;

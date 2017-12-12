@@ -124,6 +124,19 @@ __PACKAGE__->has_many
 
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 
+sub TO_JSON
+	{
+	my $self = shift;
+
+	return
+		{
+		fname     => $self->fname(),
+		lname     => $self->lname(),
+		member_id => $self->member_id(),
+		handle    => $self->handle(),
+		};
+	}
+
 sub make_salt
 	{
 	my $self   = shift;
