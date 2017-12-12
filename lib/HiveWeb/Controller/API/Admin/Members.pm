@@ -342,6 +342,42 @@ sub index :Path :Args(0)
 	$filters->{is_lockedout} = ($in->{filters}->{active} ? 0 : 1)
 		if (defined($in->{filters}->{active}));
 
+	if (defined($in->{filters}->{paypal}))
+		{
+		my $pp = $in->{filters}->{paypal};
+		$pp = [ $pp ]
+			if (ref($pp) ne 'ARRAY');
+
+		my @pp_filters;
+		foreach my $type (@$pp)
+			{
+			$type = lc($type);
+			if ($type eq 'same')
+				{
+				push (@pp_filters, undef);
+				}
+			elsif ($type eq 'no')
+				{
+				push (@pp_filters, '');
+				}
+			elsif ($type eq 'diff')
+				{
+				push (@pp_filters,
+					[ -and =>
+						{ '!=' => undef },
+						{ '!=' => '' },
+					]);
+				}
+			else
+				{
+				$out->{error}    = 'Unknown PayPal filter type ' . $type;
+				$out->{response} = \0;
+				return;
+				}
+			}
+		$filters->{paypal_email} = \@pp_filters;
+		}
+
 	my @members = $c->model('DB::Member')->search($filters, $member_attrs);
 	my @groups  = $c->model('DB::MGroup')->search({});
 

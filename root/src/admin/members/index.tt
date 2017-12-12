@@ -44,6 +44,13 @@
 			<label>Active: <input type="radio" name="active" value="true" /></label><br />
 			<label>Inactive: <input type="radio" name="active" value="false" /></label><br />
 		</div>
+		<div class="col-xs-12">
+			<h2>PayPal Status</h2>
+			<label>Any: <input type="checkbox" name="paypal" value="any" /></label><br />
+			<label>Yes, same as primary e-mail: <input type="checkbox" name="paypal" value="same" /></label><br />
+			<label>Different PayPal e-mail: <input type="checkbox" name="paypal" value="diff" /></label><br />
+			<label>Does not use PayPal: <input type="checkbox" name="paypal" value="no" /></label><br />
+		</div>
 	</div>
 </div>
 
@@ -55,7 +62,8 @@ var dir        = "ASC";
 var all_groups = [];
 var filters    =
 	{
-	active: null
+	active: null,
+	paypal: null
 	}
 var columns    =
 	[
@@ -89,6 +97,16 @@ var columns    =
 		hidden: "sm"
 		},
 	];
+
+$("div#filter_dialogue input[name=paypal]").click(function ()
+	{
+	var $this = $(this);
+
+	if ($this.val() === "any")
+		$("div#filter_dialogue input[name=paypal][value!=any]").prop("checked", false);
+	else
+		$("div#filter_dialogue input[name=paypal][value=any]").prop("checked", false);
+	});
 
 function sort_click()
 	{
@@ -221,31 +239,62 @@ function load_members()
 		$table.find("thead img.icon.filter").click(function ()
 			{
 			var $filter = $("div#filter_dialogue");
+			var width   = $(window).width() * 0.8;
+			var i;
+
 			if (filters.active === true)
 				$filter.find("input[name=active][value=true]").prop("checked", true);
 			else if (filters.active === false)
 				$filter.find("input[name=active][value=false]").prop("checked", true);
 			else
 				$filter.find("input[name=active][value=null]").prop("checked", true);
+			if (filters.paypal === null)
+				{
+				$filter.find("input[name=paypal][value!=any]").prop("checked", false);
+				$filter.find("input[name=paypal][value=any]").prop("checked", true);
+				}
+			else
+				{
+				$filter.find("input[name=paypal][value=any]").prop("checked", false);
+				for (i = 0; i < filters.paypal.length; i++)
+					$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
+				}
+
 			$filter.dialog(
 				{
+				width: width,
 				title: "Filter Members",
 				buttons:
 					{
 					Cancel: function() { $(this).dialog("close"); },
 					OK: function()
 						{
-						var $this = $(this), active;
+						var $this = $(this), active, paypal = [];
 
 						$this.dialog("close");
 
 						active = $this.find("input[name=active]:checked").val();
+						$this.find("input[name=paypal]:checked").each(function ()
+							{
+							var v = $(this).attr("value");
+
+							if (v === "all")
+								{
+								paypal = null;
+								return false;
+								}
+							paypal.push(v);
+							});
+
 						if (active === "true")
 							filters.active = true;
 						else if (active === "false")
 							filters.active = false;
 						else
 							filters.active = null;
+						if (!paypal.length)
+							paypal = null;
+						filters.paypal = paypal;
 
 						load_members();
 						}
