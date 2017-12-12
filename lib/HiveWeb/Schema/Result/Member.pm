@@ -147,6 +147,7 @@ sub TO_JSON
 		create_time => $self->created_at(),
 		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
 		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
+		};
 	}
 
 sub make_salt
