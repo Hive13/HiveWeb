@@ -54,6 +54,11 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+	"handle",
+	{
+		data_type     => 'character varying',
+		is_nullable   => 1,
+	}
 );
 
 __PACKAGE__->uuid_columns('member_id');
