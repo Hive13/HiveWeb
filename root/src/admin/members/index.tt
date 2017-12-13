@@ -36,30 +36,68 @@
 	<input type="text" id="badge_number" />
 </div>
 
-<div id="filter_dialogue" style="display: none">
-	<div class="row">
-		<div class="col-xs-12">
-			<h2>Active or Inactive</h2>
-			<label>All: <input type="radio" name="active" value="null" /></label><br />
-			<label>Active: <input type="radio" name="active" value="true" /></label><br />
-			<label>Inactive: <input type="radio" name="active" value="false" /></label><br />
-		</div>
-		<div class="col-xs-12">
-			<h2>PayPal Status</h2>
-			<label>Any: <input type="checkbox" name="paypal" value="any" /></label><br />
-			<label>Yes, same as primary e-mail: <input type="checkbox" name="paypal" value="same" /></label><br />
-			<label>Different PayPal e-mail: <input type="checkbox" name="paypal" value="diff" /></label><br />
-			<label>Does not use PayPal: <input type="checkbox" name="paypal" value="no" /></label><br />
-		</div>
-		<div class="col-xs-12">
-			<h2>Group Membership</h2>
-			<h5>Filtering Options</h5>
-			<label>Don't use this filter <input type="radio" name="group_filter" value="null" /></label><br />
-			<label><b>Show</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="any" /></label><br />
-			<label><b>Show</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="all" /></label><br />
-			<label><b>Hide</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="not_any" /></label><br />
-			<label><b>Hide</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="not_all" /></label><br />
-			<div id="group_list">
+<div class="modal fade" id="filter_dialogue" tabIndex="-1" role="dialog" aria-labelledby="filter_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="filter_label">Select Filters</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Active or Inactive</h4>
+							</div>
+							<div class="panel-body">
+								<label>All: <input type="radio" name="active" value="null" /></label><br />
+								<label>Active: <input type="radio" name="active" value="true" /></label><br />
+								<label>Inactive: <input type="radio" name="active" value="false" /></label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>PayPal Status</h4>
+							</div>
+							<div class="panel-body">
+								<label>Any: <input type="checkbox" name="paypal" value="any" /></label><br />
+								<label>Yes, same as primary e-mail: <input type="checkbox" name="paypal" value="same" /></label><br />
+								<label>Different PayPal e-mail: <input type="checkbox" name="paypal" value="diff" /></label><br />
+								<label>Does not use PayPal: <input type="checkbox" name="paypal" value="no" /></label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-xs-12">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Group Membership</h4>
+							</div>
+							<div class="panel-body">
+								<div class="row">
+									<div class="col-md-6">
+										<h5>Filtering Options</h5>
+										<label>Don't use this filter <input type="radio" name="group_filter" value="null" /></label><br />
+										<label><b>Show</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="any" /></label><br />
+										<label><b>Show</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="all" /></label><br />
+										<label><b>Hide</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="not_any" /></label><br />
+										<label><b>Hide</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="not_all" /></label><br />
+									</div>
+									<div class="col-md-6">
+										<h5>Group Selection</h5>
+										<div id="group_list"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="refresh_filters">OK</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -155,7 +193,7 @@ function load_header($table)
 	html = "<tr><th></th>";
 
 	html += "<th>"
-		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" />"
+		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
 		+ "</th>";
 
 	for (i = 0; i < columns.length; i++)
@@ -249,97 +287,6 @@ function load_members()
 			edit($(this).attr("id"));
 			});
 
-		$table.find("thead img.icon.filter").click(function ()
-			{
-			var $filter = $("div#filter_dialogue");
-			var width   = $(window).width() * 0.8;
-			var i, html = "";
-
-			for (i = 0; i < all_groups.length; i++)
-				html += "<label>" + all_groups[i].name
-					+ " <input type=\"checkbox\" name=\"group_list\" value=\""
-					+ all_groups[i].mgroup_id + "\" /></label><br />";
-			$filter.find("div#group_list").html(html);
-
-			if (filters.group_type === null)
-				$filter.find("input[name=group_filter][value=null]").prop("checked", true);
-			else
-				$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
-			if (filters.group_list)
-				for (i = 0; i < filters.group_list.length; i++)
-					$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
-
-			if (filters.active === true)
-				$filter.find("input[name=active][value=true]").prop("checked", true);
-			else if (filters.active === false)
-				$filter.find("input[name=active][value=false]").prop("checked", true);
-			else
-				$filter.find("input[name=active][value=null]").prop("checked", true);
-			if (filters.paypal === null)
-				{
-				$filter.find("input[name=paypal][value!=any]").prop("checked", false);
-				$filter.find("input[name=paypal][value=any]").prop("checked", true);
-				}
-			else
-				{
-				$filter.find("input[name=paypal][value=any]").prop("checked", false);
-				for (i = 0; i < filters.paypal.length; i++)
-					$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
-				}
-
-			$filter.dialog(
-				{
-				width: width,
-				title: "Filter Members",
-				buttons:
-					{
-					Cancel: function() { $(this).dialog("close"); },
-					OK: function()
-						{
-						var $this = $(this), active, paypal = [];
-						var group_type, group_list = [];
-
-						$this.dialog("close");
-
-						active     = $this.find("input[name=active]:checked").val();
-						group_type = $this.find("input[name=group_filter]:checked").val();
-						$this.find("input[name=paypal]:checked").each(function ()
-							{
-							var v = $(this).attr("value");
-
-							if (v === "any")
-								{
-								paypal = null;
-								return false;
-								}
-							paypal.push(v);
-							});
-
-						if (group_type === "null")
-							filters.group_type = null;
-						else
-							filters.group_type = group_type;
-						$this.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
-						if (!group_list.length)
-							filters.group_list = null;
-						else
-							filters.group_list = group_list;
-
-						if (active === "true")
-							filters.active = true;
-						else if (active === "false")
-							filters.active = false;
-						else
-							filters.active = null;
-						if (!paypal || !paypal.length)
-							paypal = null;
-						filters.paypal = paypal;
-
-						load_members();
-						}
-					}
-				});
-			});
 		$tbody.find("td.edit img.password").click(function ()
 			{
 			var $this = $(this);
@@ -654,6 +601,86 @@ function edit(member_id)
 	}
 
 $(load_members);
+
+var $filter = $("div#filter_dialogue");
+
+$filter.on("show.bs.modal", function ()
+	{
+	var i, html = "";
+
+	for (i = 0; i < all_groups.length; i++)
+		html += "<label>" + all_groups[i].name
+			+ " <input type=\"checkbox\" name=\"group_list\" value=\""
+			+ all_groups[i].mgroup_id + "\" /></label><br />";
+	$filter.find("div#group_list").html(html);
+
+	if (filters.group_type === null)
+		$filter.find("input[name=group_filter][value=null]").prop("checked", true);
+	else
+		$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
+	if (filters.group_list)
+		for (i = 0; i < filters.group_list.length; i++)
+			$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
+
+	if (filters.active === true)
+		$filter.find("input[name=active][value=true]").prop("checked", true);
+	else if (filters.active === false)
+		$filter.find("input[name=active][value=false]").prop("checked", true);
+	else
+		$filter.find("input[name=active][value=null]").prop("checked", true);
+	if (filters.paypal === null)
+		{
+		$filter.find("input[name=paypal][value!=any]").prop("checked", false);
+		$filter.find("input[name=paypal][value=any]").prop("checked", true);
+		}
+	else
+		{
+		$filter.find("input[name=paypal][value=any]").prop("checked", false);
+		for (i = 0; i < filters.paypal.length; i++)
+			$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
+		}
+	});
+
+$filter.find("button#refresh_filters").click(function ()
+	{
+	var active, group_type, paypal = [], group_list = [];
+
+	$filter.modal("hide");
+	active     = $filter.find("input[name=active]:checked").val();
+	group_type = $filter.find("input[name=group_filter]:checked").val();
+	$filter.find("input[name=paypal]:checked").each(function ()
+		{
+		var v = $(this).attr("value");
+
+		if (v === "any")
+			{
+			paypal = null;
+			return false;
+			}
+		paypal.push(v);
+		});
+
+	if (group_type === "null")
+		filters.group_type = null;
+	else
+		filters.group_type = group_type;
+	$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
+	if (!group_list.length)
+		filters.group_list = null;
+	else
+		filters.group_list = group_list;
+
+	if (active === "true")
+		filters.active = true;
+	else if (active === "false")
+		filters.active = false;
+	else
+		filters.active = null;
+	if (!paypal || !paypal.length)
+		paypal = null;
+	filters.paypal = paypal;
+	load_members();
+	});
 
 </script>
 
