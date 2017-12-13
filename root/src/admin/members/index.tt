@@ -97,31 +97,66 @@
 	</div>
 </div>
 
-<div id="edit_dialogue" style="display: none">
-	Group Membership: <br />
-[%~ FOREACH group IN groups %]
-	<input type="checkbox" class="group" value="[% group.mgroup_id %]" /> [% group.name %]<br />
-[%~ END %]
-	<div id="badges">
-		Badges:<br />
-		<select size="2" multiple="multiple"></select><br />
-		<img title="Add" class="add icon" src="/static/icons/add.png" />
-		<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
-	</div>
-	<div id="soda_credit_div">
-		<label>Soda Credits:<br />
-			<input type=text id="soda_credits" size="3" />
-		</label>
+<div class="modal fade" id="edit_dialogue" tabIndex="-1" role="dialog" aria-labelledby="edit_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="edit_label">Edit User</h3>
+			</div>
+		<div class="modal-body">
+			<div class="row row-eq-height">
+				<div class="col-sm-6 col-lg-3">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h5>Group Membership</h5>
+						</div>
+						<div class="panel-body">
+							[%~ FOREACH group IN groups %]
+							<label><input type="checkbox" class="group" value="[% group.mgroup_id %]" /> [% group.name %]</label><br />
+							[%~ END %]
+						</div>
+					</div>
+				</div>
+				<div id="badges" class="col-sm-6 col-lg-2">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h5>Badges</h5>
+						</div>
+						<div class="panel-body">
+							<select size="2" multiple="multiple"></select><br />
+							<img title="Add" class="add icon" src="/static/icons/add.png" />
+							<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
+							<div id="badge_edit" style="display: none; max-width: 100%;">
+								<input type="text" id="badge_number" style="max-width: 100%" />
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="soda_credit_div" class="col-sm-12 col-lg-7">
+					<div class="panel panel-info">
+						<div class="panel-heading">
+							<h5>Member Profile</h5>
+						</div>
+						<div class="panel-body">
+							<label>Soda Credits:<br />
+								<input type=text id="soda_credits" size="3" />
+							</label>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+			<button type="button" class="btn btn-primary" id="finish_edit">OK</button>
+		</div>
 	</div>
 </div>
 
 <div id="password_dialogue" style="display: none">
 	<input type="password" id="password1" length="30" name="password1" required autofocus placeholder="Password" class="form-control" />
 	<input type="password" id="password2" length="30" name="password2" required placeholder="Confirm Password" class="form-control" />
-</div>
-
-<div id="badge_dialogue" style="display: none">
-	<input type="text" id="badge_number" />
 </div>
 
 <script type="text/javascript">
@@ -169,47 +204,52 @@ function api_json(url, data, what, success)
 
 function badge_edit(badge_id)
 	{
-	var title = badge_id ? "Edit Badge" : "Add Badge";
+	var $div      = $("#badge_edit");
+	var $edit     = $div.find("input");
 	var member_id = $("#edit_dialogue").data("member_id");
+	var url       = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]";
 	
-	$("#badge_number").val("");
-	$("#badge_dialogue").dialog(
+	$edit.val("");
+	$div.css("display", "");
+	$edit.focus();
+
+	$edit.keydown(function (e)
 		{
-		title: title,
-		buttons:
+		var data;
+		if (e.keyCode == 27)
 			{
-			Cancel: function()
+			$div.css("display", "none");
+			$div.parent().focus();
+			return false;
+			}
+		else if (e.keyCode == 13)
+			{
+			data =
 				{
-				$(this).dialog("close");
-				},
-			OK: function()
+				badge_number: $("#badge_number").val(),
+				member_id:    member_id
+				};
+			if (badge_id === undefined)
 				{
-				var url = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]";
-				var data =
+				api_json(url, data, "Badge add", function (data)
 					{
-					badge_number: $("#badge_number").val(),
-					member_id:    member_id
-					};
-				if (badge_id === undefined)
-					{
-					api_json(url, data, "Badge add", function (data)
+					var $option = $("<option />")
+						.attr("id", data.badge_id)
+						.attr("value", data.badge_number)
+						.text(data.badge_number);
+					$("#edit_dialogue div#badges select").append($option);
+					$.toast(
 						{
-						var $option = $("<option />")
-							.attr("id", data.badge_id)
-							.attr("value", data.badge_number)
-							.text(data.badge_number);
-						$("#edit_dialogue div#badges select").append($option);
-						$.toast(
-							{
-							heading: "Success",
-							text: "Badge added!",
-							icon: "success",
-							position: "top-right"
-							});
+						heading: "Success",
+						text: "Badge added!",
+						icon: "success",
+						position: "top-right"
 						});
-					}
-				$(this).dialog("close");
+					});
 				}
+			$div.css("display", "none");
+			$div.parent().focus();
+			return false;
 			}
 		});
 	}
@@ -389,18 +429,9 @@ function edit(member_id)
 						});
 					});
 				});
-			$dialogue.dialog(
-				{
-				title: title,
-				buttons:
-					{
-					Cancel: function()
-						{
-						$(this).dialog("close");
-						},
-					OK: save_member
-					}
-				});
+			$dialogue.find("#edit_label").text(title);
+			$dialogue.modal("show");
+			$dialogue.find("button#finish_edit").click(save_member);
 			}
 		});
 	}
@@ -497,7 +528,6 @@ $(function ()
 				$this.attr("src", "/static/icons/lock.png");
 			});
 	});
-
 </script>
 
 [%~ # vim:set filetype=tt2html: ~%]
