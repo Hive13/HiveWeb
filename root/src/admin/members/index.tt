@@ -98,6 +98,159 @@ var columns    =
 		},
 	];
 
+$(function()
+	{
+	var $table = $("table.hive-member-table");
+
+	$table
+		.on("dblclick", "tr", function ()
+			{
+			edit($(this).attr("id"));
+			return false;
+			})
+		.on("click", "td.edit img.password", function ()
+			{
+			var $this = $(this);
+			var member_id = $this.parents("tr").attr("id");
+			change_password(member_id);
+			return false;
+			})
+		.on("click", "td.edit img.edit", function ()
+			{
+			var $this = $(this);
+			var member_id = $this.parents("tr").attr("id");
+			edit(member_id);
+			return false;
+			})
+		.on("mouseover", "td.lock img", function()
+			{
+			var $this = $(this);
+
+			if ($this.hasClass("lock"))
+				$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
+			else
+				$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+
+			return false;
+			})
+		.on("mouseout", "td.lock img", function ()
+			{
+			var $this = $(this);
+
+			if ($this.hasClass("lock"))
+				$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+			else
+				$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
+
+			return false;
+			})
+		.on("click", "td.lock img", function ()
+			{
+			var $this, req_data = {};
+			if (confirm("Are you sure?"))
+				{
+				$this = $(this);
+				req_data.member_id = $this.parents("tr").attr("id");
+				if ($this.hasClass("unlock"))
+					req_data.lock = 0;
+				else
+					req_data.lock = 1;
+				api_json(lock_url, req_data, "Lock/unlock", function (data)
+					{
+					if ($this.hasClass("unlock"))
+						{
+						$this
+							.removeClass("unlock")
+							.addClass("lock")
+							.attr("title", "Lock")
+							.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+						$this.parents("tr").removeClass("locked");
+						}
+					else
+						{
+						$this
+							.removeClass("lock")
+							.addClass("unlock")
+							.attr("title", "Unlock")
+							.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
+						$this.parents("tr").addClass("locked");
+						}
+					});
+				}
+
+			return false;
+			})
+		.on("click", "thead img.icon.filter", function ()
+			{
+			var $filter = $("div#filter_dialogue");
+			var width   = $(window).width() * 0.8;
+			var i;
+
+			if (filters.active === true)
+				$filter.find("input[name=active][value=true]").prop("checked", true);
+			else if (filters.active === false)
+				$filter.find("input[name=active][value=false]").prop("checked", true);
+			else
+				$filter.find("input[name=active][value=null]").prop("checked", true);
+			if (filters.paypal === null)
+				{
+				$filter.find("input[name=paypal][value!=any]").prop("checked", false);
+				$filter.find("input[name=paypal][value=any]").prop("checked", true);
+				}
+			else
+				{
+				$filter.find("input[name=paypal][value=any]").prop("checked", false);
+				for (i = 0; i < filters.paypal.length; i++)
+					$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
+				}
+
+			$filter.dialog(
+				{
+				width: width,
+				title: "Filter Members",
+				buttons:
+					{
+					Cancel: function() { $(this).dialog("close"); },
+					OK: function()
+						{
+						var $this = $(this), active, paypal = [];
+
+						$this.dialog("close");
+
+						active = $this.find("input[name=active]:checked").val();
+						$this.find("input[name=paypal]:checked").each(function ()
+							{
+							var v = $(this).attr("value");
+
+							if (v === "all")
+								{
+								paypal = null;
+								return false;
+								}
+							paypal.push(v);
+							});
+
+						if (active === "true")
+							filters.active = true;
+						else if (active === "false")
+							filters.active = false;
+						else
+							filters.active = null;
+						if (!paypal.length)
+							paypal = null;
+						filters.paypal = paypal;
+
+						load_members();
+						}
+					}
+				});
+			return false;
+			})
+		;
+
+	load_members();
+	});
+
 $("div#filter_dialogue input[name=paypal]").click(function ()
 	{
 	var $this = $(this);
@@ -231,142 +384,7 @@ function load_members()
 			html += "</tr>";
 			}
 		$tbody.html(html);
-		$tbody.find("tr").dblclick(function ()
-			{
-			edit($(this).attr("id"));
-			});
-
-		$table.find("thead img.icon.filter").click(function ()
-			{
-			var $filter = $("div#filter_dialogue");
-			var width   = $(window).width() * 0.8;
-			var i;
-
-			if (filters.active === true)
-				$filter.find("input[name=active][value=true]").prop("checked", true);
-			else if (filters.active === false)
-				$filter.find("input[name=active][value=false]").prop("checked", true);
-			else
-				$filter.find("input[name=active][value=null]").prop("checked", true);
-			if (filters.paypal === null)
-				{
-				$filter.find("input[name=paypal][value!=any]").prop("checked", false);
-				$filter.find("input[name=paypal][value=any]").prop("checked", true);
-				}
-			else
-				{
-				$filter.find("input[name=paypal][value=any]").prop("checked", false);
-				for (i = 0; i < filters.paypal.length; i++)
-					$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
-				}
-
-			$filter.dialog(
-				{
-				width: width,
-				title: "Filter Members",
-				buttons:
-					{
-					Cancel: function() { $(this).dialog("close"); },
-					OK: function()
-						{
-						var $this = $(this), active, paypal = [];
-
-						$this.dialog("close");
-
-						active = $this.find("input[name=active]:checked").val();
-						$this.find("input[name=paypal]:checked").each(function ()
-							{
-							var v = $(this).attr("value");
-
-							if (v === "all")
-								{
-								paypal = null;
-								return false;
-								}
-							paypal.push(v);
-							});
-
-						if (active === "true")
-							filters.active = true;
-						else if (active === "false")
-							filters.active = false;
-						else
-							filters.active = null;
-						if (!paypal.length)
-							paypal = null;
-						filters.paypal = paypal;
-
-						load_members();
-						}
-					}
-				});
-			});
-		$tbody.find("td.edit img.password").click(function ()
-			{
-			var $this = $(this);
-			var member_id = $this.parents("tr").attr("id");
-			change_password(member_id);
-			});
-		$tbody.find("td.edit img.edit").click(function ()
-			{
-			var $this = $(this);
-			var member_id = $this.parents("tr").attr("id");
-			edit(member_id);
-			});
-		$tbody.find("td.lock img").click(function ()
-			{
-			var $this, req_data = {};
-			if (confirm("Are you sure?"))
-				{
-				$this = $(this);
-				req_data.member_id = $this.parents("tr").attr("id");
-				if ($this.hasClass("unlock"))
-					req_data.lock = 0;
-				else
-					req_data.lock = 1;
-				api_json(lock_url, req_data, "Lock/unlock", function (data)
-					{
-					if ($this.hasClass("unlock"))
-						{
-						$this
-							.removeClass("unlock")
-							.addClass("lock")
-							.attr("title", "Lock")
-							.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
-						$this.parents("tr").removeClass("locked");
-						}
-					else
-						{
-						$this
-							.removeClass("lock")
-							.addClass("unlock")
-							.attr("title", "Unlock")
-							.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
-						$this.parents("tr").addClass("locked");
-						}
-					});
-				}
-			})
-			.mouseover(function ()
-				{
-				var $this = $(this);
-
-				if ($this.hasClass("lock"))
-					$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
-				else
-					$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
-				})
-			.mouseout(function ()
-				{
-				var $this = $(this);
-
-				if ($this.hasClass("lock"))
-					$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
-				else
-					$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
-				});
 		});
-
 	}
 
 function badge_edit(badge_id)
@@ -504,10 +522,7 @@ function change_password(member_id)
 		title: title,
 		buttons:
 			{
-			Cancel: function()
-				{
-				$(this).dialog("close");
-				},
+			Cancel: function() { $(this).dialog("close"); },
 			OK: save_password
 			}
 		});
@@ -613,9 +628,5 @@ function edit(member_id)
 			}
 		});
 	}
-
-$(load_members);
-
 </script>
-
 [%~ # vim:set filetype=tt2html: ~%]
