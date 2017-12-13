@@ -78,3 +78,22 @@ ol.accesses li.denied
 	{
 	background-color: #ff0000;
 	}
+
+.row-eq-height
+	{
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+
+	-webkit-flex-flow: row wrap;
+	flex-flow: row wrap;
+
+	-webkit-align-content: flex-end;
+	align-content: flex-end;
+	}
+
+.row-eq-height .panel
+	{
+	height: 100%;
+	}
