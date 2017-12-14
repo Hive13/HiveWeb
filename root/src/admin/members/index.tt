@@ -83,7 +83,10 @@
 										<label><b>Show</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="any" /></label><br />
 										<label><b>Show</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="all" /></label><br />
 										<label><b>Hide</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="not_any" /></label><br />
-										<label><b>Hide</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="not_all" /></label><br />
+										[%~
+											# I'll figure this out eventually.
+										  # <label><b>Hide</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="not_all" /></label><br />
+										%]
 									</div>
 									<div class="col-md-6">
 										<h5>Group Selection</h5>

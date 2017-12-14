@@ -331,6 +331,7 @@ sub index :Path :Args(0)
 		{
 		'+select' => [ $count_query, $last_query ],
 		'+as'     => [ 'accesses', 'last_access_time' ],
+		prefetch  => 'member_mgroups',
 		};
 
 	if ($order ne 'accesses' && $order ne 'last_access_time')
@@ -401,18 +402,28 @@ sub index :Path :Args(0)
 			}
 		elsif ($type eq 'any')
 			{
-			$member_attrs->{join}     = 'member_mgroups';
-			$member_attrs->{distinct} = 1;
 			$filters->{'member_mgroups.mgroup_id'} = $list;
 			}
 		elsif ($type eq 'not_any')
 			{
-			#$member_attrs->{join}     = 'member_mgroups';
-			#$member_attrs->{distinct} = 1;
-			#$filters->{'member_mgroups.mgroup_id'} = [ { 'not_in' => $list }, undef ];
+			my $i = 0;
+			my $g_where = [];
+			foreach my $group_id (@$list)
+				{
+				my $group_query = $c->model('DB::MemberMGroup')->search(
+					{
+					mgroup_id => $group_id,
+					},
+					{
+					alias => 'mgroup' . $i++,
+					})->get_column('member_id')->as_query();
+				push(@$g_where, { 'me.member_id' => { -not_in => $group_query } });
+				}
+			$filters->{'-and'} = $g_where;
 			}
 		elsif ($type eq 'not_all')
 			{
+			# TODO: Insert brain.  Develop answer.
 			}
 		else
 			{
