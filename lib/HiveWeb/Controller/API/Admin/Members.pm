@@ -241,6 +241,20 @@ sub edit :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			if (exists($in->{paypal_email}))
+				{
+				my $paypal = $in->{paypal_email};
+				if (defined($member->paypal_email()) != defined($paypal) || $member->paypal_email() ne $paypal)
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'change_paypal_email',
+						changing_member_id => $c->user()->member_id(),
+						notes              => 'Set paypal e-mail to ' . ($paypal // '(null)'),
+						});
+					$member->update({ paypal_email => $paypal });
+					}
+				}
 			if (exists($in->{vend_credits}))
 				{
 				my $vend_credits = int($in->{vend_credits});

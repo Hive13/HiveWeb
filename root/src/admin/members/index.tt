@@ -24,10 +24,7 @@
 							<div class="panel-heading">
 								<h5>Group Membership</h5>
 							</div>
-							<div class="panel-body">
-								[%~ FOREACH group IN groups %]
-								<label><input type="checkbox" class="group" value="[% group.mgroup_id %]" /> [% group.name %]</label><br />
-								[%~ END %]
+							<div class="panel-body" id="groups">
 							</div>
 						</div>
 					</div>
@@ -441,7 +438,7 @@ function badge_edit(badge_id)
 	var $edit     = $div.find("input");
 	var member_id = $("#edit_dialogue").data("member_id");
 	var url       = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]";
-	
+
 	$edit.val("");
 	$div.css("display", "");
 	$edit.focus();
@@ -526,12 +523,13 @@ function save_password()
 
 function save_member()
 	{
-	var $this = $(this), groups = [], member_id = $this.data("member_id");
+	var $this = $(this).parents(".modal"), groups = [], member_id = $this.data("member_id");
 	var soda_credits = $this.find("input#soda_credits").val();
 	var url, what, data =
 		{
 		groups: groups,
-		vend_credits: soda_credits
+		vend_credits: soda_credits,
+		paypal_email: null
 		};
 
 	if (member_id)
@@ -551,6 +549,9 @@ function save_member()
 		groups.push($(this).val());
 		});
 
+	if ($this.find("input#different_paypal").prop("checked"))
+		data.paypal_email = $this.find("input#paypal_email").val();
+
 	api_json(url, data, what, function (data)
 		{
 		$.toast(
@@ -560,7 +561,7 @@ function save_member()
 			icon: "success",
 			position: "top-right"
 			});
-		$this.dialog("close");
+		$this.modal("hide");
 		});
 	}
 
@@ -613,7 +614,10 @@ function edit(member_id)
 				$("input.group[type=\"checkbox\"][value=\"" + data.groups[i].mgroup_id + "\"]").prop("checked", true);
 
 			if (data.member.paypal_email === null)
+				{
 				$("input#different_paypal").prop("checked", false);
+				$("input#paypal_email").val("");
+				}
 			else
 				{
 				$("input#different_paypal").prop("checked", true);
