@@ -10,30 +10,74 @@
 	</div>
 </div>
 
-<div id="edit_dialogue" style="display: none">
-	Group Membership: <br />
-	<div id="groups">
-	</div>
-	<div id="badges">
-		Badges:<br />
-		<select size="2" multiple="multiple"></select><br />
-		<img title="Add" class="add icon" src="[% Catalyst.uri_for('/static/icons/add.png').dquote %]" />
-		<img title="Delete" class="delete icon icon-disabled" src="[% Catalyst.uri_for('/static/icons/delete.png').dquote %]" />
-	</div>
-	<div id="soda_credit_div">
-		<label>Soda Credits:<br />
-			<input type=text id="soda_credits" size="3" />
-		</label>
+<div class="modal fade" id="edit_dialogue" tabIndex="-1" role="dialog" aria-labelledby="edit_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="edit_label">Edit User</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row row-eq-height">
+					<div class="col-sm-6 col-lg-3">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h5>Group Membership</h5>
+							</div>
+							<div class="panel-body" id="groups">
+							</div>
+						</div>
+					</div>
+					<div id="badges" class="col-sm-6 col-lg-2">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h5>Badges</h5>
+							</div>
+							<div class="panel-body">
+								<select size="2" multiple="multiple"></select><br />
+								<img title="Add" class="add icon" src="/static/icons/add.png" />
+								<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
+								<div id="badge_edit" style="display: none; max-width: 100%;">
+									<input type="text" id="badge_number" style="max-width: 100%" />
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="soda_credit_div" class="col-sm-12 col-lg-7">
+						<div class="panel panel-info">
+							<div class="panel-heading">
+								<h5>Member Profile</h5>
+							</div>
+							<div class="panel-body">
+								<label>Soda Credits:<br />
+									<input type=text id="soda_credits" size="3" />
+								</label>
+								<label>
+									<input type="checkbox" name="different_paypal" id="different_paypal" />
+									Member uses a different e-mail for PayPal or does not use PayPal.
+								</label><br />
+								<div style="display: none" id="paypal_div">
+									<label for="paypal_email">PayPal E-mail:</label>
+									<input type="text" name="paypal_email" id="paypal_email" maxlength="255" />
+									<br />
+									Leave blank if member does not use PayPal.
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_edit">OK</button>
+			</div>
+		</div>
 	</div>
 </div>
 
 <div id="password_dialogue" style="display: none">
 	<input type="password" id="password1" length="30" name="password1" required autofocus placeholder="Password" class="form-control" />
 	<input type="password" id="password2" length="30" name="password2" required placeholder="Confirm Password" class="form-control" />
-</div>
-
-<div id="badge_dialogue" style="display: none">
-	<input type="text" id="badge_number" />
 </div>
 
 <div class="modal fade" id="filter_dialogue" tabIndex="-1" role="dialog" aria-labelledby="filter_label">
@@ -156,6 +200,8 @@ $(function()
 	{
 	var $table = $("table.hive-member-table");
 
+	$("div#edit_dialogue input#different_paypal").click(paypal_checkbox);
+
 	$table
 		.on("dblclick", "tr", function ()
 			{
@@ -248,6 +294,17 @@ $("div#filter_dialogue input[name=paypal]").click(function ()
 	else
 		$("div#filter_dialogue input[name=paypal][value=any]").prop("checked", false);
 	});
+
+function paypal_checkbox()
+	{
+	var checked     = $("input#different_paypal").prop("checked");
+	var $paypal_div = $("div#paypal_div");
+
+	if (checked)
+		$paypal_div.css("display", "");
+	else
+		$paypal_div.css("display", "none");
+	}
 
 function sort_click()
 	{
@@ -377,47 +434,52 @@ function load_members()
 
 function badge_edit(badge_id)
 	{
-	var title = badge_id ? "Edit Badge" : "Add Badge";
+	var $div      = $("#badge_edit");
+	var $edit     = $div.find("input");
 	var member_id = $("#edit_dialogue").data("member_id");
+	var url       = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]";
 
-	$("#badge_number").val("");
-	$("#badge_dialogue").dialog(
+	$edit.val("");
+	$div.css("display", "");
+	$edit.focus();
+
+	$edit.keydown(function (e)
 		{
-		title: title,
-		buttons:
+		var data;
+		if (e.keyCode == 27)
 			{
-			Cancel: function()
+			$div.css("display", "none");
+			$div.parent().focus();
+			return false;
+			}
+		else if (e.keyCode == 13)
+			{
+			data =
 				{
-				$(this).dialog("close");
-				},
-			OK: function()
+				badge_number: $("#badge_number").val(),
+				member_id:    member_id
+				};
+			if (badge_id === undefined)
 				{
-				var url = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]";
-				var data =
+				api_json(url, data, "Badge add", function (data)
 					{
-					badge_number: $("#badge_number").val(),
-					member_id:    member_id
-					};
-				if (badge_id === undefined)
-					{
-					api_json(url, data, "Badge add", function (data)
+					var $option = $("<option />")
+						.attr("id", data.badge_id)
+						.attr("value", data.badge_number)
+						.text(data.badge_number);
+					$("#edit_dialogue div#badges select").append($option);
+					$.toast(
 						{
-						var $option = $("<option />")
-							.attr("id", data.badge_id)
-							.attr("value", data.badge_number)
-							.text(data.badge_number);
-						$("#edit_dialogue div#badges select").append($option);
-						$.toast(
-							{
-							heading: "Success",
-							text: "Badge added!",
-							icon: "success",
-							position: "top-right"
-							});
+						heading: "Success",
+						text: "Badge added!",
+						icon: "success",
+						position: "top-right"
 						});
-					}
-				$(this).dialog("close");
+					});
 				}
+			$div.css("display", "none");
+			$div.parent().focus();
+			return false;
 			}
 		});
 	}
@@ -461,12 +523,13 @@ function save_password()
 
 function save_member()
 	{
-	var $this = $(this), groups = [], member_id = $this.data("member_id");
+	var $this = $(this).parents(".modal"), groups = [], member_id = $this.data("member_id");
 	var soda_credits = $this.find("input#soda_credits").val();
 	var url, what, data =
 		{
 		groups: groups,
-		vend_credits: soda_credits
+		vend_credits: soda_credits,
+		paypal_email: null
 		};
 
 	if (member_id)
@@ -486,6 +549,9 @@ function save_member()
 		groups.push($(this).val());
 		});
 
+	if ($this.find("input#different_paypal").prop("checked"))
+		data.paypal_email = $this.find("input#paypal_email").val();
+
 	api_json(url, data, what, function (data)
 		{
 		$.toast(
@@ -495,7 +561,7 @@ function save_member()
 			icon: "success",
 			position: "top-right"
 			});
-		$this.dialog("close");
+		$this.modal("hide");
 		});
 	}
 
@@ -546,6 +612,17 @@ function edit(member_id)
 
 			for (i = 0; i < data.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.groups[i].mgroup_id + "\"]").prop("checked", true);
+
+			if (data.member.paypal_email === null)
+				{
+				$("input#different_paypal").prop("checked", false);
+				$("input#paypal_email").val("");
+				}
+			else
+				{
+				$("input#different_paypal").prop("checked", true);
+				$("input#paypal_email").val(data.member.paypal_email);
+				}
 
 			for (i = 0; i < data.badges.length; i++)
 				{
@@ -601,18 +678,11 @@ function edit(member_id)
 						});
 					});
 				});
-			$dialogue.dialog(
-				{
-				title: title,
-				buttons:
-					{
-					Cancel: function()
-						{
-						$(this).dialog("close");
-						},
-					OK: save_member
-					}
-				});
+
+			paypal_checkbox();
+			$dialogue.find("#edit_label").text(title);
+			$dialogue.modal("show");
+			$dialogue.find("button#finish_edit").click(save_member);
 			}
 		});
 	}
@@ -696,6 +766,5 @@ $filter.find("button#refresh_filters").click(function ()
 	filters.paypal = paypal;
 	load_members();
 	});
-
 </script>
 [%~ # vim:set filetype=tt2html: ~%]
