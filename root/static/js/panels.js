@@ -1,8 +1,3 @@
-function loading_icon()
-	{
-	return "Loading...<br /><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active\" style=\"width: 100%\"></div></div>";
-	}
-
 function display_temp_data(data, $temp_panel)
 	{
 	var temp, i, html = "";

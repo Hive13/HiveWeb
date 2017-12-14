@@ -1,3 +1,8 @@
+function loading_icon()
+	{
+	return "Loading...<br /><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active\" style=\"width: 100%\"></div></div>";
+	}
+
 function api_json(options, old_data, old_what, old_success)
 	{
 	if (typeof(options) !== "object")
@@ -8,7 +13,7 @@ function api_json(options, old_data, old_what, old_success)
 			what: old_what,
 			success: old_success
 			};
-	if (!"type" in options)
+	if (!("type" in options))
 		options.type = "POST";
 
 	$.ajax(
