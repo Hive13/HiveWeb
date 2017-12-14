@@ -1,112 +1,24 @@
-[%~
-	SET columns =
-		[
-			{
-			name => 'fname',
-			desc => 'First Name',
-			},
-			{
-			name => 'lname',
-			desc => 'Last Name',
-			},
-			{
-			name => 'email',
-			desc => 'E-mail Address',
-			},
-			{
-			name => 'accesses',
-			desc => 'Accesses',
-			get  => 1,
-			},
-			{
-			name => 'last_access_time',
-			desc => 'Last Access Time',
-			#time => 'M/d/yyyy h:mm:ss a',
-			get  => 1,
-			},
-			{
-			name => 'created_at',
-			desc => 'Create Time'
-			time => 'M/d/yyyy h:mm:ss a',
-			},
-		];
-~%]
 <div class="row">
 	<div class="col-sm-12 panel panel-default" style="padding: 0;">
 		<div class="panel-heading">
 			<h3>Members</h3>
 		</div>
-		<table class="data_table table">
-			<thead>
-				<tr>
-					<th></th>
-					<th></th>
-					[%~ FOREACH column IN columns %]
-					<th>
-					[%~ IF order != column.name ~%]
-						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name) %]">
-							[%~ column.desc ~%]
-						</a>
-					[%~ ELSE; ~%]
-						[%~	IF dir == "ASC"; ~%]
-						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/desc') %]">[%~ column.desc ~%](&darr;)</a>
-						[%~	ELSE; ~%]
-						<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/asc') %]">[%~ column.desc ~%](&uarr;)</a>
-						[%~	END; ~%]
-					[%~ END; ~%]
-					</th>
-					[%~ END; %]
-				</tr>
-			</thead>
-			<tbody>
-		[%~ FOREACH member IN members %]
-				<tr id="[% member.member_id %]"
-				[%~ IF member.is_lockedout =%]
-				class="locked"
-				[%~ END ~%]
-				>
-					<td class="edit">
-						<img src="/static/icons/key.png" title="Change Password" class="password icon" />
-						<img src="/static/icons/edit.png" title="Edit" class="edit icon" />
-						<img src="/static/icons/delete.png" title="Delete" class="delete icon" />
-					</td>
-					<td class="lock">
-		[%~   IF member.is_lockedout %]
-						<img title="Unlock" class="unlock icon" src="/static/icons/lock.png" />
-		[%~   ELSE %]
-						<img title="Lock" class="lock icon" src="/static/icons/unlock.png" />
-		[%~   END %]
-					</td>
-		[%~ 	FOREACH column IN columns;
-						SET name = column.name;
-						IF column.get;
-							SET value = member.get_column(name);
-						ELSE;
-							SET value = member.$name;
-						END;
-						IF column.time;
-							value = value.format_cldr(column.time);
-						END;
-		%]
-					<td>[% value %]</td>
-					[%~ END %]
-				</tr>
-		[%~ END %]
-			</tbody>
+		<table class="data_table table hive-member-table">
+			<thead></thead>
+			<tbody></tbody>
 		</table>
 	</div>
 </div>
 
 <div id="edit_dialogue" style="display: none">
 	Group Membership: <br />
-[%~ FOREACH group IN groups %]
-	<input type="checkbox" class="group" value="[% group.mgroup_id %]" /> [% group.name %]<br />
-[%~ END %]
+	<div id="groups">
+	</div>
 	<div id="badges">
 		Badges:<br />
 		<select size="2" multiple="multiple"></select><br />
-		<img title="Add" class="add icon" src="/static/icons/add.png" />
-		<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
+		<img title="Add" class="add icon" src="[% Catalyst.uri_for('/static/icons/add.png').dquote %]" />
+		<img title="Delete" class="delete icon icon-disabled" src="[% Catalyst.uri_for('/static/icons/delete.png').dquote %]" />
 	</div>
 	<div id="soda_credit_div">
 		<label>Soda Credits:<br />
@@ -124,46 +36,342 @@
 	<input type="text" id="badge_number" />
 </div>
 
-<script type="text/javascript">
-var lock_url = "[% Catalyst.uri_for('/api/admin/members/lock') %]";
+<div class="modal fade" id="filter_dialogue" tabIndex="-1" role="dialog" aria-labelledby="filter_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="filter_label">Select Filters</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Active or Inactive</h4>
+							</div>
+							<div class="panel-body">
+								<label>All: <input type="radio" name="active" value="null" /></label><br />
+								<label>Active: <input type="radio" name="active" value="true" /></label><br />
+								<label>Inactive: <input type="radio" name="active" value="false" /></label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>PayPal Status</h4>
+							</div>
+							<div class="panel-body">
+								<label>Any: <input type="checkbox" name="paypal" value="any" /></label><br />
+								<label>Yes, same as primary e-mail: <input type="checkbox" name="paypal" value="same" /></label><br />
+								<label>Different PayPal e-mail: <input type="checkbox" name="paypal" value="diff" /></label><br />
+								<label>Does not use PayPal: <input type="checkbox" name="paypal" value="no" /></label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-xs-12">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Group Membership</h4>
+							</div>
+							<div class="panel-body">
+								<div class="row">
+									<div class="col-md-6">
+										<h5>Filtering Options</h5>
+										<label>Don't use this filter <input type="radio" name="group_filter" value="null" /></label><br />
+										<label><b>Show</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="any" /></label><br />
+										<label><b>Show</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="all" /></label><br />
+										<label><b>Hide</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="not_any" /></label><br />
+										[%~
+											# I'll figure this out eventually.
+										  # <label><b>Hide</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="not_all" /></label><br />
+										%]
+									</div>
+									<div class="col-md-6">
+										<h5>Group Selection</h5>
+										<div id="group_list"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="refresh_filters">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 
-function api_json(url, data, what, success)
+<script type="text/javascript">
+var lock_url   = "[% Catalyst.uri_for('/api/admin/members/lock').dquote %]";
+var load_url   = "[% Catalyst.uri_for('/api/admin/members').dquote %]";
+var order      = "lname";
+var dir        = "ASC";
+var all_groups = [];
+var filters    =
 	{
-	$.ajax(
+	active:     null,
+	paypal:     null,
+	group_type: null,
+	group_list: null
+	}
+var columns    =
+	[
 		{
-		dataType: "json",
-		url: url,
-		type: "POST",
-		processData: false,
-		contentType: "application/json",
-		data: JSON.stringify(data),
-		cache: false,
-		success: function (data)
+		name: "fname",
+		desc: "First Name"
+		},
+		{
+		name: "lname",
+		desc: "Last Name"
+		},
+		{
+		name: "email",
+		desc: "E-mail Address"
+		},
+		{
+		name: "accesses",
+		desc: "Accesses",
+		hidden: "xs"
+		},
+		{
+		name: "last_access_time",
+		desc: "Last Access Time",
+		date: true,
+		hidden: "xs"
+		},
+		{
+		name: "created_at",
+		desc: "Create Time",
+		date: true,
+		hidden: "sm"
+		},
+	];
+
+$(function()
+	{
+	var $table = $("table.hive-member-table");
+
+	$table
+		.on("dblclick", "tr", function ()
 			{
-			if (!data.response)
-				{
-				$.toast(
-					{
-					heading: what + " failed",
-					text: data.data,
-					icon: "error",
-					position: "top-right"
-					});
-				return;
-				}
-			if (success)
-				success(data);
+			edit($(this).attr("id"));
+			return false;
+			})
+		.on("click", "td.edit img.password", function ()
+			{
+			var $this = $(this);
+			var member_id = $this.parents("tr").attr("id");
+			change_password(member_id);
+			return false;
+			})
+		.on("click", "td.edit img.edit", function ()
+			{
+			var $this = $(this);
+			var member_id = $this.parents("tr").attr("id");
+			edit(member_id);
+			return false;
+			})
+		.on("mouseover", "td.lock img", function()
+			{
+			var $this = $(this);
+
+			if ($this.hasClass("lock"))
+				$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
 			else
+				$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+
+			return false;
+			})
+		.on("mouseout", "td.lock img", function ()
+			{
+			var $this = $(this);
+
+			if ($this.hasClass("lock"))
+				$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+			else
+				$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
+
+			return false;
+			})
+		.on("click", "td.lock img", function ()
+			{
+			var $this, req_data = {};
+			if (confirm("Are you sure?"))
 				{
-				$.toast(
+				$this = $(this);
+				req_data.member_id = $this.parents("tr").attr("id");
+				if ($this.hasClass("unlock"))
+					req_data.lock = 0;
+				else
+					req_data.lock = 1;
+				api_json(lock_url, req_data, "Lock/unlock", function (data)
 					{
-					heading: what + " succeeded",
-					text: data.data,
-					icon: "success",
-					position: "top-right"
+					if ($this.hasClass("unlock"))
+						{
+						$this
+							.removeClass("unlock")
+							.addClass("lock")
+							.attr("title", "Lock")
+							.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
+						$this.parents("tr").removeClass("locked");
+						}
+					else
+						{
+						$this
+							.removeClass("lock")
+							.addClass("unlock")
+							.attr("title", "Unlock")
+							.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
+						$this.parents("tr").addClass("locked");
+						}
 					});
 				}
+
+			return false;
+			})
+		;
+
+	load_members();
+	});
+
+$("div#filter_dialogue input[name=paypal]").click(function ()
+	{
+	var $this = $(this);
+
+	if ($this.val() === "any")
+		$("div#filter_dialogue input[name=paypal][value!=any]").prop("checked", false);
+	else
+		$("div#filter_dialogue input[name=paypal][value=any]").prop("checked", false);
+	});
+
+function sort_click()
+	{
+	var $this     = $(this);
+	var new_dir   = $this.hasClass("sort-asc") ? "ASC" : "DESC";
+	var new_order = $this.attr("id").substring(5);
+
+	order = new_order;
+	dir   = new_dir;
+	load_members();
+	}
+
+function hidden_styles(which)
+	{
+	var styles = "", j, sz = ["xs", "sm", "md", "lg"], disp = 0;
+
+	for (j = sz.length - 1; j >= 0; j--)
+		if (disp || which === sz[j])
+			{
+			if (disp)
+				styles += " ";
+			disp = 1;
+			styles += "hidden-" + sz[j];
 			}
+
+	return styles;
+	}
+
+function load_header($table)
+	{
+	var html, $thead = $table.find("thead"), i, j, sz = ["xs", "sm", "md", "lg"], disp;
+
+	html = "<tr><th></th>";
+
+	html += "<th>"
+		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
+		+ "</th>";
+
+	for (i = 0; i < columns.length; i++)
+		{
+		html += "<th";
+		if ("hidden" in columns[i])
+			html += " class=\"" + hidden_styles(columns[i].hidden) + "\"";
+		html += "><a id=\"sort-" + columns[i].name + "\" class=\"anchor-style sort sort-";
+		html += (order === columns[i].name && dir === "ASC") ? "desc" : "asc";
+		html += "\">" + columns[i].desc;
+		if (order === columns[i].name)
+			html += ((dir === "ASC") ? "(&darr;)" : "(&uarr;)");
+		html += "</a></th>";
+		}
+	$thead.html(html);
+	$thead.find("a.sort").click(sort_click);
+	}
+
+function load_members()
+	{
+	var html = "", $table = $("table.hive-member-table");
+	var $tbody = $table.find("tbody");
+	var params =
+		{
+		order:   order,
+		dir:     dir,
+		filters: filters
+		};
+
+	load_header($table);
+
+	$tbody.html("<tr class=\"loading\"><td colspan=\"8\">" + loading_icon() + "</td></tr>");
+	api_json(load_url, params, "Member load", function (data)
+		{
+		var i, j, date_obj, member, val;
+
+		all_groups = data.groups;
+
+		for (i = 0; i < data.members.length; i++)
+			{
+			member = data.members[i];
+			create = new Date(member.create_time);
+			access = new Date(member.last_access_time);
+
+			html += "<tr id=\""
+				+ member.member_id + "\""
+				+ (member.locked_out ? " class=\"locked\"" : "")
+				+ ">";
+
+			html += "<td class=\"edit\">"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/key.png').dquote %]\" title=\"Change Password\" class=\"password icon\" />"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/edit.png').dquote %]\" title=\"Edit\" class=\"edit icon\" />"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/delete.png').dquote %]\" title=\"Delete\" class=\"delete icon\" />"
+				+ "</td>";
+			html += "<td class=\"lock\">";
+			if (member.locked_out)
+				html += "<img title=\"Unlock\" class=\"unlock icon\" src=\"[% Catalyst.uri_for('/static/icons/lock.png').dquote %]\" />";
+			else
+				html += "<img title=\"Lock\" class=\"lock icon\" src=\"[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]\" />";
+			html += "</td>";
+
+			for (j = 0; j < columns.length; j++)
+				{
+				val = member[columns[j].name];
+				html += "<td";
+				if ("hidden" in columns[j])
+					html += " class=\"" + hidden_styles(columns[j].hidden) + "\"";
+				html += ">";
+
+				if ("date" in columns[j] && columns[j].date)
+					{
+					if (val)
+						{
+						date_obj = new Date(val);
+						html += date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString();
+						}
+					else
+						html += "--";
+					}
+				else
+					html += member[columns[j].name];
+
+				html += "</td>";
+				}
+
+			html += "</tr>";
+			}
+		$tbody.html(html);
 		});
 	}
 
@@ -171,7 +379,7 @@ function badge_edit(badge_id)
 	{
 	var title = badge_id ? "Edit Badge" : "Add Badge";
 	var member_id = $("#edit_dialogue").data("member_id");
-	
+
 	$("#badge_number").val("");
 	$("#badge_dialogue").dialog(
 		{
@@ -237,7 +445,7 @@ function save_password()
 			});
 		return;
 		}
-	
+
 	api_json(url, data, "Password update", function (data)
 		{
 		$.toast(
@@ -277,7 +485,7 @@ function save_member()
 		{
 		groups.push($(this).val());
 		});
-	
+
 	api_json(url, data, what, function (data)
 		{
 		$.toast(
@@ -302,10 +510,7 @@ function change_password(member_id)
 		title: title,
 		buttons:
 			{
-			Cancel: function()
-				{
-				$(this).dialog("close");
-				},
+			Cancel: function() { $(this).dialog("close"); },
 			OK: save_password
 			}
 		});
@@ -313,9 +518,16 @@ function change_password(member_id)
 
 function edit(member_id)
 	{
+	var i, html = "";
 	var title = member_id ? "Edit Member" : "Add Member";
 	var $dialogue = $("#edit_dialogue");
 	$dialogue.data("member_id", member_id);
+
+	for (i = 0; i < all_groups.length; i++)
+		html += "<label><input type=\"checkbox\" class=\"group\" value=\""
+			+ all_groups[i].mgroup_id + "\" /> " + all_groups[i].name
+			+ "</label><br />";
+	$dialogue.find("div#groups").html(html);
 
 	$.ajax(
 		{
@@ -334,7 +546,7 @@ function edit(member_id)
 
 			for (i = 0; i < data.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.groups[i].mgroup_id + "\"]").prop("checked", true);
-			
+
 			for (i = 0; i < data.badges.length; i++)
 				{
 				badge = data.badges[i];
@@ -354,7 +566,7 @@ function edit(member_id)
 				else
 					$dialogue.find("img.delete").addClass("icon-disabled");
 				});
-			
+
 			$dialogue.find("div#badges img.add").click(function () { badge_edit(undefined) });
 			$dialogue.find("div#badges img.delete").click(function()
 				{
@@ -405,99 +617,85 @@ function edit(member_id)
 		});
 	}
 
-$(function ()
+var $filter = $("div#filter_dialogue");
+
+$filter.on("show.bs.modal", function ()
 	{
-	$("tr").dblclick(function ()
+	var i, html = "";
+
+	for (i = 0; i < all_groups.length; i++)
+		html += "<label>" + all_groups[i].name
+			+ " <input type=\"checkbox\" name=\"group_list\" value=\""
+			+ all_groups[i].mgroup_id + "\" /></label><br />";
+	$filter.find("div#group_list").html(html);
+
+	if (filters.group_type === null)
+		$filter.find("input[name=group_filter][value=null]").prop("checked", true);
+	else
+		$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
+	if (filters.group_list)
+		for (i = 0; i < filters.group_list.length; i++)
+			$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
+
+	if (filters.active === true)
+		$filter.find("input[name=active][value=true]").prop("checked", true);
+	else if (filters.active === false)
+		$filter.find("input[name=active][value=false]").prop("checked", true);
+	else
+		$filter.find("input[name=active][value=null]").prop("checked", true);
+	if (filters.paypal === null)
 		{
-		edit($(this).attr("id"));
-		});
-	$("td.edit img.password").click(function ()
+		$filter.find("input[name=paypal][value!=any]").prop("checked", false);
+		$filter.find("input[name=paypal][value=any]").prop("checked", true);
+		}
+	else
 		{
-		var $this = $(this);
-		var member_id = $this.parents("tr").attr("id");
-		change_password(member_id);
-		});
-	$("td.edit img.edit").click(function ()
+		$filter.find("input[name=paypal][value=any]").prop("checked", false);
+		for (i = 0; i < filters.paypal.length; i++)
+			$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
+		}
+	});
+
+$filter.find("button#refresh_filters").click(function ()
+	{
+	var active, group_type, paypal = [], group_list = [];
+
+	$filter.modal("hide");
+	active     = $filter.find("input[name=active]:checked").val();
+	group_type = $filter.find("input[name=group_filter]:checked").val();
+	$filter.find("input[name=paypal]:checked").each(function ()
 		{
-		var $this = $(this);
-		var member_id = $this.parents("tr").attr("id");
-		edit(member_id);
-		});
-	$("td.lock img").click(function ()
-		{
-		var $this, req_data = {};
-		if (confirm("Are you sure?"))
+		var v = $(this).attr("value");
+
+		if (v === "any")
 			{
-			$this = $(this);
-			req_data.member_id = $this.parents("tr").attr("id");
-			if ($this.hasClass("unlock"))
-				req_data.lock = 0;
-			else
-				req_data.lock = 1;
-			$.ajax(
-				{
-				url: lock_url,
-				dataType: "json",
-				type: "POST",
-				processData: false,
-				contentType: "application/json",
-				data: JSON.stringify(req_data),
-				cache: false,
-				success: function (data)
-					{
-					if (!data.response)
-						{
-						$.toast(
-							{
-							heading: "Lock/unlock failed",
-							text: data.data,
-							icon: "error",
-							position: "top-right"
-							});
-						return;
-						}
-					if ($this.hasClass("unlock"))
-						{
-						$this
-							.removeClass("unlock")
-							.addClass("lock")
-							.attr("title", "Lock")
-							.attr("src", "/static/icons/unlock.png");
-						$this.parents("tr").removeClass("locked");
-						}
-					else
-						{
-						$this
-							.removeClass("lock")
-							.addClass("unlock")
-							.attr("title", "Unlock")
-							.attr("src", "/static/icons/lock.png");
-						$this.parents("tr").addClass("locked");
-						}
-					}
-				});
+			paypal = null;
+			return false;
 			}
-		})
-		.mouseover(function ()
-			{
-			var $this = $(this);
+		paypal.push(v);
+		});
 
-			if ($this.hasClass("lock"))
-				$this.attr("src", "/static/icons/lock.png");
-			else
-				$this.attr("src", "/static/icons/unlock.png");
-			})
-		.mouseout(function ()
-			{
-			var $this = $(this);
+	if (group_type === "null")
+		filters.group_type = null;
+	else
+		filters.group_type = group_type;
+	$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
+	if (!group_list.length)
+		filters.group_list = null;
+	else
+		filters.group_list = group_list;
 
-			if ($this.hasClass("lock"))
-				$this.attr("src", "/static/icons/unlock.png");
-			else
-				$this.attr("src", "/static/icons/lock.png");
-			});
+	if (active === "true")
+		filters.active = true;
+	else if (active === "false")
+		filters.active = false;
+	else
+		filters.active = null;
+	if (!paypal || !paypal.length)
+		paypal = null;
+	filters.paypal = paypal;
+	load_members();
 	});
 
 </script>
-
 [%~ # vim:set filetype=tt2html: ~%]

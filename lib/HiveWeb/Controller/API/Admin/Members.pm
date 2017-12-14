@@ -4,6 +4,7 @@ use namespace::autoclean;
 use Try::Tiny;
 
 use JSON;
+use DateTime;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -21,7 +22,7 @@ sub lock :Local :Args(0)
 		$out->{data}     = "Cannot find member " . $member_id;
 		return;
 		}
-	
+
 	$out->{response} = \1;
 	$out->{data}     = 'Member ' . ($lock ? 'locked out' : 'unlocked');
 	try
@@ -55,7 +56,7 @@ sub info :Local :Args(1)
 		$c->stash()->{out}->{data}     = "Cannot find member";
 		return;
 		}
-	
+
 	my @groups = $member->member_mgroups()->all();
 	my @ogroups;
 	foreach my $group (@groups)
@@ -63,7 +64,7 @@ sub info :Local :Args(1)
 		my $g = $group->mgroup();
 		push(@ogroups, { $g->get_inflated_columns() });
 		}
-	
+
 	my @badges = $member->badges();
 	my @obadges;
 	foreach my $badge (@badges)
@@ -97,7 +98,7 @@ sub add_badge :Local :Args(0)
 		$out->{data}     = 'No badge specified';
 		return;
 		}
-	
+
 	try
 		{
 		$c->model('DB')->txn_do(sub
@@ -143,10 +144,10 @@ sub delete_badge :Local :Args(0)
 		$out->{data}     = 'No badge specified';
 		return;
 		}
-	
+
 	$badge_ids = [ $badge_ids ]
 		if (ref($badge_ids) ne 'ARRAY');
-	
+
 	$out->{response} = \1;
 	$out->{data}     = "Badges deleted";
 	try
@@ -294,8 +295,181 @@ sub edit :Local :Args(0)
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
-	
-	$c->response->body('Matched HiveWeb::Controller::API in API.');
+
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	my $order   = $in->{order} || 'lname';
+	my $dir     = uc($in->{dir} || 'ASC');
+	my $dtp     = $c->model('DB')->storage()->datetime_parser();
+	my $filters = {};
+
+	$dir = 'ASC'
+		if ($dir ne 'ASC' && $dir ne 'DESC');
+
+	my $count_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		alias => 'al_count',
+		})->count_rs()->as_query();
+
+	my $last_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		select => { max => 'access_time' },
+		as     => [ 'last_access_time' ],
+		alias  => 'al_time',
+		}
+	)->get_column('last_access_time')->as_query();
+
+	my $member_attrs =
+		{
+		'+select' => [ $count_query, $last_query ],
+		'+as'     => [ 'accesses', 'last_access_time' ],
+		prefetch  => 'member_mgroups',
+		};
+
+	if ($order ne 'accesses' && $order ne 'last_access_time')
+		{
+		my $sorder .= "$order $dir";
+		$member_attrs->{order_by} = $sorder;
+		}
+
+	$filters->{is_lockedout} = ($in->{filters}->{active} ? 0 : 1)
+		if (defined($in->{filters}->{active}));
+
+	if (defined(my $pp = $in->{filters}->{paypal}))
+		{
+		$pp = [ $pp ]
+			if (ref($pp) ne 'ARRAY');
+
+		my @pp_filters;
+		foreach my $type (@$pp)
+			{
+			$type = lc($type);
+			if ($type eq 'same')
+				{
+				push (@pp_filters, undef);
+				}
+			elsif ($type eq 'no')
+				{
+				push (@pp_filters, '');
+				}
+			elsif ($type eq 'diff')
+				{
+				push (@pp_filters,
+					[ -and =>
+						{ '!=' => undef },
+						{ '!=' => '' },
+					]);
+				}
+			else
+				{
+				$out->{error}    = 'Unknown PayPal filter type ' . $type;
+				$out->{response} = \0;
+				return;
+				}
+			}
+		$filters->{paypal_email} = \@pp_filters;
+		}
+
+	if (defined(my $list = $in->{filters}->{group_list}) && defined(my $type = $in->{filters}->{group_type}))
+		{
+		$list = [ $list ]
+			if (ref($list) ne 'ARRAY');
+		$type = lc($type);
+
+		if ($type eq 'all')
+			{
+			my $i;
+			$member_attrs->{join} = [];
+			my $g_where = [];
+			for (my $i = 0; $i < scalar(@$list); $i++)
+				{
+				my $join_name = 'member_mgroups_' . ($i + 1);
+				$join_name = 'member_mgroups'
+					if (!$i);
+
+				push(@{ $member_attrs->{join} }, 'member_mgroups');
+				push(@$g_where, { ($join_name . '.mgroup_id') => $list->[$i] });
+				}
+			$filters->{'-and'} = $g_where;
+			}
+		elsif ($type eq 'any')
+			{
+			$filters->{'member_mgroups.mgroup_id'} = $list;
+			}
+		elsif ($type eq 'not_any')
+			{
+			my $i = 0;
+			my $g_where = [];
+			foreach my $group_id (@$list)
+				{
+				my $group_query = $c->model('DB::MemberMGroup')->search(
+					{
+					mgroup_id => $group_id,
+					},
+					{
+					alias => 'mgroup' . $i++,
+					})->get_column('member_id')->as_query();
+				push(@$g_where, { 'me.member_id' => { -not_in => $group_query } });
+				}
+			$filters->{'-and'} = $g_where;
+			}
+		elsif ($type eq 'not_all')
+			{
+			# TODO: Insert brain.  Develop answer.
+			}
+		else
+			{
+			$out->{error}    = 'Unknown group filter type ' . $type;
+			$out->{response} = \0;
+			return;
+			}
+		}
+
+	my @members = $c->model('DB::Member')->search($filters, $member_attrs);
+	my @groups  = $c->model('DB::MGroup')->search({});
+
+	if ($order eq 'accesses')
+		{
+		@members = sort { $a->get_column('accesses') - $b->get_column('accesses') } @members;
+		@members = reverse(@members)
+			if ($dir eq 'DESC');
+		}
+	elsif ($order eq 'last_access_time')
+		{
+		@members = sort
+			{
+			my $ad = $a->get_column('last_access_time');
+			my $bd = $b->get_column('last_access_time');
+
+			if (!defined($ad))
+				{
+				return -1
+					if (defined($bd));
+				return 0;
+				}
+			return 1
+				if (!defined($bd));
+
+			my $at = $dtp->parse_datetime($ad);
+			my $bt = $dtp->parse_datetime($bd);
+			DateTime->compare($at, $bt);
+			}
+			@members;
+		@members = reverse(@members)
+			if ($dir eq 'DESC');
+		}
+
+	$out->{groups}   = \@groups;
+	$out->{members}  = \@members;
+	$out->{response} = \1;
 	}
 
 =encoding utf8

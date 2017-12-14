@@ -12,12 +12,12 @@
 	opacity: 0;
 	}
 
-.data_table tbody tr:hover td.edit
+.data_table tbody tr:not(.loading):hover td.edit
 	{
 	opacity: 1;
 	}
 
-.data_table tbody tr:hover td:not(.edit)
+.data_table tbody tr:not(.loading):hover td:not(.edit)
 	{
 	background-color: #bbbbff;
 	}
@@ -48,4 +48,9 @@ img.icon.icon-disabled
 	{
 	cursor: default;
 	opacity: .5;
+	}
+
+.anchor-style
+	{
+	cursor: pointer;
 	}
