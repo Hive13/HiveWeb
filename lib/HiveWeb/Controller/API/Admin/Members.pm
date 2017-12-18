@@ -57,14 +57,6 @@ sub info :Local :Args(1)
 		return;
 		}
 
-	my @groups = $member->member_mgroups()->all();
-	my @ogroups;
-	foreach my $group (@groups)
-		{
-		my $g = $group->mgroup();
-		push(@ogroups, { $g->get_inflated_columns() });
-		}
-
 	my @badges = $member->badges();
 	my @obadges;
 	foreach my $badge (@badges)
@@ -72,9 +64,8 @@ sub info :Local :Args(1)
 		push(@obadges, { $badge->get_inflated_columns() });
 		}
 	$c->stash()->{out}->{badges}   = \@obadges;
-	$c->stash()->{out}->{groups}   = \@ogroups;
-	$c->stash()->{out}->{member}   = { $member->get_inflated_columns() };
-	$c->stash()->{out}->{response} = JSON->true();
+	$c->stash()->{out}->{member}   = $member;
+	$c->stash()->{out}->{response} = \1;
 	}
 
 sub add_badge :Local :Args(0)
