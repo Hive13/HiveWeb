@@ -54,3 +54,9 @@ img.icon.icon-disabled
 	{
 	cursor: pointer;
 	}
+
+.btn img
+	{
+	max-width: 75px;
+	max-height: 75px;
+	}

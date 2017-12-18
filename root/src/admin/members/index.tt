@@ -28,7 +28,16 @@
 							</div>
 						</div>
 					</div>
-					<div id="badges" class="col-sm-6 col-lg-2">
+					<div id="photo" class="col-sm-6 col-lg-9">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h5>Member Photo</h5>
+							</div>
+							<div class="panel-body text-center">
+							</div>
+						</div>
+					</div>
+					<div id="badges" class="col-sm-6 col-lg-3">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h5>Badges</h5>
@@ -43,7 +52,7 @@
 							</div>
 						</div>
 					</div>
-					<div id="soda_credit_div" class="col-sm-12 col-lg-7">
+					<div id="soda_credit_div" class="col-sm-12 col-lg-9">
 						<div class="panel panel-info">
 							<div class="panel-heading">
 								<h5>Member Profile</h5>
@@ -603,6 +612,7 @@ function edit(member_id)
 		success: function (data)
 			{
 			var i, badge, $option, $select, $soda_credits;
+			var $image_div = $dialogue.find("div#photo div.panel div.panel-body");
 
 			$("input.group[type=\"checkbox\"]").prop("checked", false);
 			$select       = $dialogue.find("div#badges select").empty();
@@ -610,8 +620,8 @@ function edit(member_id)
 
 			$soda_credits.val(data.member.vend_credits);
 
-			for (i = 0; i < data.groups.length; i++)
-				$("input.group[type=\"checkbox\"][value=\"" + data.groups[i].mgroup_id + "\"]").prop("checked", true);
+			for (i = 0; i < data.member.groups.length; i++)
+				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
 
 			if (data.member.paypal_email === null)
 				{
@@ -622,6 +632,51 @@ function edit(member_id)
 				{
 				$("input#different_paypal").prop("checked", true);
 				$("input#paypal_email").val(data.member.paypal_email);
+				}
+
+			if (data.member.member_image_id)
+				{
+				}
+			else
+				{
+				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+				$image_div.find("input[type=file]").change(function()
+					{
+					var $this = $(this);
+					var fd = new FormData();
+					fd.append("photo", $this[0].files[0]);
+					fd.append("member_id", member_id);
+
+					$.ajax(
+						{
+						url: "[% Catalyst.uri_for('/api/admin/member/photo').dquote %]",
+						type: "POST",
+						data: fd,
+						cache: false,
+						contentType: false,
+						processData: false,
+						xhr: function()
+							{
+							var myXhr = $.ajaxSettings.xhr();
+							if (myXhr.upload)
+								{
+								// For handling the progress of the upload
+								myXhr.upload.addEventListener('progress', function(e)
+									{
+									if (e.lengthComputable)
+										{
+										/*$('progress').attr(
+											{
+											value: e.loaded,
+											max: e.total,
+											});*/
+										}
+									} , false);
+								}
+							return myXhr;
+							},
+						});
+					});
 				}
 
 			for (i = 0; i < data.badges.length; i++)
