@@ -640,12 +640,14 @@ function edit(member_id)
 			else
 				{
 				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-				$image_div.find("input[type=file]").change(function()
+				$image_div.on("change", "input[type=file]", function()
 					{
-					var $this = $(this);
+					var $this = $(this), $progress;
 					var fd = new FormData();
 					fd.append("photo", $this[0].files[0]);
 					fd.append("member_id", member_id);
+					$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
+					$progress = $image_div.find("div.progress div.progress-bar");
 
 					$.ajax(
 						{
@@ -663,18 +665,28 @@ function edit(member_id)
 								// For handling the progress of the upload
 								myXhr.upload.addEventListener('progress', function(e)
 									{
+									var pct;
+
 									if (e.lengthComputable)
 										{
-										/*$('progress').attr(
-											{
-											value: e.loaded,
-											max: e.total,
-											});*/
+										pct = e.loaded * 100 / e.total;
+										$progress.attr("aria-valuenow", pct).css("width", pct + "%");
 										}
 									} , false);
 								}
 							return myXhr;
 							},
+						error: function(jqXHR, status, error_thrown)
+							{
+							$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+							$.toast(
+								{
+								icon: "error",
+								heading: "Image upload failed",
+								position: "top-right",
+								text: error_thrown
+								});
+							}
 						});
 					});
 				}
