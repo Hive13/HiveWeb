@@ -297,6 +297,14 @@ sub edit :Local :Args(0)
 		};
 	}
 
+sub photo :Local :Args(0)
+	{
+	my ( $self, $c ) = @_;
+
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	}
+
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;

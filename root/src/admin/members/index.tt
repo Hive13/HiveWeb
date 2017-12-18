@@ -651,7 +651,7 @@ function edit(member_id)
 
 					$.ajax(
 						{
-						url: "[% Catalyst.uri_for('/api/admin/member/photo').dquote %]",
+						url: "[% Catalyst.uri_for('/api/admin/members/photo').dquote %]",
 						type: "POST",
 						data: fd,
 						cache: false,
