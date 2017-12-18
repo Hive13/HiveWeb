@@ -24,7 +24,7 @@ use Catalyst qw/
 	Authentication
 	Authorization::ACL
 	Session
-	Session::Store::File
+	Session::Store::DBIC
 	Session::State::Cookie
 /;
 
@@ -98,6 +98,11 @@ __PACKAGE__->config
 				class          => 'Password',
 				},
 			},
+		},
+	'Plugin::Session' =>
+		{
+		expires    => (60 * 60 * 12),
+		dbic_class => 'DB::Session',
 		},
 	);
 
