@@ -614,6 +614,8 @@ function edit(member_id)
 			var i, badge, $option, $select, $soda_credits;
 			var $image_div = $dialogue.find("div#photo div.panel div.panel-body");
 
+			title = "Edit " + data.member.fname + " " + data.member.lname;
+
 			$("input.group[type=\"checkbox\"]").prop("checked", false);
 			$select       = $dialogue.find("div#badges select").empty();
 			$soda_credits = $dialogue.find("input#soda_credits");
@@ -635,11 +637,10 @@ function edit(member_id)
 				}
 
 			if (data.member.member_image_id)
-				{
-				}
+				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.member.member_image_id + "\" />");
 			else
 				{
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 				$image_div.on("change", "input[type=file]", function()
 					{
 					var $this = $(this), $progress;
@@ -686,6 +687,23 @@ function edit(member_id)
 								position: "top-right",
 								text: error_thrown
 								});
+							},
+						success: function(data)
+							{
+							if (!data.response)
+								{
+								$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+								$.toast(
+									{
+									heading: options.what + " failed",
+									text: data.data,
+									icon: "error",
+									position: "top-right"
+									});
+								return;
+								}
+							else
+								$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.image_id + "\" />");
 							}
 						});
 					});
