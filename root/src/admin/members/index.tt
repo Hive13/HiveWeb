@@ -97,29 +97,71 @@
 				<h3 class="modal-title" id="filter_label">Select Filters</h3>
 			</div>
 			<div class="modal-body">
-				<div class="row">
-					<div class="col-md-6">
+				<div class="row row-eq-height u-pb-5">
+					<div class="col-md-4">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>Active or Inactive</h4>
 							</div>
 							<div class="panel-body">
-								<label>All: <input type="radio" name="active" value="null" /></label><br />
-								<label>Active: <input type="radio" name="active" value="true" /></label><br />
-								<label>Inactive: <input type="radio" name="active" value="false" /></label><br />
+								<label>
+									<input type="radio" name="active" value="null" />
+									All
+								</label><br />
+								<label>
+									<input type="radio" name="active" value="true" />
+									Active
+								</label><br />
+								<label>
+									<input type="radio" name="active" value="false" />
+									Inactive
+								</label><br />
 							</div>
 						</div>
 					</div>
-					<div class="col-md-6">
+					<div class="col-md-4">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Profile Picture</h4>
+							</div>
+							<div class="panel-body">
+								<label>
+									<input type="radio" name="photo" value="null" />
+									All
+								</label><br />
+								<label>
+									<input type="radio" name="photo" value="true" />
+									Yes
+								</label><br />
+								<label>
+									<input type="radio" name="photo" value="false" />
+									No
+								</label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>PayPal Status</h4>
 							</div>
 							<div class="panel-body">
-								<label>Any: <input type="checkbox" name="paypal" value="any" /></label><br />
-								<label>Yes, same as primary e-mail: <input type="checkbox" name="paypal" value="same" /></label><br />
-								<label>Different PayPal e-mail: <input type="checkbox" name="paypal" value="diff" /></label><br />
-								<label>Does not use PayPal: <input type="checkbox" name="paypal" value="no" /></label><br />
+								<label>
+									<input type="checkbox" name="paypal" value="any" />
+									Any
+								</label><br />
+								<label>
+									<input type="checkbox" name="paypal" value="same" />
+									Yes, same as primary e-mail
+								</label><br />
+								<label>
+									<input type="checkbox" name="paypal" value="diff" />
+									Different PayPal e-mail
+								</label><br />
+								<label>
+									<input type="checkbox" name="paypal" value="no" />
+									Does not use PayPal
+								</label><br />
 							</div>
 						</div>
 					</div>
@@ -132,13 +174,28 @@
 								<div class="row">
 									<div class="col-md-6">
 										<h5>Filtering Options</h5>
-										<label>Don't use this filter <input type="radio" name="group_filter" value="null" /></label><br />
-										<label><b>Show</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="any" /></label><br />
-										<label><b>Show</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="all" /></label><br />
-										<label><b>Hide</b> members who are in <b>any</b> of the following groups <input type="radio" name="group_filter" value="not_any" /></label><br />
+										<label>
+											<input type="radio" name="group_filter" value="null" />
+											Don't use this filter
+										</label><br />
+										<label>
+											<input type="radio" name="group_filter" value="any" />
+											<b>Show</b> members who are in <b>any</b> of the following groups
+										</label><br />
+										<label>
+											<input type="radio" name="group_filter" value="all" />
+											<b>Show</b> members who are in <b>all</b> of the following groups
+										</label><br />
+										<label>
+											<input type="radio" name="group_filter" value="not_any" />
+											<b>Hide</b> members who are in <b>any</b> of the following groups
+										</label><br />
 										[%~
 											# I'll figure this out eventually.
-										  # <label><b>Hide</b> members who are in <b>all</b> of the following groups <input type="radio" name="group_filter" value="not_all" /></label><br />
+										  # <label>
+											#		<input type="radio" name="group_filter" value="not_all" />
+											#		<b>Hide</b> members who are in <b>all</b> of the following groups
+											#	</label><br />
 										%]
 									</div>
 									<div class="col-md-6">
@@ -184,6 +241,7 @@ var all_groups = [];
 var filters    =
 	{
 	active:     null,
+	photo:      null,
 	paypal:     null,
 	group_type: null,
 	group_list: null
@@ -809,9 +867,11 @@ $filter.on("show.bs.modal", function ()
 	var i, html = "";
 
 	for (i = 0; i < all_groups.length; i++)
-		html += "<label>" + all_groups[i].name
-			+ " <input type=\"checkbox\" name=\"group_list\" value=\""
-			+ all_groups[i].mgroup_id + "\" /></label><br />";
+		html += "<label>"
+			+ "<input type=\"checkbox\" name=\"group_list\" value=\""
+			+ all_groups[i].mgroup_id + "\" />\n"
+			+ all_groups[i].name
+			+ "</label><br />";
 	$filter.find("div#group_list").html(html);
 
 	if (filters.group_type === null)
@@ -828,6 +888,12 @@ $filter.on("show.bs.modal", function ()
 		$filter.find("input[name=active][value=false]").prop("checked", true);
 	else
 		$filter.find("input[name=active][value=null]").prop("checked", true);
+	if (filters.photo === true)
+		$filter.find("input[name=photo][value=true]").prop("checked", true);
+	else if (filters.photo === false)
+		$filter.find("input[name=photo][value=false]").prop("checked", true);
+	else
+		$filter.find("input[name=photo][value=null]").prop("checked", true);
 	if (filters.paypal === null)
 		{
 		$filter.find("input[name=paypal][value!=any]").prop("checked", false);
@@ -843,10 +909,11 @@ $filter.on("show.bs.modal", function ()
 
 $filter.find("button#refresh_filters").click(function ()
 	{
-	var active, group_type, paypal = [], group_list = [];
+	var active, photo, group_type, paypal = [], group_list = [];
 
 	$filter.modal("hide");
 	active     = $filter.find("input[name=active]:checked").val();
+	photo      = $filter.find("input[name=photo]:checked").val();
 	group_type = $filter.find("input[name=group_filter]:checked").val();
 	$filter.find("input[name=paypal]:checked").each(function ()
 		{
@@ -870,6 +937,12 @@ $filter.find("button#refresh_filters").click(function ()
 	else
 		filters.group_list = group_list;
 
+	if (photo === "true")
+		filters.photo = true;
+	else if (photo === "false")
+		filters.photo = false;
+	else
+		filters.photo = null;
 	if (active === "true")
 		filters.active = true;
 	else if (active === "false")

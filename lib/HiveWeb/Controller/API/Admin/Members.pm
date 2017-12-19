@@ -409,6 +409,9 @@ sub index :Path :Args(0)
 	$filters->{is_lockedout} = ($in->{filters}->{active} ? 0 : 1)
 		if (defined($in->{filters}->{active}));
 
+	$filters->{member_image_id} = ($in->{filters}->{photo} ? { '!=' => undef } : undef)
+		if (defined($in->{filters}->{photo}));
+
 	if (defined(my $pp = $in->{filters}->{paypal}))
 		{
 		$pp = [ $pp ]
