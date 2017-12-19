@@ -57,14 +57,6 @@ sub info :Local :Args(1)
 		return;
 		}
 
-	my @groups = $member->member_mgroups()->all();
-	my @ogroups;
-	foreach my $group (@groups)
-		{
-		my $g = $group->mgroup();
-		push(@ogroups, { $g->get_inflated_columns() });
-		}
-
 	my @badges = $member->badges();
 	my @obadges;
 	foreach my $badge (@badges)
@@ -72,9 +64,8 @@ sub info :Local :Args(1)
 		push(@obadges, { $badge->get_inflated_columns() });
 		}
 	$c->stash()->{out}->{badges}   = \@obadges;
-	$c->stash()->{out}->{groups}   = \@ogroups;
-	$c->stash()->{out}->{member}   = { $member->get_inflated_columns() };
-	$c->stash()->{out}->{response} = JSON->true();
+	$c->stash()->{out}->{member}   = $member;
+	$c->stash()->{out}->{response} = \1;
 	}
 
 sub add_badge :Local :Args(0)
@@ -304,6 +295,67 @@ sub edit :Local :Args(0)
 		$out->{response} = \0;
 		$out->{data}     = 'Could not update member profile.';
 		};
+	}
+
+sub photo :Local :Args(0)
+	{
+	my ( $self, $c ) = @_;
+
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $member_id = $in->{member_id};
+	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
+
+	if (!defined($member))
+		{
+		$out->{response} = \0;
+		$out->{data}     = "Cannot find member";
+		return;
+		}
+
+	if ($member->member_image_id())
+		{
+		$out->{response} = \0;
+		$out->{data}     = "This member already has an image.  Delete or update isn't a thing yet.";
+		return;
+		}
+
+	my $image = $c->request()->upload('photo');
+	if (!$image)
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Cannot find image data.';
+		return;
+		}
+
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			my $db_image = $c->model('DB::Image')->create(
+				{
+				image        => $image->slurp(),
+				content_type => $image->type(),
+				}) || die $!;
+			my $image_id = $db_image->image_id();
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'image',
+				changing_member_id => $c->user()->member_id(),
+				notes              => 'Attached image ' . $image_id,
+				}) || die $!;
+			$member->update({ member_image_id => $image_id }) || die $!;
+			$out->{image_id} = $image_id;
+			});
+		}
+	catch
+		{
+		delete($out->{image_id});
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update member profile: ' . $_;
+		};
+	$out->{response} = \1;
+	$out->{data}     = 'Member picture updated.';
 	}
 
 sub index :Path :Args(0)

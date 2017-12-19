@@ -58,7 +58,9 @@ __PACKAGE__->add_columns(
 	{
 		data_type     => 'character varying',
 		is_nullable   => 1,
-	}
+	},
+  "member_image_id",
+  { data_type => "uuid", is_nullable => 1, size => 16 },
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -122,6 +124,14 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->might_have
+	(
+	'image',
+	'HiveWeb::Schema::Result::Image',
+	{ 'foreign.image_id' => 'self.member_image_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 
 sub TO_JSON
@@ -136,15 +146,18 @@ sub TO_JSON
 
 	return
 		{
-		member_id   => $self->member_id(),
-		fname       => $self->fname(),
-		lname       => $self->lname(),
-		email       => $self->email(),
-		created_at  => $self->created_at(),
-		groups      => \@groups,
-		handle      => $self->handle(),
-		locked_out  => $self->is_lockedout() ? \1 : \0,
-		create_time => $self->created_at(),
+		member_id       => $self->member_id(),
+		fname           => $self->fname(),
+		lname           => $self->lname(),
+		email           => $self->email(),
+		created_at      => $self->created_at(),
+		groups          => \@groups,
+		handle          => $self->handle(),
+		locked_out      => $self->is_lockedout() ? \1 : \0,
+		create_time     => $self->created_at(),
+		vend_credits    => $self->vend_credits(),
+		paypal_email    => $self->paypal_email(),
+		member_image_id => $self->member_image_id(),
 		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
 		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
 		};
