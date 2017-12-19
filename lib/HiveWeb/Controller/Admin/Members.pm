@@ -17,6 +17,12 @@ sub view :Local
 	my $self  = shift;
 	my $c     = shift;
 
+	$c->session()->{member_table} //=
+		{
+		page     => 1,
+		per_page => 50,
+		};
+
 	$c->stash()->{template} = 'admin/members/index.tt';
 	}
 
