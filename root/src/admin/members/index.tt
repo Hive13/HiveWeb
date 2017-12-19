@@ -89,9 +89,23 @@
 	</div>
 </div>
 
-<div id="password_dialogue" style="display: none">
-	<input type="password" id="password1" length="30" name="password1" required autofocus placeholder="Password" class="form-control" />
-	<input type="password" id="password2" length="30" name="password2" required placeholder="Confirm Password" class="form-control" />
+<div class="modal fade" id="password_dialogue" tabIndex="-1" role="dialog" aria-labelledby="password_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="password_label">Change Member's Password</h3>
+			</div>
+			<div class="modal-body">
+				<input type="password" id="password1" length="30" name="password1" required autofocus placeholder="Password" class="form-control" />
+				<input type="password" id="password2" length="30" name="password2" required placeholder="Confirm Password" class="form-control" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_pass">OK</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 <div class="modal fade" id="filter_dialogue" tabIndex="-1" role="dialog" aria-labelledby="filter_label">
@@ -506,13 +520,20 @@ function load_members()
 		page:    page,
 		per_page: per_page
 		};
+	var api =
+		{
+		what: "Member load",
+		success_toast: false,
+		url: load_url,
+		data: params
+		};
 
 	$("nav.hive-member-pagination").html("");
 
 	load_header($table);
 
 	$tbody.html("<tr class=\"loading\"><td colspan=\"9\">" + loading_icon() + "</td></tr>");
-	api_json(load_url, params, "Member load", function (data)
+	api.success = function (data)
 		{
 		var i, j, date_obj, member, val, html = "<ul class=\"pagination\">";
 
@@ -600,7 +621,9 @@ function load_members()
 			html += "</tr>";
 			}
 		$tbody.html(html);
-		});
+		};
+
+	api_json(api);
 	}
 
 function badge_edit(badge_id)
@@ -639,13 +662,6 @@ function badge_edit(badge_id)
 						.attr("value", data.badge_number)
 						.text(data.badge_number);
 					$("#edit_dialogue div#badges select").append($option);
-					$.toast(
-						{
-						heading: "Success",
-						text: "Badge added!",
-						icon: "success",
-						position: "top-right"
-						});
 					});
 				}
 			$div.css("display", "none");
@@ -657,7 +673,8 @@ function badge_edit(badge_id)
 
 function save_password()
 	{
-	var $this = $(this), member_id = $this.data("member_id");
+	var $this = $(this).parents(".modal"), member_id = $this.data("member_id");
+
 	var password  = $this.find("input#password1").val();
 	var password2 = $this.find("input#password2").val();
 	var url = "[% Catalyst.uri_for('/api/admin/members/password') %]";
@@ -679,16 +696,12 @@ function save_password()
 		return;
 		}
 
-	api_json(url, data, "Password update", function (data)
+	api_json(
 		{
-		$.toast(
-			{
-			heading: "Password update succeeded",
-			text: data.data,
-			icon: "success",
-			position: "top-right"
-			});
-		$this.dialog("close");
+		url: url,
+		data: data,
+		what: "Password update",
+		success: function (data) { $this.modal("hide"); }
 		});
 	}
 
@@ -723,34 +736,24 @@ function save_member()
 	if ($this.find("input#different_paypal").prop("checked"))
 		data.paypal_email = $this.find("input#paypal_email").val();
 
-	api_json(url, data, what, function (data)
+	api_json(
 		{
-		$.toast(
-			{
-			heading: what + " succeeded",
-			text: data.data,
-			icon: "success",
-			position: "top-right"
-			});
-		$this.modal("hide");
+		url: url,
+		data: data,
+		what: what,
+		success: function (data) { $this.modal("hide"); }
 		});
 	}
 
 function change_password(member_id)
 	{
-	var title = "Change Member Password";
 	var $dialogue = $("#password_dialogue");
-	$dialogue.data("member_id", member_id);
 
-	$dialogue.dialog(
-		{
-		title: title,
-		buttons:
-			{
-			Cancel: function() { $(this).dialog("close"); },
-			OK: save_password
-			}
-		});
+	$dialogue.find("input").val("");
+	$dialogue.modal("show");
+
+	$dialogue.data("member_id", member_id);
+	$dialogue.find("button#finish_pass").click(save_password);
 	}
 
 function edit(member_id)
@@ -916,13 +919,6 @@ function edit(member_id)
 
 					for (i = 0; i < badges.length; i++)
 						$("div#badges select option#" + badges[i]).remove();
-					$.toast(
-						{
-						heading: "Success",
-						text: "Badge(s) deleted!",
-						icon: "success",
-						position: "top-right"
-						});
 					});
 				});
 

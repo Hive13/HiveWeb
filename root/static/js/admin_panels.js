@@ -39,11 +39,12 @@ function get_access_data($access_panel)
 	$access_panel.find(".panel-body").html(loading_icon());
 	api_json(
 		{
-		type:    "GET",
-		url:     panel_urls.access,
-		data:    {},
-		what:    "Load accesses",
-		success: function(data)
+		type:          "GET",
+		url:           panel_urls.access,
+		data:          {},
+		what:          "Load accesses",
+		success_toast: false,
+		success:       function(data)
 			{
 			display_access_data(data, $access_panel);
 			setTimeout(function() { get_access_data($access_panel); }, 60000);

@@ -25,11 +25,12 @@ function get_temp_data($temp_panel)
 	$temp_panel.find(".panel-body").html(loading_icon());
 	api_json(
 		{
-		type:    "GET",
-		url:     panel_urls.temp,
-		data:    {},
-		what:    "Load temperature",
-		success: function(data)
+		type:          "GET",
+		url:           panel_urls.temp,
+		data:          {},
+		what:          "Load temperature",
+		success_toast: false,
+		success:       function(data)
 			{
 			display_temp_data(data, $temp_panel);
 			setTimeout(function() { get_temp_data($temp_panel); }, 60000);
