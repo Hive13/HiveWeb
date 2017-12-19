@@ -15,6 +15,8 @@ function api_json(options, old_data, old_what, old_success)
 			};
 	if (!("type" in options))
 		options.type = "POST";
+	if (!("success_toast" in options))
+		options.success_toast = true;
 
 	$.ajax(
 		{
@@ -38,9 +40,7 @@ function api_json(options, old_data, old_what, old_success)
 					});
 				return;
 				}
-			if (options.success)
-				options.success(data);
-			else
+			if (!options.success || options.success_toast)
 				{
 				$.toast(
 					{
@@ -50,6 +50,8 @@ function api_json(options, old_data, old_what, old_success)
 					position: "top-right"
 					});
 				}
+			if (options.success)
+				options.success(data);
 			}
 		});
 	}
