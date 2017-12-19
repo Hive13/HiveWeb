@@ -73,7 +73,7 @@ sub begin :Private
 	{
 	my ($self, $c) = @_;
 
-	$c->stash()->{in} = $c->req()->body_data();
+	$c->stash()->{in} = $c->req()->body_parameters();
 	$c->stash()->{out} = {};
 	$c->stash()->{view} = $c->view('JSON');
 	}
