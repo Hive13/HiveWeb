@@ -369,6 +369,11 @@ sub index :Path :Args(0)
 	my $dtp     = $c->model('DB')->storage()->datetime_parser();
 	my $filters = {};
 
+	$c->session()->{member_table} //= {};
+	my $member_table = $c->session()->{member_table};
+	$member_table->{page}     = int($in->{page}) || 1;
+	$member_table->{per_page} = int($in->{per_page}) || 10;
+
 	$dir = 'ASC'
 		if ($dir ne 'ASC' && $dir ne 'DESC');
 
@@ -502,8 +507,14 @@ sub index :Path :Args(0)
 			}
 		}
 
-	my @members = $c->model('DB::Member')->search($filters, $member_attrs);
-	my @groups  = $c->model('DB::MGroup')->search({});
+	my $members_rs = $c->model('DB::Member')->search($filters, $member_attrs);
+	my $count      = $members_rs->count();
+	my @members    = $members_rs->search({},
+		{
+		rows => $member_table->{per_page},
+		page => $member_table->{page},
+		});
+	my @groups     = $c->model('DB::MGroup')->search({});
 
 	if ($order eq 'accesses')
 		{
@@ -538,6 +549,9 @@ sub index :Path :Args(0)
 
 	$out->{groups}   = \@groups;
 	$out->{members}  = \@members;
+	$out->{count}    = $count;
+	$out->{page}     = $member_table->{page};
+	$out->{per_page} = $member_table->{per_page};
 	$out->{response} = \1;
 	}
 
