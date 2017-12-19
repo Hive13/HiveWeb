@@ -10,7 +10,7 @@ use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
-__PACKAGE__->table("badge");
+__PACKAGE__->table("image");
 
 __PACKAGE__->add_columns(
   "image_id",
@@ -31,6 +31,8 @@ __PACKAGE__->add_columns(
     default_value => \"current_timestamp",
     is_nullable   => 0,
   },
+	'content_type',
+	{ data_type => 'character varying', is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key('image_id');
