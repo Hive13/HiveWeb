@@ -54,3 +54,15 @@ img.icon.icon-disabled
 	{
 	cursor: pointer;
 	}
+
+div#photo div.panel-body .btn img
+	{
+	max-width: 75px;
+	max-height: 75px;
+	}
+
+div#photo div.panel-body img
+	{
+	max-width: 500px;
+	max-height: 190px;
+	}
