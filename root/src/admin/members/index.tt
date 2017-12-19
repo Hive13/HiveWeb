@@ -3,7 +3,7 @@
 		<div class="panel-heading">
 			<h3>Members</h3>
 		</div>
-		<table class="data_table table hive-member-table">
+		<table class="table table-striped table-hover table-condensed hive-member-table">
 			<thead></thead>
 			<tbody></tbody>
 		</table>
@@ -273,7 +273,7 @@ $(function()
 							.addClass("lock")
 							.attr("title", "Lock")
 							.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
-						$this.parents("tr").removeClass("locked");
+						$this.parents("tr").removeClass("locked").removeClass("danger");
 						}
 					else
 						{
@@ -282,7 +282,7 @@ $(function()
 							.addClass("unlock")
 							.attr("title", "Unlock")
 							.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
-						$this.parents("tr").addClass("locked");
+						$this.parents("tr").addClass("locked").addClass("danger");
 						}
 					});
 				}
@@ -346,7 +346,7 @@ function load_header($table)
 	{
 	var html, $thead = $table.find("thead"), i, j, sz = ["xs", "sm", "md", "lg"], disp;
 
-	html = "<tr><th></th>";
+	html = "<tr><th></th><th></th>";
 
 	html += "<th>"
 		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
@@ -381,7 +381,7 @@ function load_members()
 
 	load_header($table);
 
-	$tbody.html("<tr class=\"loading\"><td colspan=\"8\">" + loading_icon() + "</td></tr>");
+	$tbody.html("<tr class=\"loading\"><td colspan=\"9\">" + loading_icon() + "</td></tr>");
 	api_json(load_url, params, "Member load", function (data)
 		{
 		var i, j, date_obj, member, val;
@@ -396,7 +396,7 @@ function load_members()
 
 			html += "<tr id=\""
 				+ member.member_id + "\""
-				+ (member.locked_out ? " class=\"locked\"" : "")
+				+ (member.locked_out ? " class=\"danger locked\"" : "")
 				+ ">";
 
 			html += "<td class=\"edit\">"
@@ -404,7 +404,10 @@ function load_members()
 				+ "<img src=\"[% Catalyst.uri_for('/static/icons/edit.png').dquote %]\" title=\"Edit\" class=\"edit icon\" />"
 				+ "<img src=\"[% Catalyst.uri_for('/static/icons/delete.png').dquote %]\" title=\"Delete\" class=\"delete icon\" />"
 				+ "</td>";
-			html += "<td class=\"lock\">";
+			html += "<td class=\"photo\">";
+			if (member.member_image_id)
+				html += "<img src=\"[% Catalyst.uri_for('/static/icons/photo.png').dquote %]\" title=\"Member Photo\" class=\"icon\" />";
+			html += "</td><td class=\"lock\">";
 			if (member.locked_out)
 				html += "<img title=\"Unlock\" class=\"unlock icon\" src=\"[% Catalyst.uri_for('/static/icons/lock.png').dquote %]\" />";
 			else
