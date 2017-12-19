@@ -316,7 +316,7 @@ sub photo :Local :Args(0)
 	if ($member->member_image_id())
 		{
 		$out->{response} = \0;
-		$out->{data}     = "This member already has an image.  Delete or update isn't a thing yet.";
+		$out->{data}     = "This member already has an image.  Please remove the old one.";
 		return;
 		}
 
@@ -356,6 +356,52 @@ sub photo :Local :Args(0)
 		};
 	$out->{response} = \1;
 	$out->{data}     = 'Member picture updated.';
+	}
+
+sub remove_photo :Local :Args(0)
+	{
+	my ( $self, $c ) = @_;
+
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $member_id = $in->{member_id};
+	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
+
+	if (!defined($member))
+		{
+		$out->{response} = \0;
+		$out->{data}     = "Cannot find member";
+		return;
+		}
+
+	if (!$member->member_image_id())
+		{
+		$out->{response} = \0;
+		$out->{data}     = "This member does not have an image.";
+		return;
+		}
+
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'image',
+				changing_member_id => $c->user()->member_id(),
+				notes              => 'Detached image ' . $member->member_image_id(),
+				}) || die $!;
+			$member->update({ member_image_id => undef }) || die $!;
+			});
+		}
+	catch
+		{
+		delete($out->{image_id});
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update member profile: ' . $_;
+		};
+	$out->{response} = \1;
+	$out->{data}     = 'Member picture removed.';
 	}
 
 sub index :Path :Args(0)

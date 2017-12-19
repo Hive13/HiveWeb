@@ -777,7 +777,8 @@ function edit(member_id)
 		success: function (data)
 			{
 			var i, badge, $option, $select, $soda_credits;
-			var $image_div = $dialogue.find("div#photo div.panel div.panel-body");
+			var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
+			var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
 
 			title = "Edit " + data.member.fname + " " + data.member.lname;
 
@@ -786,6 +787,7 @@ function edit(member_id)
 			$soda_credits = $dialogue.find("input#soda_credits");
 
 			$soda_credits.val(data.member.vend_credits);
+			$photo_header.find("span").remove();
 
 			for (i = 0; i < data.member.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
@@ -801,78 +803,95 @@ function edit(member_id)
 				$("input#paypal_email").val(data.member.paypal_email);
 				}
 
-			if (data.member.member_image_id)
-				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.member.member_image_id + "\" />");
-			else
+			$image_div.on("change", "input[type=file]", function()
 				{
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-				$image_div.on("change", "input[type=file]", function()
+				var $this = $(this), $progress;
+				var fd = new FormData();
+				fd.append("photo", $this[0].files[0]);
+				fd.append("member_id", member_id);
+				$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
+				$progress = $image_div.find("div.progress div.progress-bar");
+
+				$.ajax(
 					{
-					var $this = $(this), $progress;
-					var fd = new FormData();
-					fd.append("photo", $this[0].files[0]);
-					fd.append("member_id", member_id);
-					$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
-					$progress = $image_div.find("div.progress div.progress-bar");
-
-					$.ajax(
+					url: "[% Catalyst.uri_for('/api/admin/members/photo').dquote %]",
+					type: "POST",
+					data: fd,
+					cache: false,
+					contentType: false,
+					processData: false,
+					xhr: function()
 						{
-						url: "[% Catalyst.uri_for('/api/admin/members/photo').dquote %]",
-						type: "POST",
-						data: fd,
-						cache: false,
-						contentType: false,
-						processData: false,
-						xhr: function()
+						var myXhr = $.ajaxSettings.xhr();
+						if (myXhr.upload)
 							{
-							var myXhr = $.ajaxSettings.xhr();
-							if (myXhr.upload)
+							// For handling the progress of the upload
+							myXhr.upload.addEventListener('progress', function(e)
 								{
-								// For handling the progress of the upload
-								myXhr.upload.addEventListener('progress', function(e)
-									{
-									var pct;
+								var pct;
 
-									if (e.lengthComputable)
-										{
-										pct = e.loaded * 100 / e.total;
-										$progress.attr("aria-valuenow", pct).css("width", pct + "%");
-										}
-									} , false);
-								}
-							return myXhr;
-							},
-						error: function(jqXHR, status, error_thrown)
+								if (e.lengthComputable)
+									{
+									pct = e.loaded * 100 / e.total;
+									$progress.attr("aria-valuenow", pct).css("width", pct + "%");
+									}
+								} , false);
+							}
+						return myXhr;
+						},
+					error: function(jqXHR, status, error_thrown)
+						{
+						$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+						$.toast(
+							{
+							icon: "error",
+							heading: "Image upload failed",
+							position: "top-right",
+							text: error_thrown
+							});
+						},
+					success: function(data)
+						{
+						if (!data.response)
 							{
 							$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 							$.toast(
 								{
+								heading: options.what + " failed",
+								text: data.data,
 								icon: "error",
-								heading: "Image upload failed",
-								position: "top-right",
-								text: error_thrown
+								position: "top-right"
 								});
-							},
-						success: function(data)
+							return;
+							}
+						else
+							$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.image_id + "\" />");
+						}
+					});
+				});
+			if (data.member.member_image_id)
+				{
+				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.member.member_image_id + "\" />");
+				$photo_header.prepend($("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style"));
+				$photo_header.on("click", "span.glyphicon-remove", function ()
+					{
+					if (!confirm("Are you sure you want to remove this photo?"))
+						return;
+					api_json(
+						{
+						what:    "Remove Photo",
+						url:     "[% Catalyst.uri_for('/api/admin/members/remove_photo').dquote %]",
+						data:    { member_id: member_id },
+						success: function()
 							{
-							if (!data.response)
-								{
-								$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-								$.toast(
-									{
-									heading: options.what + " failed",
-									text: data.data,
-									icon: "error",
-									position: "top-right"
-									});
-								return;
-								}
-							else
-								$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.image_id + "\" />");
+							$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+							$("table.hive-member-table tr#" + member_id + " td.photo").empty();
 							}
 						});
 					});
 				}
+			else
+				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 
 			for (i = 0; i < data.badges.length; i++)
 				{
