@@ -46,3 +46,9 @@ div#photo div.panel-body img
 	max-width: 500px;
 	max-height: 190px;
 	}
+
+div#photo_dialogue div.modal-body img
+	{
+	max-width: 100%;
+	max-height: 500px;
+	}

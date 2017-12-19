@@ -159,6 +159,22 @@
 	</div>
 </div>
 
+<div class="modal fade" id="photo_dialogue" tabIndex="-1" role="dialog" aria-labelledby="photo_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="filter_label">Member Photo</h3>
+			</div>
+			<div class="modal-body text-center">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <script type="text/javascript">
 var lock_url   = "[% Catalyst.uri_for('/api/admin/members/lock').dquote %]";
 var load_url   = "[% Catalyst.uri_for('/api/admin/members').dquote %]";
@@ -216,6 +232,15 @@ $(function()
 			{
 			edit($(this).attr("id"));
 			return false;
+			})
+		.on("click", "td.photo img.icon", function ()
+			{
+			var image_id  = $(this).parents("td").attr("id");
+			var $dialogue = $("#photo_dialogue");
+
+			$dialogue.find("div.modal-body").html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + image_id + "\" />");
+
+			$dialogue.modal("show");
 			})
 		.on("click", "td.edit img.password", function ()
 			{
@@ -404,9 +429,11 @@ function load_members()
 				+ "<img src=\"[% Catalyst.uri_for('/static/icons/edit.png').dquote %]\" title=\"Edit\" class=\"edit icon\" />"
 				+ "<img src=\"[% Catalyst.uri_for('/static/icons/delete.png').dquote %]\" title=\"Delete\" class=\"delete icon\" />"
 				+ "</td>";
-			html += "<td class=\"photo\">";
+			html += "<td class=\"photo\"";
 			if (member.member_image_id)
-				html += "<img src=\"[% Catalyst.uri_for('/static/icons/photo.png').dquote %]\" title=\"Member Photo\" class=\"icon\" />";
+				html += " id=\"" + member.member_image_id + "\"><img src=\"[% Catalyst.uri_for('/static/icons/photo.png').dquote %]\" title=\"Member Photo\" class=\"icon\" />";
+			else
+				html += ">";
 			html += "</td><td class=\"lock\">";
 			if (member.locked_out)
 				html += "<img title=\"Unlock\" class=\"unlock icon\" src=\"[% Catalyst.uri_for('/static/icons/lock.png').dquote %]\" />";
