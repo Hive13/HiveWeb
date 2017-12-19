@@ -73,7 +73,14 @@ sub begin :Private
 	{
 	my ($self, $c) = @_;
 
-	$c->stash()->{in} = $c->req()->body_data();
+	if (lc($c->req()->content_type()) eq 'multipart/form-data')
+		{
+		$c->stash()->{in} = $c->req()->body_parameters();
+		}
+	else
+		{
+		$c->stash()->{in} = $c->req()->body_data();
+		}
 	$c->stash()->{out} = {};
 	$c->stash()->{view} = $c->view('JSON');
 	}
