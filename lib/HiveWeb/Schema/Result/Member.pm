@@ -132,7 +132,25 @@ __PACKAGE__->might_have
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'member_curses',
+	'HiveWeb::Schema::Result::MemberCurse',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many
+	(
+	'issued_member_curses',
+	'HiveWeb::Schema::Result::MemberCurse',
+	{ 'foreign.issuing_member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
+__PACKAGE__->many_to_many('curses', 'member_curses', 'curse');
+__PACKAGE__->many_to_many('issued_curses', 'issued_member_curses', 'curse');
 
 sub TO_JSON
 	{
