@@ -1,3 +1,30 @@
+function load_panel_data($panel, panel_class, display_function)
+	{
+	$panel.find(".panel-body").html(loading_icon());
+	api_json(
+		{
+		type:          "GET",
+		url:           panel_urls[panel_class],
+		data:          {},
+		what:          "Load " + panel_class,
+		success_toast: false,
+		success:       function(data)
+			{
+			display_function(data, $panel);
+			setTimeout(function() { load_panel_data($panel, panel_class, display_function); }, 60000);
+			}
+		});
+	}
+function init_panel(panel_class, panel_function)
+	{
+	var $panel = $(".hive-panel-" + panel_class);
+
+	if (!$panel.length || !panel_function || !(panel_class in panel_urls))
+		return;
+
+	load_panel_data($panel, panel_class, panel_function);
+	}
+
 function display_temp_data(data, $temp_panel)
 	{
 	var temp, i, html = "";
@@ -10,32 +37,4 @@ function display_temp_data(data, $temp_panel)
 	$temp_panel.find(".panel-body").html(html);
 	}
 
-function init_temp_panel()
-	{
-	var $temp_panel = $(".hive-panel-temp");
-
-	if (!$temp_panel.length)
-		return;
-	
-	get_temp_data($temp_panel);
-	}
-
-function get_temp_data($temp_panel)
-	{
-	$temp_panel.find(".panel-body").html(loading_icon());
-	api_json(
-		{
-		type:          "GET",
-		url:           panel_urls.temp,
-		data:          {},
-		what:          "Load temperature",
-		success_toast: false,
-		success:       function(data)
-			{
-			display_temp_data(data, $temp_panel);
-			setTimeout(function() { get_temp_data($temp_panel); }, 60000);
-			}
-		});
-	}
-
-$(init_temp_panel);
+$(function() { init_panel("temp", display_temp_data); });

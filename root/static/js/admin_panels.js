@@ -24,32 +24,4 @@ function display_access_data(data, $access_panel)
 	$access_panel.find(".panel-body").html(html);
 	}
 
-function init_access_panel()
-	{
-	var $access_panel = $(".hive-panel-access");
-
-	if (!$access_panel.length)
-		return;
-	
-	get_access_data($access_panel);
-	}
-
-function get_access_data($access_panel)
-	{
-	$access_panel.find(".panel-body").html(loading_icon());
-	api_json(
-		{
-		type:          "GET",
-		url:           panel_urls.access,
-		data:          {},
-		what:          "Load accesses",
-		success_toast: false,
-		success:       function(data)
-			{
-			display_access_data(data, $access_panel);
-			setTimeout(function() { get_access_data($access_panel); }, 60000);
-			}
-		});
-	}
-
-$(init_access_panel);
+$(function() { init_panel("access", display_access_data); });
