@@ -2,6 +2,12 @@ function display_curse_data(data, $curse_panel)
 	{
 	var curse, i, html = "<ol class=\"cursees\">", date;
 
+	if (!("curses" in data) || !data.curses.length)
+		{
+		$curse_panel.find(".panel-body").html("You have no notifications!");
+		return;
+		}
+
 	for (i = 0; i < data.cursees.length; i++)
 		{
 		curse = data.cursees[i];
@@ -24,4 +30,4 @@ function display_curse_data(data, $curse_panel)
 	$curse_panel.find(".panel-body").html(html);
 	}
 
-$(function() { init_panel("hive-panel-curse", get_gurse_data); });
+$(function() { init_panel("curse", display_curse_data); });
