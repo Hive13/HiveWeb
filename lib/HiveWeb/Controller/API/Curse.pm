@@ -19,9 +19,16 @@ sub list :Local :Args(0)
 	$out->{response} = 0;
 	my $user = $c->user() || return;
 
-	my $curses = $user->member_curses()->search_related('curse', { lifted_at => undef }, { order_by => [ 'priority', 'issued_at' ] });
+	my @curses = $user->search_related('member_curses',
+		{
+		lifted_at => undef,
+		},
+		{
+		order_by => [ 'priority', 'issued_at' ],
+		prefetch => [ 'curse', 'issuing_member' ],
+		});
 
-	$out->{curses}   = $curses->all();
+	$out->{curses}   = \@curses;
 	$out->{response} = \1;
 	}
 

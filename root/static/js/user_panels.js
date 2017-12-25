@@ -1,6 +1,6 @@
 function display_curse_data(data, $curse_panel)
 	{
-	var curse, i, html = "<ol class=\"cursees\">", date;
+	var curse, i, html = "<ol class=\"curses\">", date;
 
 	if (!("curses" in data) || !data.curses.length)
 		{
@@ -8,22 +8,14 @@ function display_curse_data(data, $curse_panel)
 		return;
 		}
 
-	for (i = 0; i < data.cursees.length; i++)
+	for (i = 0; i < data.curses.length; i++)
 		{
-		curse = data.cursees[i];
-		date   = new Date(curse.curse_time);
+		curse = data.curses[i];
+		date   = new Date(curse.issued_at);
 
-		html += "<li"
-		if (!curse.granted)
-			html += " class=\"denied\"";
-		html += " title=\"" + date.toLocaleDateString() + " " + date.toLocaleTimeString() + "\">";
-		html += curse.item.display_name + " by ";
-		if (curse.member)
-			html += curse.member.fname + " " + curse.member.lname;
-		else
-			html += "Unknown badge " + curse.badge_number;
-			
-		html += "</li>";
+		html += "<li title=\"Issued " + date.toLocaleDateString() + " " + date.toLocaleTimeString() + " by "
+			+ curse.issuing_member.fname + " " + curse.issuing_member.lname + "\">";
+		html += "<h5>" + curse.curse.display_name + "</h5>" + curse.curse.notification + "</li>";
 		}
 	
 	html += "</ol>";

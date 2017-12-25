@@ -54,9 +54,23 @@ __PACKAGE__->belongs_to(
 __PACKAGE__->belongs_to(
   'issuing_member',
   'HiveWeb::Schema::Result::Member',
-  { issuing_member_id => 'member_id' },
+  { member_id => 'issuing_member_id' },
   { is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
 );
 
 __PACKAGE__->meta->make_immutable;
+
+sub TO_JSON
+	{
+	my $self = shift;
+	return
+		{
+		member_curse_id => $self->member_curse_id(),
+		curse           => $self->curse(),
+		issued_at       => $self->issued_at(),
+		lifted_at       => $self->lifted_at(),
+		issuing_member  => $self->issuing_member(),
+		issuing_notes   => $self->issuing_notes(),
+		};
+	}
 1;

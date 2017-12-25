@@ -9,6 +9,8 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
+use Text::Markdown 'markdown';
+
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
 __PACKAGE__->table_class("DBIx::Class::ResultSource::View");
 __PACKAGE__->table("curse");
@@ -62,6 +64,10 @@ sub TO_JSON
 
 	return
 		{
+		curse_id     => $self->curse_id(),
+		name         => $self->name(),
+		display_name => $self->display_name(),
+		notification => markdown($self->notification_markdown()),
 		};
 	}
 
