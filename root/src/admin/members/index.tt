@@ -108,6 +108,36 @@
 	</div>
 </div>
 
+<div class="modal fade" id="curse_dialogue" tabIndex="-1" role="dialog" aria-labelledby="curse_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="curse_label">Curse Member</h3>
+			</div>
+			<div class="modal-body">
+			<label>
+				Curse:
+				<select></select>
+			</label><br />
+			<div id="protect" style="display: none">
+				This curse is protected.
+				To cast this curse on an individual, type in its name - not its display name.<br />
+				<input type="text" id="curse_name" size="30" />
+			</div>
+			<label class="u-w-100">
+				Notes:
+				<textarea rows="8" class="u-w-100"></textarea>
+			</label><br />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_curse"><span class="glyphicon glyphicon-screenshot"></span>Curse</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <div class="modal fade" id="filter_dialogue" tabIndex="-1" role="dialog" aria-labelledby="filter_label">
 	<div class="modal-dialog modal-lg" role="document">
 		<div class="modal-content">
@@ -359,6 +389,13 @@ $(function()
 			edit(member_id);
 			return false;
 			})
+		.on("click", "td.edit img.curse", function ()
+			{
+			var $this = $(this);
+			var member_id = $this.parents("tr").attr("id");
+			curse(member_id);
+			return false;
+			})
 		.on("mouseover", "td.lock img", function()
 			{
 			var $this = $(this);
@@ -581,6 +618,7 @@ function load_members()
 				+ "<img src=\"[% Catalyst.uri_for('/static/icons/key.png').dquote %]\" title=\"Change Password\" class=\"password icon\" />"
 				+ "<img src=\"[% Catalyst.uri_for('/static/icons/edit.png').dquote %]\" title=\"Edit\" class=\"edit icon\" />"
 				+ "<img src=\"[% Catalyst.uri_for('/static/icons/delete.png').dquote %]\" title=\"Delete\" class=\"delete icon\" />"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/curse.png').dquote %]\" title=\"Curse\" class=\"curse icon\" />"
 				+ "</td>";
 			html += "<td class=\"photo\"";
 			if (member.member_image_id)
@@ -945,6 +983,98 @@ function edit(member_id)
 			$dialogue.find("#edit_label").text(title);
 			$dialogue.modal("show");
 			$dialogue.find("button#finish_edit").click(save_member);
+			}
+		});
+	}
+
+function curse(member_id)
+	{
+	var
+		$dialogue = $("#curse_dialogue"),
+		$ok       = $dialogue.find("button#finish_curse"),
+		$protect  = $dialogue.find("#protect");
+	$dialogue.data("member_id", member_id);
+	$ok.prop("disabled", true);
+	$protect.find("input").val("");
+
+	$.ajax(
+		{
+		dataType: "json",
+		url: "[% Catalyst.uri_for('/api/admin/curses') %]",
+		cache: false,
+		success: function (data)
+			{
+			var i, curse, html = "<option value=\"-1\">Select Curse</option>";
+			var $select = $dialogue.find("select").empty();
+			$select.data("curses", data.curses);
+
+			for (i = 0; i < data.curses.length; i++)
+				{
+				curse = data.curses[i];
+				html += "<option value=\"" + i + "\">" + curse.display_name + "</option>";
+				}
+
+			$select.html(html).change(function()
+				{
+				var curse, $this = $(this), idx = parseInt($this.val());
+
+				if (idx < 0)
+					{
+					$ok.prop("disabled", true);
+					$dialogue.find("#protect").css("display", "none");
+					return;
+					}
+
+				curse = $select.data("curses")[idx];
+				$ok.prop("disabled", false);
+
+				if (curse.protect_user_cast)
+					$protect.css("display", "");
+				else
+					$protect.css("display", "none");
+				});
+
+			$dialogue.modal("show");
+			$dialogue.find("button#finish_curse").click(function()
+				{
+				var curse, data = { member_id: member_id }, idx = parseInt($select.val());
+
+				if (idx < 0)
+					{
+					$.toast(
+						{
+						heading:  "Select a Curse",
+						text:     "You must select a curse to cast.",
+						icon:     "error",
+						position: "top-right"
+						});
+					return;
+					}
+
+				curse = $select.data("curses")[idx];
+				if (curse.protect_user_cast && $protect.find("input").val() !== curse.name)
+					{
+					$.toast(
+						{
+						heading:  "Protected Curse",
+						text:     "You must enter the base name of this curse to cast it.",
+						icon:     "error",
+						position: "top-right"
+						});
+					return;
+					}
+
+				data.curse_id = curse.curse_id;
+				data.notes    = $dialogue.find("textarea").val();
+
+				api_json(
+					{
+					url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
+					data:    data,
+					what:    "Curse Cast",
+					success: function () { $dialogue.modal("hide"); }
+					});
+				});
 			}
 		});
 	}
