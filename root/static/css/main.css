@@ -97,3 +97,8 @@ ol.accesses li.denied
 	{
 	height: 100%;
 	}
+
+.u-w-100
+	{
+	width: 100% !important;
+	}
