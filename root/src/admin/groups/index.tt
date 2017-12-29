@@ -1,129 +1,444 @@
-[%~
-	SET columns =
-		[
-			{
-			name => 'name',
-			desc => 'Group Name',
-			},
-		];
-~%]
-<table class="data_table">
-	<thead>
-		<tr>
-			<th></th>
-			<th></th>
-[%~ FOREACH column IN columns %]
-			<th>
-[%~ IF order != column.name ~%]
-			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name) %]">
-				[%~ column.desc ~%]
-			</a>
-[%~ ELSE;
-			IF dir == "ASC" ~%]
-			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/desc') %]">[%~ column.desc ~%](&darr;)</a>
-[%~		ELSE ~%]
-			<a href="[% Catalyst.uri_for('/admin/members/view/' _ column.name _ '/asc') %]">[%~ column.desc ~%](&uarr;)</a>
-[%~		END;
-		END ~%]
-			</th>
-[%~ END %]
-		</tr>
-	</thead>
-	<tbody>
-[%~ FOREACH group IN groups %]
-		<tr id="[% group.mgroup_id %]">
-			<td class="edit">
-				<img src="/static/icons/edit.png" title="Edit" class="edit icon" />
-				<img src="/static/icons/delete.png" title="Delete" class="delete icon" />
-			</td>
-[%~ 	FOREACH column IN columns;
-				SET name = column.name %]
-			<td>[% group.$name %]</td>
-[%~ 	END %]
-		</tr>
-[%~ END %]
-	</tbody>
-</table>
+<div class="row">
+	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+		<div class="panel-heading">
+			<h3>Groups</h3>
+		</div>
+		<div class="panel-body">
+			<nav id="pagination_top" class="hive-group-pagination">
+			</nav>
+			<table class="table table-striped table-hover table-condensed hive-group-table">
+				<thead></thead>
+				<tbody></tbody>
+			</table>
+			<nav id="pagination_bottom" class="hive-group-pagination">
+			</nav>
+	</div>
+</div>
 
-<div id="group_dialogue" style="display: none">
-	Group Membership: <br />
-	<table class="3-column">
-[%~ FOREACH member IN members %]
-	[%~ IF loop.index % 4 == 0 %]
-	<tr>
-	[%~ END %]
-		<td>
-			<input type="checkbox" class="member" value="[% member.member_id %]" /> [% member.fname %] [% member.lname %]<br />
-		</td>
-	[%~ IF (loop.index + 1) % 4 == 0 %]
-	</tr>
-	[%~ END %]
-[%~ END %]
-	</table>
+<div class="modal fade" id="curse_dialogue" tabIndex="-1" role="dialog" aria-labelledby="curse_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="curse_label">Curse Group</h3>
+			</div>
+			<div class="modal-body">
+			<label>
+				Curse:
+				<select></select>
+			</label><br />
+			<div id="protect" style="display: none">
+				This curse is protected.
+				To cast this curse on a group, type in its name - not its display name.<br />
+				<input type="text" id="curse_name" size="30" />
+			</div>
+			<label class="u-w-100">
+				Notes:
+				<textarea rows="8" class="u-w-100"></textarea>
+			</label><br />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_curse"><span class="glyphicon glyphicon-screenshot"></span>Curse</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 <script type="text/javascript">
+var load_url   = "[% Catalyst.uri_for('/api/admin/groups').dquote %]";
+var order      = "name";
+var dir        = "ASC";
+var page       = [% Catalyst.session.group_table.page %];
+var per_page   = [% Catalyst.session.group_table.per_page %];
+var count      = 0;
+var columns    =
+	[
+		{
+		name: "name",
+		desc: "Group Name"
+		},
+		{
+		name: "mcount",
+		desc: "Member Count"
+		}
+	];
 
-function edit(group_id)
+$(function()
 	{
-	var title = group_id ? "Edit Group" : "Add Group";
-	var $dialogue = $("#group_dialogue");
-	$dialogue.data("group_id", group_id);
+	var $table = $("table.hive-group-table");
+	var $nav   = $("nav.hive-group-pagination");
+
+	$nav.on("click", "li a", function ()
+		{
+		var id = $(this).attr("id");
+
+		if (id === "page_first")
+			page = 1;
+		else if (id === "page_last")
+			page = Math.ceil(count / per_page);
+		else
+			page = parseInt(id.substr(5));
+		load_groups();
+		});
+
+	$table
+		.on("change", "select.per-page", function ()
+			{
+			var new_per_page = $(this).val();
+
+			page     = Math.floor((page - 1) * per_page / new_per_page + 1);
+			per_page = new_per_page;
+
+			load_groups();
+			})
+		.on("dblclick", "tr", function ()
+			{
+			edit($(this).attr("id"));
+			return false;
+			})
+		.on("click", "td.edit img.edit", function ()
+			{
+			var $this = $(this);
+			var mgroup_id = $this.parents("tr").attr("id");
+			edit_group(mgroup_id);
+			return false;
+			})
+		.on("click", "td.edit img.curse", function ()
+			{
+			var $this = $(this);
+			var mgroup_id = $this.parents("tr").attr("id");
+			curse_group(mgroup_id);
+			return false;
+			})
+		;
+
+	load_groups();
+	});
+
+function sort_click()
+	{
+	var $this     = $(this);
+	var new_dir   = $this.hasClass("sort-asc") ? "ASC" : "DESC";
+	var new_order = $this.attr("id").substring(5);
+
+	order = new_order;
+	dir   = new_dir;
+	load_groups();
+	}
+
+function hidden_styles(which)
+	{
+	var styles = "", j, sz = ["xs", "sm", "md", "lg"], disp = 0;
+
+	for (j = sz.length - 1; j >= 0; j--)
+		if (disp || which === sz[j])
+			{
+			if (disp)
+				styles += " ";
+			disp = 1;
+			styles += "hidden-" + sz[j];
+			}
+
+	return styles;
+	}
+
+function load_header($table)
+	{
+	var html, $thead = $table.find("thead"), i, sz = ["xs", "sm", "md", "lg"], disp;
+
+	html = "<tr><th><select class=\"per-page\">";
+
+	for (i = 1; i < 5; i++)
+		{
+		html += "<option value=\"" + (i * 10) + "\"";
+		if (per_page == (i * 10))
+			html += " selected=\"selected\"";
+		html += ">" + (i * 10) + " per page</option>";
+		}
+
+	html += "</select></th>";
+
+	for (i = 0; i < columns.length; i++)
+		{
+		html += "<th";
+		if ("hidden" in columns[i])
+			html += " class=\"" + hidden_styles(columns[i].hidden) + "\"";
+		html += "><a id=\"sort-" + columns[i].name + "\" class=\"anchor-style sort sort-";
+		html += (order === columns[i].name && dir === "ASC") ? "desc" : "asc";
+		html += "\">" + columns[i].desc;
+		if (order === columns[i].name)
+			html += ((dir === "ASC") ? "(&darr;)" : "(&uarr;)");
+		html += "</a></th>";
+		}
+	$thead.html(html);
+	$thead.find("a.sort").click(sort_click);
+	}
+
+function load_groups()
+	{
+	var $table = $("table.hive-group-table");
+	var $tbody = $table.find("tbody");
+	var params =
+		{
+		order:   order,
+		dir:     dir,
+		page:    page,
+		per_page: per_page
+		};
+	var api =
+		{
+		what: "Group load",
+		success_toast: false,
+		url: load_url,
+		data: params
+		};
+
+	$("nav.hive-group-pagination").html("");
+
+	load_header($table);
+
+	$tbody.html("<tr class=\"loading\"><td colspan=\"9\">" + loading_icon() + "</td></tr>");
+	api.success = function (data)
+		{
+		var i, j, date_obj, group, val, html = "<ul class=\"pagination\">";
+
+		all_groups = data.groups;
+		count      = data.count;
+		per_page   = data.per_page;
+		page       = data.page;
+
+		i   = data.page - 3;
+		val = Math.ceil(data.count / data.per_page);
+		if (i < 1)
+			i = 1;
+
+		if (i > 1)
+			html += "<li><a class=\"anchor-style\" id=\"page_first\">&laquo;</a></li>";
+
+		for (j = 0; j < 7 && i <= val; i++, j++)
+			{
+			html += "<li";
+			if (i == data.page)
+				html += " class=\"active\"";
+			html += "><a class=\"anchor-style\" id=\"page_" + i + "\">" + i + "</a></li>";
+			}
+
+		if (i < val)
+			html += "<li><a class=\"anchor-style\" id=\"page_last\">&raquo;</a></li>";
+
+		html += "</ul>";
+		$("nav.hive-group-pagination").html(html);
+
+		html = "";
+
+		for (i = 0; i < data.groups.length; i++)
+			{
+			group = data.groups[i];
+
+			html += "<tr id=\"" + group.mgroup_id + "\">";
+
+			html += "<td class=\"edit\">"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/edit.png').dquote %]\" title=\"Edit\" class=\"edit icon\" />"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/delete.png').dquote %]\" title=\"Delete\" class=\"delete icon\" />"
+				+ "<img src=\"[% Catalyst.uri_for('/static/icons/curse.png').dquote %]\" title=\"Curse\" class=\"curse icon\" />"
+				+ "</td>";
+
+			for (j = 0; j < columns.length; j++)
+				{
+				val = group[columns[j].name];
+				html += "<td";
+				if ("hidden" in columns[j])
+					html += " class=\"" + hidden_styles(columns[j].hidden) + "\"";
+				html += ">";
+
+				if ("date" in columns[j] && columns[j].date)
+					{
+					if (val)
+						{
+						date_obj = new Date(val);
+						html += date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString();
+						}
+					else
+						html += "--";
+					}
+				else
+					html += group[columns[j].name];
+
+				html += "</td>";
+				}
+
+			html += "</tr>";
+			}
+		$tbody.html(html);
+		};
+
+	api_json(api);
+	}
+
+function save_group()
+	{
+	var $this = $(this).parents(".modal"), groups = [], mgroup_id = $this.data("mgroup_id");
+	var url, what, data =
+		{
+		groups: groups,
+		vend_credits: soda_credits,
+		paypal_email: null
+		};
+
+	if (mgroup_id)
+		{
+		what = "Group edit";
+		url = "[% Catalyst.uri_for('/api/admin/groups/edit') %]";
+		data.mgroup_id = mgroup_id;
+		}
+	else
+		{
+		what = "Group add";
+		url = "[% Catalyst.uri_for('/api/admin/groups/new') %]";
+		}
+
+	$("input.group[type=\"checkbox\"]:checked").each(function()
+		{
+		groups.push($(this).val());
+		});
+
+	api_json(
+		{
+		url: url,
+		data: data,
+		what: what,
+		success: function (data) { $this.modal("hide"); }
+		});
+	}
+
+function edit(mgroup_id)
+	{
+	var i, html = "";
+	var title = mgroup_id ? "Edit Group" : "Add Group";
+	var $dialogue = $("#edit_dialogue");
+	$dialogue.data("mgroup_id", mgroup_id);
+
+	for (i = 0; i < all_groups.length; i++)
+		html += "<label><input type=\"checkbox\" class=\"group\" value=\""
+			+ all_groups[i].mgroup_id + "\" /> " + all_groups[i].name
+			+ "</label><br />";
+	$dialogue.find("div#groups").html(html);
 
 	$.ajax(
 		{
 		dataType: "json",
-		url: "[% Catalyst.uri_for('/api/admin/groups/info') %]" + "/" + group_id,
+		url: "[% Catalyst.uri_for('/api/admin/groups/info') %]" + "/" + mgroup_id,
 		cache: false,
 		success: function (data)
 			{
-			var i, badge, $option;
+			var i, badge, $option, $select, $soda_credits;
 
-			$("input.member[type=\"checkbox\"]").prop("checked", false);
+			title = "Edit " + data.group.name;
 
-			for (i = 0; i < data.members.length; i++)
-				$("input.member[type=\"checkbox\"][value=\"" + data.members[i].member_id + "\"]").prop("checked", true);
-			
-			$dialogue.dialog(
+			$("input.group[type=\"checkbox\"]").prop("checked", false);
+
+			for (i = 0; i < data.member.groups.length; i++)
+				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
+
+			$dialogue.find("#edit_label").text(title);
+			$dialogue.modal("show");
+			$dialogue.find("button#finish_edit").click(save_group);
+			}
+		});
+	}
+
+function curse_group(mgroup_id)
+	{
+	var
+		$dialogue = $("#curse_dialogue"),
+		$ok       = $dialogue.find("button#finish_curse"),
+		$protect  = $dialogue.find("#protect");
+	$dialogue.data("mgroup_id", mgroup_id);
+	$ok.prop("disabled", true);
+	$protect.find("input").val("");
+
+	$.ajax(
+		{
+		dataType: "json",
+		url: "[% Catalyst.uri_for('/api/admin/curses') %]",
+		cache: false,
+		success: function (data)
+			{
+			var i, curse, html = "<option value=\"-1\">Select Curse</option>";
+			var $select = $dialogue.find("select").empty();
+			$select.data("curses", data.curses);
+
+			for (i = 0; i < data.curses.length; i++)
 				{
-				title: title,
-				maxHeight: $(window).height(),
-				width: 700,
-				buttons:
+				curse = data.curses[i];
+				html += "<option value=\"" + i + "\">" + curse.display_name + "</option>";
+				}
+
+			$select.html(html).change(function()
+				{
+				var curse, $this = $(this), idx = parseInt($this.val());
+
+				if (idx < 0)
 					{
-					Cancel: function()
-						{
-						$(this).dialog("close");
-						}
+					$ok.prop("disabled", true);
+					$dialogue.find("#protect").css("display", "none");
+					return;
 					}
+
+				curse = $select.data("curses")[idx];
+				$ok.prop("disabled", false);
+
+				if (curse.protect_group_cast)
+					$protect.css("display", "");
+				else
+					$protect.css("display", "none");
+				});
+
+			$dialogue.modal("show");
+			$dialogue.find("button#finish_curse").click(function()
+				{
+				var curse, data = { mgroup_id: mgroup_id }, idx = parseInt($select.val());
+
+				if (idx < 0)
+					{
+					$.toast(
+						{
+						heading:  "Select a Curse",
+						text:     "You must select a curse to cast.",
+						icon:     "error",
+						position: "top-right"
+						});
+					return;
+					}
+
+				curse = $select.data("curses")[idx];
+				if (curse.protect_group_cast && $protect.find("input").val() !== curse.name)
+					{
+					$.toast(
+						{
+						heading:  "Protected Curse",
+						text:     "You must enter the base name of this curse to cast it.",
+						icon:     "error",
+						position: "top-right"
+						});
+					return;
+					}
+
+				data.curse_id = curse.curse_id;
+				data.notes    = $dialogue.find("textarea").val();
+
+				api_json(
+					{
+					url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
+					data:    data,
+					what:    "Curse Cast",
+					success: function () { $dialogue.modal("hide"); }
+					});
 				});
 			}
 		});
 	}
 
-$(function ()
-	{
-	$("tr")
-		.mouseover(function ()
-			{
-			$(this).addClass("highlight");
-			})
-		.mouseout(function ()
-			{
-			$(this).removeClass("highlight");
-			})
-		.dblclick(function ()
-			{
-			edit($(this).attr("id"));
-			});
-	$("td.edit img.edit").click(function ()
-		{
-		var $this = $(this);
-		var group_id = $this.parents("tr").attr("id");
-		edit(group_id);
-		});
-	});
-
 </script>
-
 [%~ # vim:set filetype=tt2html: ~%]

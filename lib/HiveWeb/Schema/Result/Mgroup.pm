@@ -49,12 +49,14 @@ __PACKAGE__->many_to_many("members", "member_mgroups", "member");
 
 sub TO_JSON
 	{
-	my $self = shift;
+	my $self    = shift;
+	my $columns = { $self->get_columns() };
 
 	return
 		{
 		name      => $self->name(),
 		mgroup_id => $self->mgroup_id(),
+		( exists($columns->{mcount}) ? ( mcount => $columns->{mcount} ) : () ),
 		};
 	}
 
