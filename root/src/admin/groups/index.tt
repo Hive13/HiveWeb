@@ -115,7 +115,7 @@ $(function()
 			})
 		.on("dblclick", "tr", function ()
 			{
-			edit($(this).attr("id"));
+			edit_group($(this).attr("id"));
 			return false;
 			})
 		.on("click", "td.edit img.edit", function ()
