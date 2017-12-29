@@ -77,6 +77,63 @@ sub index :Path :Args(0)
 	$out->{response} = \1;
 	}
 
+sub edit :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $mgroup_id = $c->stash()->{in}->{mgroup_id};
+	my $mgroup    = $c->model('DB::MGroup')->find({ mgroup_id => $mgroup_id });
+
+	if (!defined($mgroup))
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Cannot find member';
+		return;
+		}
+	my %new_members = map { $_ => 1; } @{$in->{members}};
+	my @members     = $c->model('DB::Member')->all();
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			foreach my $member (@members)
+				{
+				my $member_id = $member->member_id();
+				if ($new_members{$member_id} && !$member->find_related('member_mgroups', { mgroup_id => $mgroup_id }))
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'add_group',
+						changing_member_id => $c->user()->member_id(),
+						notes              => 'Added group ' . $mgroup_id,
+						});
+					$member->create_related('member_mgroups', { mgroup_id => $mgroup_id });
+					}
+				my $mg;
+				if (!$new_members{$member_id} && ($mg = $member->find_related('member_mgroups', { mgroup_id => $mgroup_id })))
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'remove_group',
+						changing_member_id => $c->user()->member_id(),
+						notes              => 'Removed group ' . $mgroup_id,
+						});
+					$mg->delete();
+					}
+				}
+			$out->{response} = \1;
+			$out->{data}     = 'Group has been updated.';
+			});
+		}
+	catch
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update group.';
+		};
+	}
+
 =encoding utf8
 
 =head1 AUTHOR
