@@ -27,6 +27,7 @@ sub cast :Local :Args(0)
 	my $out       = $c->stash()->{out};
 	my $member_id = $in->{member_id};
 	my $mgroup_id = $in->{mgroup_id};
+	my $existing  = $in->{existing};
 
 	my $members;
 
@@ -48,6 +49,7 @@ sub cast :Local :Args(0)
 			return;
 			}
 		$members = [ $member ];
+		$existing ||= 'die';
 		}
 	else
 		{
@@ -61,12 +63,22 @@ sub cast :Local :Args(0)
 			}
 		@members = $mgroup->member_mgroups()->search_related('member', {})->all();
 		$members = \@members;
+		$existing ||= 'stack';
 		}
 	my $curse = $c->model('DB::Curse')->find({ curse_id => $in->{curse_id} });
 	if (!defined($curse))
 		{
 		$out->{response} = \0;
 		$out->{data}     = "Cannot find curse " . $in->{curse_id};
+		return;
+		}
+
+	$existing = lc($existing);
+
+	if ($existing ne 'die' && $existing ne 'stack' && $existing ne 'replace')
+		{
+		$out->{response} = \0;
+		$out->{data}     = "Invalid existing curse action $existing.";
 		return;
 		}
 
@@ -78,27 +90,38 @@ sub cast :Local :Args(0)
 			{
 			foreach my $member (@$members)
 				{
-				my $mc = $c->model('DB::MemberCurse')->find(
+				my $emc = $c->model('DB::MemberCurse')->find(
 					{
 					member_id => $member->member_id(),
 					curse_id  => $in->{curse_id},
 					issued_at => { '<=' => \'now()' },
 					lifted_at => [ { '>=' => \'now()' }, undef ],
 					});
-
-				if ($mc)
-					{
-					$out->{data} =  "A member already has that curse active.  Can't handle this yet.";
-					die;
-					}
-
-				$mc = $c->model('DB::MemberCurse')->create(
+				my $mc = $c->model('DB::MemberCurse')->create(
 					{
 					member_id         => $member->member_id(),
 					curse_id          => $in->{curse_id},
 					issuing_member_id => $c->user()->member_id(),
 					issuing_notes     => $in->{notes},
 					}) || die $!;
+
+				if ($emc)
+					{
+					if ($existing eq 'die')
+						{
+						$out->{data} = "A member already has that curse active.  Can't handle this yet.";
+						die;
+						}
+					elsif ($existing eq 'replace')
+						{
+						$emc->update(
+							{
+							lifted_at         => \'now()',
+							lifting_member_id => $c->user()->member_id(),
+							lifting_notes     => 'Replaced by curse ' . $mc->member_curse_id(),
+							});
+						}
+					}
 				}
 			});
 		}

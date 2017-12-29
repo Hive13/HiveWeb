@@ -23,19 +23,32 @@
 				<h3 class="modal-title" id="curse_label">Curse Group</h3>
 			</div>
 			<div class="modal-body">
-			<label>
-				Curse:
-				<select></select>
-			</label><br />
-			<div id="protect" style="display: none">
-				This curse is protected.
-				To cast this curse on a group, type in its name - not its display name.<br />
-				<input type="text" id="curse_name" size="30" />
-			</div>
-			<label class="u-w-100">
-				Notes:
-				<textarea rows="8" class="u-w-100"></textarea>
-			</label><br />
+				<label>
+					Curse:
+					<select></select>
+				</label><br />
+				<div id="protect" style="display: none">
+					This curse is protected.
+					To cast this curse on a group, type in its name - not its display name.<br />
+					<input type="text" id="curse_name" size="30" />
+				</div>
+				<label class="u-w-100">
+					Notes:
+					<textarea rows="8" class="u-w-100"></textarea>
+				</label><br />
+				<h4>If any member in this group already has this curse active, what should happen?</h4>
+				<label>
+					<input type="radio" name="existing" value="stack" checked />
+					Stack the curse with the existing one.  This is probably what you want.
+				</label>
+				<label>
+					<input type="radio" name="existing" value="replace" />
+					Lift the old curse and apply a new one.  This is usually the wrong answer.
+				</label>
+				<label>
+					<input type="radio" name="existing" value="die" />
+					Don't place any curses; error out.  This could be what you what.
+				</label>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -445,6 +458,7 @@ function curse_group(mgroup_id)
 
 				data.curse_id = curse.curse_id;
 				data.notes    = $dialogue.find("textarea").val();
+				data.existing = $dialogue.find("input[name=existing]:checked").val();
 
 				api_json(
 					{

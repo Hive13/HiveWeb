@@ -35,6 +35,10 @@ __PACKAGE__->add_columns(
   { data_type => 'uuid', is_foreign_key => 1, is_nullable => 0, size => 16 },
   'issuing_notes',
   { data_type => 'text', is_nullable => 1 },
+  'lifting_member_id',
+  { data_type => 'uuid', is_foreign_key => 1, is_nullable => 1, size => 16 },
+  'lifting_notes',
+  { data_type => 'text', is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key('member_curse_id');
@@ -57,6 +61,12 @@ __PACKAGE__->belongs_to(
   { member_id => 'issuing_member_id' },
   { is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
 );
+__PACKAGE__->belongs_to(
+  'lifting_member',
+  'HiveWeb::Schema::Result::Member',
+  { member_id => 'lifting_member_id' },
+  { is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
+);
 
 __PACKAGE__->meta->make_immutable;
 
@@ -71,6 +81,8 @@ sub TO_JSON
 		lifted_at       => $self->lifted_at(),
 		issuing_member  => $self->issuing_member(),
 		issuing_notes   => $self->issuing_notes(),
+		lifting_member  => $self->lifting_member(),
+		lifting_notes   => $self->lifting_notes(),
 		};
 	}
 1;
