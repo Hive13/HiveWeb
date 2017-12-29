@@ -51,11 +51,13 @@ sub TO_JSON
 	{
 	my $self    = shift;
 	my $columns = { $self->get_columns() };
+	my @members = $self->member_mgroups()->get_column('member_id')->all();
 
 	return
 		{
 		name      => $self->name(),
 		mgroup_id => $self->mgroup_id(),
+		members   => \@members,
 		( exists($columns->{mcount}) ? ( mcount => $columns->{mcount} ) : () ),
 		};
 	}

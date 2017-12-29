@@ -11,25 +11,18 @@ sub info :Local :Args(1)
 	{
 	my ($self, $c, $group_id) = @_;
 
-	my $group = $c->model('DB::MGroup')->find($group_id);
+	my $out   = $c->stash()->{out};
+	my $group = $c->model('DB::MGroup')->find($group_id, { prefetch => 'member_mgroups' });
+
 	if (!defined($group))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "Cannot find member";
+		$out->{response} = \0;
+		$out->{data}     = "Cannot find group";
 		return;
 		}
 	
-	my @mgs = $group->member_mgroups()->all();
-	my @omembers;
-	foreach my $mg (@mgs)
-		{
-		my $m = $mg->member();
-		push(@omembers, { $m->get_inflated_columns() });
-		}
-	
-	$c->stash()->{out}->{members}  = \@omembers;
-	$c->stash()->{out}->{group}    = { $group->get_inflated_columns() };
-	$c->stash()->{out}->{response} = JSON->true();
+	$out->{group}    = $group;
+	$out->{response} = \1;
 	}
 
 sub index :Path :Args(0)
@@ -67,6 +60,7 @@ sub index :Path :Args(0)
 	my $sorder = "$order $dir";
 	$group_attrs->{order_by} = $sorder;
 
+	my @members   = $c->model('DB::Member')->search({});
 	my $groups_rs = $c->model('DB::MGroup')->search({}, $group_attrs);
 	my $count     = $groups_rs->count();
 	my @groups    = $groups_rs->search({},
@@ -76,6 +70,7 @@ sub index :Path :Args(0)
 		});
 
 	$out->{groups}   = \@groups;
+	$out->{members}  = \@members;
 	$out->{count}    = $count;
 	$out->{page}     = $group_table->{page};
 	$out->{per_page} = $group_table->{per_page};

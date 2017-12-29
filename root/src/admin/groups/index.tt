@@ -45,6 +45,23 @@
 	</div>
 </div>
 
+<div class="modal fade" id="edit_dialogue" tabIndex="-1" role="dialog" aria-labelledby="edit_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="edit_label">Edit Group</h3>
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_edit">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <script type="text/javascript">
 var load_url   = "[% Catalyst.uri_for('/api/admin/groups').dquote %]";
 var order      = "name";
@@ -203,10 +220,10 @@ function load_groups()
 		{
 		var i, j, date_obj, group, val, html = "<ul class=\"pagination\">";
 
-		all_groups = data.groups;
-		count      = data.count;
-		per_page   = data.per_page;
-		page       = data.page;
+		all_members = data.members;
+		count       = data.count;
+		per_page    = data.per_page;
+		page        = data.page;
 
 		i   = data.page - 3;
 		val = Math.ceil(data.count / data.per_page);
@@ -312,18 +329,18 @@ function save_group()
 		});
 	}
 
-function edit(mgroup_id)
+function edit_group(mgroup_id)
 	{
 	var i, html = "";
 	var title = mgroup_id ? "Edit Group" : "Add Group";
 	var $dialogue = $("#edit_dialogue");
 	$dialogue.data("mgroup_id", mgroup_id);
 
-	for (i = 0; i < all_groups.length; i++)
-		html += "<label><input type=\"checkbox\" class=\"group\" value=\""
-			+ all_groups[i].mgroup_id + "\" /> " + all_groups[i].name
+	for (i = 0; i < all_members.length; i++)
+		html += "<label><input type=\"checkbox\" class=\"members\" value=\""
+			+ all_members[i].mewber_id + "\" /> " + all_members[i].fname + " " + all_members[i].lane
 			+ "</label><br />";
-	$dialogue.find("div#groups").html(html);
+	$dialogue.find("div#members").html(html);
 
 	$.ajax(
 		{
@@ -338,8 +355,8 @@ function edit(mgroup_id)
 
 			$("input.group[type=\"checkbox\"]").prop("checked", false);
 
-			for (i = 0; i < data.member.groups.length; i++)
-				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
+			for (i = 0; i < data.group.members.length; i++)
+				$("input.group[type=\"checkbox\"][value=\"" + data.group.members[i] + "\"]").prop("checked", true);
 
 			$dialogue.find("#edit_label").text(title);
 			$dialogue.modal("show");
