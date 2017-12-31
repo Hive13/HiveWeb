@@ -109,7 +109,7 @@ sub cast :Local :Args(0)
 					{
 					if ($existing eq 'die')
 						{
-						$out->{data} = "A member already has that curse active.  Can't handle this yet.";
+						$out->{data} = "A member already has that curse active, and you elected to die on existing curses.  No one has been cursed.";
 						die;
 						}
 					elsif ($existing eq 'replace')
