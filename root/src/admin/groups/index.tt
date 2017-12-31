@@ -6,7 +6,7 @@
 		<div class="panel-body">
 			<nav id="pagination_top" class="hive-group-pagination">
 			</nav>
-			<table class="table table-striped table-hover table-condensed hive-group-table">
+			<table id="hive-group-table" class="table table-striped table-hover table-condensed hive-edit-table">
 				<thead></thead>
 				<tbody></tbody>
 			</table>
@@ -100,7 +100,7 @@ var columns    =
 
 $(function()
 	{
-	var $table = $("table.hive-group-table");
+	var $table = $("table#hive-group-table");
 	var $nav   = $("nav.hive-group-pagination");
 
 	$nav.on("click", "li a", function ()
@@ -212,7 +212,7 @@ function load_header($table)
 
 function load_groups()
 	{
-	var $table = $("table.hive-group-table");
+	var $table = $("table#hive-group-table");
 	var $tbody = $table.find("tbody");
 	var params =
 		{
