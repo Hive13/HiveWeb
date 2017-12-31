@@ -6,7 +6,7 @@
 		<div class="panel-body">
 			<nav id="pagination_top" class="hive-member-pagination">
 			</nav>
-			<table class="table table-striped table-hover table-condensed hive-member-table">
+			<table id="hive-member-table" class="table table-striped table-hover table-condensed hive-edit-table">
 				<thead></thead>
 				<tbody></tbody>
 			</table>
@@ -333,10 +333,114 @@ var columns    =
 
 $(function()
 	{
-	var $table = $("table.hive-member-table");
-	var $nav   = $("nav.hive-member-pagination");
+	var
+		$table         = $("table#hive-member-table"),
+		$nav           = $("nav.hive-member-pagination");
+		$edit_dialogue = $("div#edit_dialogue");
+		$filter        = $("div#filter_dialogue");
 
-	$("div#edit_dialogue input#different_paypal").click(paypal_checkbox);
+	$filter.find("input[name=paypal]").click(function ()
+		{
+		var $this = $(this);
+
+		if ($this.val() === "any")
+			$("div#filter_dialogue input[name=paypal][value!=any]").prop("checked", false);
+		else
+			$("div#filter_dialogue input[name=paypal][value=any]").prop("checked", false);
+		});
+
+	$filter.find("button#refresh_filters").click(function ()
+		{
+		var active, photo, group_type, paypal = [], group_list = [];
+
+		$filter.modal("hide");
+		active     = $filter.find("input[name=active]:checked").val();
+		photo      = $filter.find("input[name=photo]:checked").val();
+		group_type = $filter.find("input[name=group_filter]:checked").val();
+		$filter.find("input[name=paypal]:checked").each(function ()
+			{
+			var v = $(this).attr("value");
+
+			if (v === "any")
+				{
+				paypal = null;
+				return false;
+				}
+			paypal.push(v);
+			});
+
+		if (group_type === "null")
+			filters.group_type = null;
+		else
+			filters.group_type = group_type;
+		$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
+		if (!group_list.length)
+			filters.group_list = null;
+		else
+			filters.group_list = group_list;
+
+		if (photo === "true")
+			filters.photo = true;
+		else if (photo === "false")
+			filters.photo = false;
+		else
+			filters.photo = null;
+		if (active === "true")
+			filters.active = true;
+		else if (active === "false")
+			filters.active = false;
+		else
+			filters.active = null;
+		if (!paypal || !paypal.length)
+			paypal = null;
+		filters.paypal = paypal;
+		load_members();
+		});
+
+	$filter.on("show.bs.modal", function ()
+		{
+		var i, html = "";
+
+		for (i = 0; i < all_groups.length; i++)
+			html += "<label>"
+				+ "<input type=\"checkbox\" name=\"group_list\" value=\""
+				+ all_groups[i].mgroup_id + "\" />\n"
+				+ all_groups[i].name
+				+ "</label><br />";
+		$filter.find("div#group_list").html(html);
+
+		if (filters.group_type === null)
+			$filter.find("input[name=group_filter][value=null]").prop("checked", true);
+		else
+			$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
+		if (filters.group_list)
+			for (i = 0; i < filters.group_list.length; i++)
+				$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
+
+		if (filters.active === true)
+			$filter.find("input[name=active][value=true]").prop("checked", true);
+		else if (filters.active === false)
+			$filter.find("input[name=active][value=false]").prop("checked", true);
+		else
+			$filter.find("input[name=active][value=null]").prop("checked", true);
+		if (filters.photo === true)
+			$filter.find("input[name=photo][value=true]").prop("checked", true);
+		else if (filters.photo === false)
+			$filter.find("input[name=photo][value=false]").prop("checked", true);
+		else
+			$filter.find("input[name=photo][value=null]").prop("checked", true);
+		if (filters.paypal === null)
+			{
+			$filter.find("input[name=paypal][value!=any]").prop("checked", false);
+			$filter.find("input[name=paypal][value=any]").prop("checked", true);
+			}
+		else
+			{
+			$filter.find("input[name=paypal][value=any]").prop("checked", false);
+			for (i = 0; i < filters.paypal.length; i++)
+				$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
+			}
+		});
 
 	$nav.on("click", "li a", function ()
 		{
@@ -454,20 +558,123 @@ $(function()
 
 			return false;
 			})
+		.on("click", "thead a.sort", sort_click)
 		;
+	
+	$("div#password_dialogue button#finish_pass").click(save_password);
+
+	$edit_dialogue.find("div#photo div.panel div.panel-body").on("change", "input[type=file]", upload_photo);
+	$edit_dialogue.find("input#different_paypal").click(paypal_checkbox);
+	$edit_dialogue.find("div#badges img.add").click(function () { badge_edit(undefined) });
+	$edit_dialogue.find("button#finish_edit").click(save_member);
+	$edit_dialogue.find("div#badges select").change(function ()
+		{
+		var $this = $(this);
+		
+		if ($this.find("option:selected").length > 0)
+			$edit_dialogue.find("img.delete").removeClass("icon-disabled");
+		else
+			$dialogue.find("img.delete").addClass("icon-disabled");
+		return false;
+		});
+	$edit_dialogue.find("div#badges img.delete").click(function()
+		{
+		var badges = [];
+		var url = "[% Catalyst.uri_for('/api/admin/members/delete_badge') %]";
+		var data =
+			{
+			member_id: $edit_dialogue.data("member_id"),
+			badge_id:  badges
+			};
+		
+		$edit_dialogue.find("div#badges select option:selected").each(function ()
+			{
+			badges.push($(this).attr("id"));
+			});
+		
+		if (badges.length <= 0)
+			return;
+		if (!confirm("Are you sure you want to delete " + badges.length + " badges?"))
+			return;
+		api_json(url, data, "Badge delete", function (data)
+			{
+			var i;
+			
+			for (i = 0; i < badges.length; i++)
+				$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
+			});
+		return false;
+		});
 
 	load_members();
 	});
 
-$("div#filter_dialogue input[name=paypal]").click(function ()
+function upload_photo()
 	{
-	var $this = $(this);
+	var $progress, $this = $(this),
+		$image_div = $this.parents("div.panel-body");
+		fd = new FormData();
+	fd.append("photo", $this[0].files[0]);
+	fd.append("member_id", member_id);
+	$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
+	$progress = $image_div.find("div.progress div.progress-bar");
 
-	if ($this.val() === "any")
-		$("div#filter_dialogue input[name=paypal][value!=any]").prop("checked", false);
-	else
-		$("div#filter_dialogue input[name=paypal][value=any]").prop("checked", false);
-	});
+	$.ajax(
+		{
+		url: "[% Catalyst.uri_for('/api/admin/members/photo').dquote %]",
+		type: "POST",
+		data: fd,
+		cache: false,
+		contentType: false,
+		processData: false,
+		xhr: function()
+			{
+			var myXhr = $.ajaxSettings.xhr();
+			if (myXhr.upload)
+				{
+				myXhr.upload.addEventListener('progress', function(e)
+					{
+					var pct;
+
+					if (e.lengthComputable)
+						{
+						pct = e.loaded * 100 / e.total;
+						$progress.attr("aria-valuenow", pct).css("width", pct + "%");
+						}
+					} , false);
+				}
+			return myXhr;
+			},
+		error: function(jqXHR, status, error_thrown)
+			{
+			$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+			$.toast(
+				{
+				icon: "error",
+				heading: "Image upload failed",
+				position: "top-right",
+				text: error_thrown
+				});
+			},
+		success: function(data)
+			{
+			if (!data.response)
+				{
+				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+				$.toast(
+					{
+					heading: options.what + " failed",
+					text: data.data,
+					icon: "error",
+					position: "top-right"
+					});
+				return;
+				}
+			else
+				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.image_id + "\" />");
+			}
+		});
+	}
 
 function paypal_checkbox()
 	{
@@ -509,7 +716,7 @@ function hidden_styles(which)
 
 function load_header($table)
 	{
-	var html, $thead = $table.find("thead"), i, j, sz = ["xs", "sm", "md", "lg"], disp;
+	var html, i;
 
 	html = "<tr><th colspan=\"2\">"
 		+ "<select class=\"per-page\">";
@@ -541,13 +748,12 @@ function load_header($table)
 			html += ((dir === "ASC") ? "(&darr;)" : "(&uarr;)");
 		html += "</a></th>";
 		}
-	$thead.html(html);
-	$thead.find("a.sort").click(sort_click);
+	$table.find("thead").html(html);
 	}
 
 function load_members()
 	{
-	var $table = $("table.hive-member-table");
+	var $table = $("table#hive-member-table");
 	var $tbody = $table.find("tbody");
 	var params =
 		{
@@ -787,11 +993,8 @@ function change_password(member_id)
 	{
 	var $dialogue = $("#password_dialogue");
 
-	$dialogue.find("input").val("");
+	$dialogue.data("member_id", member_id).find("input").val("");
 	$dialogue.modal("show");
-
-	$dialogue.data("member_id", member_id);
-	$dialogue.find("button#finish_pass").click(save_password);
 	}
 
 function edit(member_id)
@@ -814,7 +1017,7 @@ function edit(member_id)
 		cache: false,
 		success: function (data)
 			{
-			var i, badge, $option, $select, $soda_credits;
+			var i, badge, $option, $select, $soda_credits, $remove;
 			var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
 			var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
 
@@ -841,77 +1044,10 @@ function edit(member_id)
 				$("input#paypal_email").val(data.member.paypal_email);
 				}
 
-			$image_div.on("change", "input[type=file]", function()
-				{
-				var $this = $(this), $progress;
-				var fd = new FormData();
-				fd.append("photo", $this[0].files[0]);
-				fd.append("member_id", member_id);
-				$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
-				$progress = $image_div.find("div.progress div.progress-bar");
-
-				$.ajax(
-					{
-					url: "[% Catalyst.uri_for('/api/admin/members/photo').dquote %]",
-					type: "POST",
-					data: fd,
-					cache: false,
-					contentType: false,
-					processData: false,
-					xhr: function()
-						{
-						var myXhr = $.ajaxSettings.xhr();
-						if (myXhr.upload)
-							{
-							// For handling the progress of the upload
-							myXhr.upload.addEventListener('progress', function(e)
-								{
-								var pct;
-
-								if (e.lengthComputable)
-									{
-									pct = e.loaded * 100 / e.total;
-									$progress.attr("aria-valuenow", pct).css("width", pct + "%");
-									}
-								} , false);
-							}
-						return myXhr;
-						},
-					error: function(jqXHR, status, error_thrown)
-						{
-						$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-						$.toast(
-							{
-							icon: "error",
-							heading: "Image upload failed",
-							position: "top-right",
-							text: error_thrown
-							});
-						},
-					success: function(data)
-						{
-						if (!data.response)
-							{
-							$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-							$.toast(
-								{
-								heading: options.what + " failed",
-								text: data.data,
-								icon: "error",
-								position: "top-right"
-								});
-							return;
-							}
-						else
-							$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.image_id + "\" />");
-						}
-					});
-				});
 			if (data.member.member_image_id)
 				{
 				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.member.member_image_id + "\" />");
-				$photo_header.prepend($("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style"));
-				$photo_header.on("click", "span.glyphicon-remove", function ()
+				$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").click(function ()
 					{
 					if (!confirm("Are you sure you want to remove this photo?"))
 						return;
@@ -923,10 +1059,11 @@ function edit(member_id)
 						success: function()
 							{
 							$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-							$("table.hive-member-table tr#" + member_id + " td.photo").empty();
+							$("table#hive-member-table tr#" + member_id + " td.photo").empty();
 							}
 						});
 					});
+				$photo_header.prepend($remove);
 				}
 			else
 				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
@@ -941,48 +1078,9 @@ function edit(member_id)
 				$select.append($option);
 				}
 
-			$select.change(function ()
-				{
-				var $this = $(this);
-
-				if ($this.find("option:selected").length > 0)
-					$dialogue.find("img.delete").removeClass("icon-disabled");
-				else
-					$dialogue.find("img.delete").addClass("icon-disabled");
-				});
-
-			$dialogue.find("div#badges img.add").click(function () { badge_edit(undefined) });
-			$dialogue.find("div#badges img.delete").click(function()
-				{
-				var badges = [];
-				var url = "[% Catalyst.uri_for('/api/admin/members/delete_badge') %]";
-				var data =
-					{
-					member_id: member_id,
-					badge_id:  badges
-					};
-
-				$("div#badges select option:selected").each(function ()
-					{
-					badges.push($(this).attr("id"));
-					});
-				if (badges.length <= 0)
-					return;
-				if (!confirm("Are you sure you want to delete " + badges.length + " badges?"))
-					return;
-				api_json(url, data, "Badge delete", function (data)
-					{
-					var i;
-
-					for (i = 0; i < badges.length; i++)
-						$("div#badges select option#" + badges[i]).remove();
-					});
-				});
-
 			paypal_checkbox();
 			$dialogue.find("#edit_label").text(title);
 			$dialogue.modal("show");
-			$dialogue.find("button#finish_edit").click(save_member);
 			}
 		});
 	}
@@ -992,11 +1090,69 @@ function curse(member_id)
 	var
 		$dialogue = $("#curse_dialogue"),
 		$ok       = $dialogue.find("button#finish_curse"),
-		$protect  = $dialogue.find("#protect");
-	$dialogue.data("member_id", member_id);
+		$protect  = $dialogue.find("#protect"),
+		$select   = $dialogue.find("select");
+	$dialogue.data("member_id", member_id).find("textarea").val("");
 	$ok.prop("disabled", true);
-	$protect.find("input").val("");
+	$protect.css("display", "none").find("input").val("");
 
+	$select.off("change").change(function()
+		{
+		var curse, $this = $(this), idx = parseInt($this.val());
+
+		if (idx < 0)
+			{
+			$ok.prop("disabled", true);
+			$dialogue.find("#protect").css("display", "none");
+			return;
+			}
+
+		curse = $this.data("curses")[idx];
+		$ok.prop("disabled", false);
+
+		$protect.css("display", (curse.protect_user_cast ? "" : "none"));
+		});
+
+	$ok.off("click").click(function()
+		{
+		var curse, data = { member_id: member_id }, idx = parseInt($select.val());
+
+		if (idx < 0)
+			{
+			$.toast(
+				{
+				heading:  "Select a Curse",
+				text:     "You must select a curse to cast.",
+				icon:     "error",
+				position: "top-right"
+				});
+			return;
+			}
+
+		curse = $select.data("curses")[idx];
+		if (curse.protect_user_cast && $protect.find("input").val() !== curse.name)
+			{
+			$.toast(
+				{
+				heading:  "Protected Curse",
+				text:     "You must enter the base name of this curse to cast it.",
+				icon:     "error",
+				position: "top-right"
+				});
+			return;
+			}
+
+		data.curse_id = curse.curse_id;
+		data.notes    = $dialogue.find("textarea").val();
+
+		api_json(
+			{
+			url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
+			data:    data,
+			what:    "Curse Cast",
+			success: function () { $dialogue.modal("hide"); }
+			});
+		});
 	$.ajax(
 		{
 		dataType: "json",
@@ -1004,174 +1160,15 @@ function curse(member_id)
 		cache: false,
 		success: function (data)
 			{
-			var i, curse, html = "<option value=\"-1\">Select Curse</option>";
-			var $select = $dialogue.find("select").empty();
-			$select.data("curses", data.curses);
+			var i, html = "<option value=\"-1\">Select Curse</option>";
 
 			for (i = 0; i < data.curses.length; i++)
-				{
-				curse = data.curses[i];
-				html += "<option value=\"" + i + "\">" + curse.display_name + "</option>";
-				}
-
-			$select.html(html).change(function()
-				{
-				var curse, $this = $(this), idx = parseInt($this.val());
-
-				if (idx < 0)
-					{
-					$ok.prop("disabled", true);
-					$dialogue.find("#protect").css("display", "none");
-					return;
-					}
-
-				curse = $select.data("curses")[idx];
-				$ok.prop("disabled", false);
-
-				if (curse.protect_user_cast)
-					$protect.css("display", "");
-				else
-					$protect.css("display", "none");
-				});
+				html += "<option value=\"" + i + "\">" + data.curses[i].display_name + "</option>";
+			$dialogue.find("select").empty().html(html).data("curses", data.curses);
 
 			$dialogue.modal("show");
-			$dialogue.find("button#finish_curse").click(function()
-				{
-				var curse, data = { member_id: member_id }, idx = parseInt($select.val());
-
-				if (idx < 0)
-					{
-					$.toast(
-						{
-						heading:  "Select a Curse",
-						text:     "You must select a curse to cast.",
-						icon:     "error",
-						position: "top-right"
-						});
-					return;
-					}
-
-				curse = $select.data("curses")[idx];
-				if (curse.protect_user_cast && $protect.find("input").val() !== curse.name)
-					{
-					$.toast(
-						{
-						heading:  "Protected Curse",
-						text:     "You must enter the base name of this curse to cast it.",
-						icon:     "error",
-						position: "top-right"
-						});
-					return;
-					}
-
-				data.curse_id = curse.curse_id;
-				data.notes    = $dialogue.find("textarea").val();
-
-				api_json(
-					{
-					url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
-					data:    data,
-					what:    "Curse Cast",
-					success: function () { $dialogue.modal("hide"); }
-					});
-				});
 			}
 		});
 	}
-
-var $filter = $("div#filter_dialogue");
-
-$filter.on("show.bs.modal", function ()
-	{
-	var i, html = "";
-
-	for (i = 0; i < all_groups.length; i++)
-		html += "<label>"
-			+ "<input type=\"checkbox\" name=\"group_list\" value=\""
-			+ all_groups[i].mgroup_id + "\" />\n"
-			+ all_groups[i].name
-			+ "</label><br />";
-	$filter.find("div#group_list").html(html);
-
-	if (filters.group_type === null)
-		$filter.find("input[name=group_filter][value=null]").prop("checked", true);
-	else
-		$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
-	if (filters.group_list)
-		for (i = 0; i < filters.group_list.length; i++)
-			$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
-
-	if (filters.active === true)
-		$filter.find("input[name=active][value=true]").prop("checked", true);
-	else if (filters.active === false)
-		$filter.find("input[name=active][value=false]").prop("checked", true);
-	else
-		$filter.find("input[name=active][value=null]").prop("checked", true);
-	if (filters.photo === true)
-		$filter.find("input[name=photo][value=true]").prop("checked", true);
-	else if (filters.photo === false)
-		$filter.find("input[name=photo][value=false]").prop("checked", true);
-	else
-		$filter.find("input[name=photo][value=null]").prop("checked", true);
-	if (filters.paypal === null)
-		{
-		$filter.find("input[name=paypal][value!=any]").prop("checked", false);
-		$filter.find("input[name=paypal][value=any]").prop("checked", true);
-		}
-	else
-		{
-		$filter.find("input[name=paypal][value=any]").prop("checked", false);
-		for (i = 0; i < filters.paypal.length; i++)
-			$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
-		}
-	});
-
-$filter.find("button#refresh_filters").click(function ()
-	{
-	var active, photo, group_type, paypal = [], group_list = [];
-
-	$filter.modal("hide");
-	active     = $filter.find("input[name=active]:checked").val();
-	photo      = $filter.find("input[name=photo]:checked").val();
-	group_type = $filter.find("input[name=group_filter]:checked").val();
-	$filter.find("input[name=paypal]:checked").each(function ()
-		{
-		var v = $(this).attr("value");
-
-		if (v === "any")
-			{
-			paypal = null;
-			return false;
-			}
-		paypal.push(v);
-		});
-
-	if (group_type === "null")
-		filters.group_type = null;
-	else
-		filters.group_type = group_type;
-	$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
-	if (!group_list.length)
-		filters.group_list = null;
-	else
-		filters.group_list = group_list;
-
-	if (photo === "true")
-		filters.photo = true;
-	else if (photo === "false")
-		filters.photo = false;
-	else
-		filters.photo = null;
-	if (active === "true")
-		filters.active = true;
-	else if (active === "false")
-		filters.active = false;
-	else
-		filters.active = null;
-	if (!paypal || !paypal.length)
-		paypal = null;
-	filters.paypal = paypal;
-	load_members();
-	});
 </script>
 [%~ # vim:set filetype=tt2html: ~%]
