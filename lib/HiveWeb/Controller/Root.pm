@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use Net::SMTP;
+use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -12,6 +13,72 @@ sub auto :Private
 	{
 	my ($self, $c) = @_;
 
+	my $toast = $c->stash()->{auto_toast} = [];
+
+	if (my $user = $c->user())
+		{
+		my $path  = '/';
+		my $paths = [];
+		my @parts = split(/\//, $c->request()->path());
+		for (my $i = 0; $i < scalar(@parts); $i++)
+			{
+			$path .= $parts[$i];
+			$path .= '/'
+				if ($i < (scalar(@parts) - 1));
+			push(@$paths, $path);
+			}
+
+		my $actions = $c->model('DB::CurseAction')->search(
+			{
+			issued_at => { '<=' => \'now()'},
+			lifted_at => [ undef, { '>=' => \'now()' } ],
+			path      => $paths,
+			member_id => $c->user()->member_id(),
+			},
+			{
+			prefetch => { curse => 'member_curses' },
+			});
+
+		my $msg = [];
+
+		try
+			{
+			$c->model('DB')->txn_do(sub
+				{
+				while (my $action = $actions->next())
+					{
+					my $op    = $action->action();
+					my $curse = $action->curse();
+					my $mcs   = $curse->member_curses();
+
+					while (my $mc = $mcs->next())
+						{
+						if ($op eq 'lift')
+							{
+							$mc->update(
+								{
+								lifting_member_id => $c->user()->member_id(),
+								lifted_at         => \'now()',
+								lifting_notes     => "Auto-lifted by visiting $path.",
+								});
+							push(@$toast, { title => 'Cleared notification "' . $curse->display_name() . '"', text => $action->message() });
+							}
+						elsif ($op eq 'block')
+							{
+							push (@$msg, { title => $curse->display_name(), message => $action->message() });
+							die;
+							}
+						}
+					}
+				});
+			}
+		catch
+			{
+			$c->stash()->{messages} = $msg;
+			$c->detach('blocked_by_curse', $msg);
+			}
+		}
+
 	$c->stash()->{extra_css} = [];
 	}
 
@@ -19,7 +86,14 @@ sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	#$c->stash()->{template} = 'index.tt';
+	$c->stash()->{template} = 'index.tt';
+	}
+
+sub blocked_by_curse :Local :Args(0)
+	{
+	my ($self, $c, $msg) = @_;
+
+	$c->stash()->{template} = 'blocked_by_curse.tt';
 	}
 
 sub login :Local

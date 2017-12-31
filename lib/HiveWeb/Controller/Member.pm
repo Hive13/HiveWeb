@@ -76,7 +76,6 @@ sub profile :Local :Args(0)
 	my ($self, $c) = @_;
 
 	$c->stash()->{template} = 'member/profile.tt';
-	$c->user()->lift_curse('update_info', 'Visited profile page.');
 	
 	return
 		if ($c->request()->method() eq 'GET');

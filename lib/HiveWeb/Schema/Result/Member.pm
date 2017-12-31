@@ -289,7 +289,11 @@ sub lift_curse
 			|| die "Cannot find curse $curse.";
 		}
 
-	my $mcs = $self->search_related('member_curses', { curse_id => $curse->curse_id() });
+	my $mcs = $self->search_related('member_curses',
+		{
+		curse_id  => $curse->curse_id(),
+		lifted_at => undef,
+		});
 	$schema->txn_do(sub
 		{
 		$mcs->update(
