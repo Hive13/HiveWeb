@@ -132,7 +132,25 @@ __PACKAGE__->might_have
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'member_curses',
+	'HiveWeb::Schema::Result::MemberCurse',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many
+	(
+	'issued_member_curses',
+	'HiveWeb::Schema::Result::MemberCurse',
+	{ 'foreign.issuing_member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
+__PACKAGE__->many_to_many('curses', 'member_curses', 'curse');
+__PACKAGE__->many_to_many('issued_curses', 'issued_member_curses', 'curse');
 
 sub TO_JSON
 	{
@@ -255,6 +273,32 @@ sub add_vend_credits
 		});
 
 	return 1;
+	}
+
+sub lift_curse
+	{
+	my $self              = shift;
+	my $curse             = shift;
+	my $notes             = shift;
+	my $lifting_member_id = shift || $self->member_id();
+	my $schema            = $self->result_source()->schema();
+
+	if (ref($curse) eq '')
+		{
+		$curse = $schema->resultset('Curse')->find({ name => $curse })
+			|| die "Cannot find curse $curse.";
+		}
+
+	my $mcs = $self->search_related('member_curses', { curse_id => $curse->curse_id() });
+	$schema->txn_do(sub
+		{
+		$mcs->update(
+			{
+			lifting_member_id => $lifting_member_id,
+			lifting_notes     => $notes,
+			lifted_at         => \'now()',
+			}) || die $!;
+		});
 	}
 
 __PACKAGE__->meta->make_immutable;

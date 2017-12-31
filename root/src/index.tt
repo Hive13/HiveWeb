@@ -1,13 +1,19 @@
 <script src="[% Catalyst.uri_for('/static/js/panels.js') %]" type="text/javascript"></script>
-[%~ IF Catalyst.user_exists AND Catalyst.user.is_admin %]
+[%~ IF Catalyst.user_exists %]
+<script src="[% Catalyst.uri_for('/static/js/user_panels.js') %]" type="text/javascript"></script>
+[%~ IF Catalyst.user.is_admin %]
 <script src="[% Catalyst.uri_for('/static/js/admin_panels.js') %]" type="text/javascript"></script>
+[%~ END %]
 [%~ END %]
 <script>
 var panel_urls =
 	{
 	temp: "[% Catalyst.uri_for('/api/temperature/current').dquote %]"
-[%~ IF Catalyst.user_exists AND Catalyst.user.is_admin %]
+[%~ IF Catalyst.user_exists %]
+	, curse: "[% Catalyst.uri_for('/api/curse/list').dquote %]"
+[%~ IF Catalyst.user.is_admin %]
 	, access: "[% Catalyst.uri_for('/api/admin/access/recent').dquote %]"
+[%~ END %]
 [%~ END %]
 	};
 </script>
@@ -22,8 +28,11 @@ IF Catalyst.user_exists;
 [%~
 END;
 panels.push({ name => 'temp', title => 'Current Hive Temperatures', style => 'panel-info' });
-IF Catalyst.user_exists AND Catalyst.user.is_admin;
-	panels.push({ name => 'access' style => 'panel-primary', title => 'Recent Accesses' });
+IF Catalyst.user_exists;
+	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
+	IF Catalyst.user.is_admin;
+		panels.push({ name => 'access' style => 'panel-primary', title => 'Recent Accesses' });
+	END;
 END;
 SET panel_style  = 'col-sm-10 col-lg-6 col-sm-offset-1 col-lg-offset-3';
 IF panels.size > 2;
@@ -66,6 +75,8 @@ END;
 				GET 'Loading temperatures...';
 			CASE 'access';
 				GET 'Loading accesses...';
+			CASE 'curse';
+				GET 'Loading notifications...';
 		END; #CASE
 %]
 			</div>

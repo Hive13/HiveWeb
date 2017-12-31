@@ -1,4 +1,4 @@
-package HiveWeb::Controller::Admin::Groups;
+package HiveWeb::Controller::Admin::Curses;
 use Moose;
 use namespace::autoclean;
 
@@ -9,7 +9,7 @@ sub index :Path :Args(0)
 	my $self  = shift;
 	my $c     = shift;
 
-	$c->response()->redirect($c->uri_for('/admin/groups/view'));
+	$c->stash()->{template} = 'admin/curses/index.tt';
 	}
 
 sub view :Local
@@ -17,20 +17,14 @@ sub view :Local
 	my $self  = shift;
 	my $c     = shift;
 
-	$c->session()->{group_table} //=
-		{
-		page     => 1,
-		per_page => 50,
-		};
-
-	$c->stash()->{template} = 'admin/groups/index.tt';
+	$c->stash()->{template} = 'admin/curses/list.tt';
 	}
 
 =encoding utf8
 
 =head1 AUTHOR
 
-Greg Arnold
+Greg Arnold,,,
 
 =head1 LICENSE
 

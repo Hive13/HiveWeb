@@ -1,4 +1,5 @@
-.hive-member-table
+.hive-member-table,
+.hive-group-table
 	{
 	-moz-user-select: none;
 	-khtml-user-select: none;
@@ -7,12 +8,14 @@
 	width: 100%;
 	}
 
-.hive-member-table tbody tr td.edit
+.hive-member-table tbody tr td.edit,
+.hive-group-table tbody tr td.edit
 	{
 	opacity: 0;
 	}
 
-.hive-member-table tbody tr:not(.loading):hover td.edit
+.hive-member-table tbody tr:not(.loading):hover td.edit,
+.hive-group-table tbody tr:not(.loading):hover td.edit
 	{
 	opacity: 1;
 	}
