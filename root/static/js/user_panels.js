@@ -1,3 +1,8 @@
+function display_storage_data(data, $curse_panel)
+	{
+	$curse_panel.find(".panel-body").html("Storage...");
+	}
+
 function display_curse_data(data, $curse_panel)
 	{
 	var curse, i, html = "<ol class=\"curses\">", date;
@@ -23,3 +28,4 @@ function display_curse_data(data, $curse_panel)
 	}
 
 $(function() { init_panel("curse", display_curse_data); });
+$(function() { init_panel_once("storage", display_storage_data); });

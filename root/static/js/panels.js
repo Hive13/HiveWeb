@@ -25,6 +25,29 @@ function init_panel(panel_class, panel_function)
 	load_panel_data($panel, panel_class, panel_function);
 	}
 
+function load_panel_data_once($panel, panel_class, display_function)
+	{
+	$panel.find(".panel-body").html(loading_icon());
+	api_json(
+		{
+		type:          "GET",
+		url:           panel_urls[panel_class],
+		data:          {},
+		what:          "Load " + panel_class,
+		success_toast: false,
+		success:       function(data) { display_function(data, $panel); }
+		});
+	}
+function init_panel_once(panel_class, panel_function)
+	{
+	var $panel = $(".hive-panel-" + panel_class);
+
+	if (!$panel.length || !panel_function || !(panel_class in panel_urls))
+		return;
+
+	load_panel_data_once($panel, panel_class, panel_function);
+	}
+
 function display_temp_data(data, $temp_panel)
 	{
 	var temp, i, html = "";

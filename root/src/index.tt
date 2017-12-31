@@ -11,6 +11,7 @@ var panel_urls =
 	temp: "[% Catalyst.uri_for('/api/temperature/current').dquote %]"
 [%~ IF Catalyst.user_exists %]
 	, curse: "[% Catalyst.uri_for('/api/curse/list').dquote %]"
+	, storage: "[% Catalyst.uri_for('/api/storage/list').dquote %]"
 [%~ IF Catalyst.user.is_admin %]
 	, access: "[% Catalyst.uri_for('/api/admin/access/recent').dquote %]"
 [%~ END %]
@@ -30,15 +31,16 @@ END;
 panels.push({ name => 'temp', title => 'Current Hive Temperatures', style => 'panel-info' });
 IF Catalyst.user_exists;
 	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
+	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
 	IF Catalyst.user.is_admin;
 		panels.push({ name => 'access' style => 'panel-primary', title => 'Recent Accesses' });
 	END;
 END;
 SET panel_style  = 'col-sm-10 col-lg-6 col-sm-offset-1 col-lg-offset-3';
 IF panels.size > 2;
-	SET panel_style = 'col-md-4';
+	SET panel_style = 'col-lg-4 col-md-6';
 ELSIF panels.size > 1;
-	SET panel_style = 'col-sm-6';
+	SET panel_style = 'col-md-6';
 END;
 %]
 
