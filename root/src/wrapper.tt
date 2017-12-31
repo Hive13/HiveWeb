@@ -56,6 +56,22 @@
 	<script src="[% Catalyst.uri_for('/static/js/jquery.toast.min.js') %]" type="text/javascript"></script>
 	<script src="[% Catalyst.uri_for('/static/js/api.js') %]" type="text/javascript"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	[%~ IF auto_toast.size > 0 %]
+	<script type="text/javascript">
+	$(function ()
+		{
+		[%~ FOREACH toast IN auto_toast %]
+		$.toast(
+			{
+			position: "top-right",
+			heading:  "[% toast.title.dquote %]",
+			icon:     "success",
+			text:     "[% toast.text.dquote %]"
+			});
+		[%~ END %]
+		});
+	</script>
+	[%~ END %]
 </head>
 <body>
 	<div id="navbar">
