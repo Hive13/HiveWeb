@@ -275,5 +275,31 @@ sub add_vend_credits
 	return 1;
 	}
 
+sub lift_curse
+	{
+	my $self              = shift;
+	my $curse             = shift;
+	my $notes             = shift;
+	my $lifting_member_id = shift || $self->member_id();
+	my $schema            = $self->result_source()->schema();
+
+	if (ref($curse) eq '')
+		{
+		$curse = $schema->resultset('Curse')->find({ name => $curse })
+			|| die "Cannot find curse $curse.";
+		}
+
+	my $mcs = $self->search_related('member_curses', { curse_id => $curse->curse_id() });
+	$schema->txn_do(sub
+		{
+		$mcs->update(
+			{
+			lifting_member_id => $lifting_member_id,
+			lifting_notes     => $notes,
+			lifted_at         => \'now()',
+			}) || die $!;
+		});
+	}
+
 __PACKAGE__->meta->make_immutable;
 1;
