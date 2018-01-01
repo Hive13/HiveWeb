@@ -12,6 +12,7 @@ var panel_urls =
 [%~ IF Catalyst.user_exists %]
 	, curse: "[% Catalyst.uri_for('/api/curse/list').dquote %]"
 	, storage: "[% Catalyst.uri_for('/api/storage/list').dquote %]"
+	, storage_request: "[% Catalyst.uri_for('/storage/request').dquote %]"
 [%~ IF Catalyst.user.is_admin %]
 	, access: "[% Catalyst.uri_for('/api/admin/access/recent').dquote %]"
 [%~ END %]

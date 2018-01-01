@@ -1,6 +1,11 @@
 function display_storage_data(data, $curse_panel)
 	{
-	$curse_panel.find(".panel-body").html("Storage...");
+	var html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
+
+	if (!data.storages.length)
+		html += "You have no storage slots assigned.";
+
+	$curse_panel.find(".panel-body").html(html);
 	}
 
 function display_curse_data(data, $curse_panel)
@@ -28,4 +33,4 @@ function display_curse_data(data, $curse_panel)
 	}
 
 $(function() { init_panel("curse", display_curse_data); });
-$(function() { init_panel_once("storage", display_storage_data); });
+$(function() { init_panel("storage", display_storage_data, false); });
