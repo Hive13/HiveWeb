@@ -1,3 +1,6 @@
 [submodule "submodules/jquery-toast-plugin"]
 	path = submodules/jquery-toast-plugin
 	url = https://github.com/kamranahmedse/jquery-toast-plugin.git
+[submodule "submodules/bootstrap-treeview"]
+	path = submodules/bootstrap-treeview
+	url = https://github.com/jonmiles/bootstrap-treeview
