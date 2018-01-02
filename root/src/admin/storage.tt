@@ -1,5 +1,82 @@
-<!--link href="bootstrap.css" rel="stylesheet"-->
-<script src="[% Catalyst.uri_for('/static/js/bootstrap-treeview.min.js').dquote %]"></script>
+<style>
+.tree
+	{
+	min-height:20px;
+	padding:19px;
+	margin-bottom:20px;
+	background-color:#fbfbfb;
+	border:1px solid #999;
+	-webkit-border-radius:4px;
+	-moz-border-radius:4px;
+	border-radius:4px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	-moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05)
+	}
+.tree li
+	{
+	list-style-type:none;
+	margin:0;
+	padding:10px 5px 0 5px;
+	position:relative;
+	}
+.tree li::before,
+.tree li::after
+	{
+	content:'';
+	left:-20px;
+	position:absolute;
+	right:auto;
+	}
+.tree li::before
+	{
+	border-left:1px solid #999;
+	bottom:50px;
+	height:100%;
+	top:0;
+	width:1px;
+	}
+.tree li::after
+	{
+	border-top:1px solid #999;
+	height:20px;
+	top:25px;
+	width:25px;
+	}
+.tree li span
+	{
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border:1px solid #999;
+	border-radius:5px;
+	display:inline-block;
+	padding:3px 8px;
+	text-decoration:none;
+	}
+.tree li.selected span
+	{
+	background-color: #9999ff;
+	}
+.tree li > span
+	{
+	cursor:pointer;
+	}
+.tree > ul > li::before,
+.tree > ul > li::after
+	{
+	border:0;
+	}
+.tree li:last-child::before
+	{
+	height:30px;
+	}
+.tree li.parent_li > span:hover
+	{
+	background:#eee;
+	border:1px solid #94a0b4;
+	color:#000;
+	}
+</style>
 <div class="row" id="hive-storage">
 	<div class="col-sm-12 panel panel-default" style="padding: 0;">
 		<div class="panel-heading">
@@ -13,44 +90,24 @@
 <script type="text/javascript">
 var load_url   = "[% Catalyst.uri_for('/api/admin/storage/locations').dquote %]";
 
-$(load_storage);
-
-function handle_storage(storage)
+function handle_slot(slot)
 	{
-	var ret = {};
-
-	ret.text = storage.name;
-	ret.icon = "glyphicon glyphicon-shopping-cart";
-
-	return ret;
+	return "<li class=\"storage-slot\" id=\"" + slot.storage_id + "\"><span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i> " + slot.name + "</span></li>";
 	}
-
 
 function handle_location(loc)
 	{
-	var i, ret =
-		{
-		text:       loc.name,
-		selectable: false,
-		};
+	var i, ret = "<li class=\"storage-location\"><span><i class=\"glyphicon glyphicon-minus\"></i> " + loc.name + "</span><ul>";
 
 	if ("children" in loc && loc.children.length > 0)
-		{
-		ret.nodes = [];
-
 		for (i = 0; i < loc.children.length; i++)
-			ret.nodes.push(handle_location(loc.children[i]));
-		}
+			ret += handle_location(loc.children[i]);
+
 	if ("storages" in loc && loc.storages.length > 0)
-		{
-		if (!("nodes" in ret))
-			ret.nodes = [];
-
 		for (i = 0; i < loc.storages.length; i++)
-			ret.nodes.push(handle_storage(loc.storages[i]));
-		}
+			ret += handle_slot(loc.storages[i]);
 
-	return ret;
+	return ret + "</ul></li>";
 	}
 
 function load_storage()
@@ -63,7 +120,7 @@ function load_storage()
 			success_toast: false,
 			url: load_url
 			},
-		$tree = $("<div />");
+		$tree = $("<div class=\"tree well\" />");
 	
 	$div.html(loading_icon());
 
@@ -71,13 +128,50 @@ function load_storage()
 		{
 		var tree = handle_location(data.locations);
 
-		alert(JSON.stringify(tree));
 		$div.empty().append($tree);
-		$tree.treeview({ data: [tree] });
+		$tree.html(tree);
+		$('.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this location');
+		$('.tree li:not(:has(ul))').find(' > span').attr('title', "Double-click for information about this slot.");
 		};
 
 	api_json(api);
 	}
+
+$(function ()
+	{
+	var $panel = $("div#hive-storage div.panel-body")
+		.on('click', '.tree li.parent_li > span', function (e)
+			{
+			var children = $(this).parent('li.parent_li').find(' > ul > li');
+			if (children.is(":visible"))
+				{
+				children.hide('fast');
+				$(this).attr('title', 'Expand this location').find(' > i').addClass('glyphicon-plus').removeClass('glyphicon-minus');
+				}
+			else
+				{
+				children.show('fast');
+				$(this).attr('title', 'Collapse this location').find(' > i').addClass('glyphicon-minus').removeClass('glyphicon-plus');
+				}
+			e.stopPropagation();
+			})
+		.on('dblclick', '.tree li.storage-slot', function (e)
+			{
+			var $this = $(this);
+
+			alert($this.attr("id"));
+			return false;
+			})
+		.on('click', '.tree li.storage-slot', function (e)
+			{
+			$panel.find(".tree li.storage-slot").removeClass("selected");
+			$(this).addClass("selected");
+			})
+		;
+
+
+	load_storage();
+	});
 
 </script>
 [%~ # vim:set filetype=tt2html: ~%]
