@@ -33,11 +33,13 @@ sub info :Local :Args(0)
 	my $slot_id = $in->{slot_id};
 
 	$out->{response} = \0;
+	$out->{data}     = 'Cannot find slot.';
 
-	my $slot = $c->model('DB::StorageSlot')->find({ slot_id => undef }) || die $!;
+	my $slot = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id }) || return;
 
 	$out->{slot}      = $slot->TO_FULL_JSON();
 	$out->{response}  = \1;
+	delete($out->{data});
 	}
 
 =head1 AUTHOR

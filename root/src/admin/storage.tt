@@ -146,10 +146,10 @@ function edit_storage_slot(slot_id)
 	var $dialogue = $("div#edit_location"),
 		api =
 			{
-			type: "GET",
 			what: "Storage Info",
 			success_toast: false,
-			url: info_url
+			url: info_url,
+			data: { slot_id: slot_id }
 			};
 
 	api.success = function (data)

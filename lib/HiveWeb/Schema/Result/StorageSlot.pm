@@ -53,4 +53,19 @@ sub TO_JSON
 		location_id => $self->location_id(),
 		};
 	}
+
+sub TO_FULL_JSON
+	{
+	my $self = shift;
+
+	return
+		{
+		slot_id     => $self->slot_id(),
+		name        => $self->name(),
+		member_id   => $self->member_id(),
+		member      => $self->member(),
+		location_id => $self->location_id(),
+		location    => $self->location(),
+		};
+	}
 1;
