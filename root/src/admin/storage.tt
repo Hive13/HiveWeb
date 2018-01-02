@@ -1,0 +1,83 @@
+<!--link href="bootstrap.css" rel="stylesheet"-->
+<script src="[% Catalyst.uri_for('/static/js/bootstrap-treeview.min.js').dquote %]"></script>
+<div class="row" id="hive-storage">
+	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+		<div class="panel-heading">
+			<h3>Storage Slots</h3>
+		</div>
+		<div class="panel-body">
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+var load_url   = "[% Catalyst.uri_for('/api/admin/storage/locations').dquote %]";
+
+$(load_storage);
+
+function handle_storage(storage)
+	{
+	var ret = {};
+
+	ret.text = storage.name;
+	ret.icon = "glyphicon glyphicon-shopping-cart";
+
+	return ret;
+	}
+
+
+function handle_location(loc)
+	{
+	var i, ret =
+		{
+		text:       loc.name,
+		selectable: false,
+		};
+
+	if ("children" in loc && loc.children.length > 0)
+		{
+		ret.nodes = [];
+
+		for (i = 0; i < loc.children.length; i++)
+			ret.nodes.push(handle_location(loc.children[i]));
+		}
+	if ("storages" in loc && loc.storages.length > 0)
+		{
+		if (!("nodes" in ret))
+			ret.nodes = [];
+
+		for (i = 0; i < loc.storages.length; i++)
+			ret.nodes.push(handle_storage(loc.storages[i]));
+		}
+
+	return ret;
+	}
+
+function load_storage()
+	{
+	var $div = $("div#hive-storage div.panel-body"),
+		api =
+			{
+			type: "GET",
+			what: "Storage Load",
+			success_toast: false,
+			url: load_url
+			},
+		$tree = $("<div />");
+	
+	$div.html(loading_icon());
+
+	api.success = function (data)
+		{
+		var tree = handle_location(data.locations);
+
+		alert(JSON.stringify(tree));
+		$div.empty().append($tree);
+		$tree.treeview({ data: [tree] });
+		};
+
+	api_json(api);
+	}
+
+</script>
+[%~ # vim:set filetype=tt2html: ~%]

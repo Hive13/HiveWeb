@@ -1,4 +1,4 @@
-package HiveWeb::Controller::API::Storage;
+package HiveWeb::Controller::API::Admin::Storage;
 use Moose;
 use namespace::autoclean;
 
@@ -11,18 +11,17 @@ sub index :Path :Args(0)
 	$c->detach('list');
 	}
 
-sub list :Local :Args(0)
+sub locations :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
 	my $out = $c->stash()->{out};
 	$out->{response} = 0;
-	my $user = $c->user() || return;
 
-	my @storages = $user->storages();
+	my $root_location = $c->model('DB::StorageLocation')->find({ parent_id => undef }) || die $!;
 
-	$out->{storages} = \@storages;
-	$out->{response} = \1;
+	$out->{locations} = $root_location;
+	$out->{response}  = \1;
 	}
 
 =head1 AUTHOR
