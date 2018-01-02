@@ -1,5 +1,5 @@
 <style>
-.tree
+div.tree
 	{
 	min-height:20px;
 	padding:19px;
@@ -13,22 +13,22 @@
 	-moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
 	box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05)
 	}
-.tree li
+div.tree li
 	{
 	list-style-type:none;
 	margin:0;
 	padding:10px 5px 0 5px;
 	position:relative;
 	}
-.tree li::before,
-.tree li::after
+div.tree li::before,
+div.tree li::after
 	{
 	content:'';
 	left:-20px;
 	position:absolute;
 	right:auto;
 	}
-.tree li::before
+div.tree li::before
 	{
 	border-left:1px solid #999;
 	bottom:50px;
@@ -36,14 +36,14 @@
 	top:0;
 	width:1px;
 	}
-.tree li::after
+div.tree li::after
 	{
 	border-top:1px solid #999;
 	height:20px;
 	top:25px;
 	width:25px;
 	}
-.tree li span
+div.tree li span
 	{
 	-moz-border-radius:5px;
 	-webkit-border-radius:5px;
@@ -53,24 +53,24 @@
 	padding:3px 8px;
 	text-decoration:none;
 	}
-.tree li.selected span
+div.tree li.selected span
 	{
 	background-color: #9999ff;
 	}
-.tree li > span
+div.tree li > span
 	{
 	cursor:pointer;
 	}
-.tree > ul > li::before,
-.tree > ul > li::after
+div.tree > ul > li::before,
+div.tree > ul > li::after
 	{
 	border:0;
 	}
-.tree li:last-child::before
+div.tree li:last-child::before
 	{
 	height:30px;
 	}
-.tree li.parent_li > span:hover
+div.tree li.parent_li > span:hover
 	{
 	background:#eee;
 	border:1px solid #94a0b4;
@@ -88,20 +88,23 @@
 </div>
 
 <script type="text/javascript">
-var load_url   = "[% Catalyst.uri_for('/api/admin/storage/locations').dquote %]";
+var load_url = "[% Catalyst.uri_for('/api/admin/storage/locations').dquote %]";
+var info_url = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
 
 function handle_slot(slot)
 	{
-	return "<li class=\"storage-slot\" id=\"" + slot.storage_id + "\"><span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i> " + slot.name + "</span></li>";
+	return "<li class=\"storage-slot\" style=\"display: none\" id=\"" + slot.storage_id + "\"><span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i> " + slot.name + "</span></li>";
 	}
 
-function handle_location(loc)
+function handle_location(loc, show)
 	{
-	var i, ret = "<li class=\"storage-location\"><span><i class=\"glyphicon glyphicon-minus\"></i> " + loc.name + "</span><ul>";
+	var i, ret = "<li class=\"storage-location\""
+	 + (show ? "" : "style=\"display: none\"")
+	 + "id=\"" + loc.storage_location_id + "\"><span><i class=\"glyphicon glyphicon-plus\"></i> " + loc.name + "</span><ul>";
 
 	if ("children" in loc && loc.children.length > 0)
 		for (i = 0; i < loc.children.length; i++)
-			ret += handle_location(loc.children[i]);
+			ret += handle_location(loc.children[i], false);
 
 	if ("storages" in loc && loc.storages.length > 0)
 		for (i = 0; i < loc.storages.length; i++)
@@ -126,12 +129,31 @@ function load_storage()
 
 	api.success = function (data)
 		{
-		var tree = handle_location(data.locations);
+		var tree = handle_location(data.locations, true);
 
 		$div.empty().append($tree);
 		$tree.html(tree);
-		$('.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this location');
-		$('.tree li:not(:has(ul))').find(' > span').attr('title', "Double-click for information about this slot.");
+		$('div.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this location');
+		$('div.tree li:not(:has(ul))').find(' > span').attr('title', "Double-click for information about this slot.");
+		};
+
+	api_json(api);
+	}
+
+function edit_storage_slot(slot_id)
+	{
+	var $dialogue = $("div#edit_location"),
+		api =
+			{
+			type: "GET",
+			what: "Storage Info",
+			success_toast: false,
+			url: info_url
+			};
+
+	api.success = function (data)
+		{
+		alert(JSON.stringify(data));
 		};
 
 	api_json(api);
@@ -140,7 +162,7 @@ function load_storage()
 $(function ()
 	{
 	var $panel = $("div#hive-storage div.panel-body")
-		.on('click', '.tree li.parent_li > span', function (e)
+		.on('click', 'div.tree li.parent_li > span', function (e)
 			{
 			var children = $(this).parent('li.parent_li').find(' > ul > li');
 			if (children.is(":visible"))
@@ -155,16 +177,16 @@ $(function ()
 				}
 			e.stopPropagation();
 			})
-		.on('dblclick', '.tree li.storage-slot', function (e)
+		.on('dblclick', 'div.tree li.storage-slot', function (e)
 			{
 			var $this = $(this);
 
-			alert($this.attr("id"));
+			edit_storage_slot($this.attr("id"));
 			return false;
 			})
-		.on('click', '.tree li.storage-slot', function (e)
+		.on('click', 'div.tree li.storage-slot', function (e)
 			{
-			$panel.find(".tree li.storage-slot").removeClass("selected");
+			$panel.find("div.tree li.storage-slot").removeClass("selected");
 			$(this).addClass("selected");
 			})
 		;
