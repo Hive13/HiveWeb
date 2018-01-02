@@ -16,12 +16,11 @@ sub list :Local :Args(0)
 	my ($self, $c) = @_;
 
 	my $out = $c->stash()->{out};
-	$out->{response} = 0;
-	my $user = $c->user() || return;
+	$out->{response} = \0;
+	my $user  = $c->user() || return;
+	my @slots = $user->slots();
 
-	my @storages = $user->storages();
-
-	$out->{storages} = \@storages;
+	$out->{slots}    = \@slots;
 	$out->{response} = \1;
 	}
 

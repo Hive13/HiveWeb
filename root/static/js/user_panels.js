@@ -2,7 +2,7 @@ function display_storage_data(data, $curse_panel)
 	{
 	var html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
 
-	if (!data.storages.length)
+	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
 
 	$curse_panel.find(".panel-body").html(html);

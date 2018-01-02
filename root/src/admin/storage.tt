@@ -93,22 +93,23 @@ var info_url = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
 
 function handle_slot(slot)
 	{
-	return "<li class=\"storage-slot\" style=\"display: none\" id=\"" + slot.storage_id + "\"><span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i> " + slot.name + "</span></li>";
+	return "<li class=\"storage-slot\" style=\"display: none\" id=\"" + slot.slot_id + "\"><span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i> " + slot.name + "</span></li>";
 	}
 
-function handle_location(loc, show)
+function handle_location(loc, show_depth)
 	{
 	var i, ret = "<li class=\"storage-location\""
-	 + (show ? "" : "style=\"display: none\"")
-	 + "id=\"" + loc.storage_location_id + "\"><span><i class=\"glyphicon glyphicon-plus\"></i> " + loc.name + "</span><ul>";
+	 + (((show_depth) > 0) ? "" : "style=\"display: none\"")
+	 + "id=\"" + loc.location_id + "\"><span><i class=\"glyphicon "
+	 + (((show_depth - 1) > 0) ? "glyphicon-minus" : "glyphicon-plus") + "\"></i> " + loc.name + "</span><ul>";
 
 	if ("children" in loc && loc.children.length > 0)
 		for (i = 0; i < loc.children.length; i++)
-			ret += handle_location(loc.children[i], false);
+			ret += handle_location(loc.children[i], show_depth - 1);
 
-	if ("storages" in loc && loc.storages.length > 0)
-		for (i = 0; i < loc.storages.length; i++)
-			ret += handle_slot(loc.storages[i]);
+	if ("slots" in loc && loc.slots.length > 0)
+		for (i = 0; i < loc.slots.length; i++)
+			ret += handle_slot(loc.slots[i]);
 
 	return ret + "</ul></li>";
 	}
@@ -129,7 +130,7 @@ function load_storage()
 
 	api.success = function (data)
 		{
-		var tree = handle_location(data.locations, true);
+		var tree = "<ul>" + handle_location(data.locations, 2) + "</ul>";
 
 		$div.empty().append($tree);
 		$tree.html(tree);
@@ -162,29 +163,29 @@ function edit_storage_slot(slot_id)
 $(function ()
 	{
 	var $panel = $("div#hive-storage div.panel-body")
-		.on('click', 'div.tree li.parent_li > span', function (e)
+		.on("click", "div.tree li.parent_li > span", function (e)
 			{
-			var children = $(this).parent('li.parent_li').find(' > ul > li');
-			if (children.is(":visible"))
+			var $this = $(this), $children = $this.parent("li.parent_li").children("ul").children("li");
+			if ($children.is(":visible"))
 				{
-				children.hide('fast');
-				$(this).attr('title', 'Expand this location').find(' > i').addClass('glyphicon-plus').removeClass('glyphicon-minus');
+				$children.hide("fast");
+				$this.attr("title", "Expand this location").find("> i").addClass("glyphicon-plus").removeClass("glyphicon-minus");
 				}
 			else
 				{
-				children.show('fast');
-				$(this).attr('title', 'Collapse this location').find(' > i').addClass('glyphicon-minus').removeClass('glyphicon-plus');
+				$children.show("fast");
+				$this.attr("title", "Collapse this location").find("> i").addClass("glyphicon-minus").removeClass("glyphicon-plus");
 				}
 			e.stopPropagation();
 			})
-		.on('dblclick', 'div.tree li.storage-slot', function (e)
+		.on("dblclick", "div.tree li.storage-slot", function (e)
 			{
 			var $this = $(this);
 
 			edit_storage_slot($this.attr("id"));
 			return false;
 			})
-		.on('click', 'div.tree li.storage-slot', function (e)
+		.on("click", "div.tree li.storage-slot", function (e)
 			{
 			$panel.find("div.tree li.storage-slot").removeClass("selected");
 			$(this).addClass("selected");

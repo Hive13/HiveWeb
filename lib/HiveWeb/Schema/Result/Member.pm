@@ -150,8 +150,8 @@ __PACKAGE__->has_many
 
 __PACKAGE__->has_many
 	(
-	'storages',
-	'HiveWeb::Schema::Result::Storage',
+	'slots',
+	'HiveWeb::Schema::Result::StorageSlot',
 	{ 'foreign.member_id' => 'self.member_id' },
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
