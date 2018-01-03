@@ -613,9 +613,10 @@ function upload_photo()
 	{
 	var $progress, $this = $(this),
 		$image_div = $this.parents("div.panel-body");
-		fd = new FormData();
+		fd = new FormData(),
+		$dialogue = $this.parents("div.modal");
 	fd.append("photo", $this[0].files[0]);
-	fd.append("member_id", member_id);
+	fd.append("member_id", $dialogue.data("member_id"));
 	$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
 	$progress = $image_div.find("div.progress div.progress-bar");
 
