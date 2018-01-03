@@ -1,9 +1,21 @@
 function display_storage_data(data, $curse_panel)
 	{
-	var html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
+	var i, dt, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
+
+	if (data.requests.length)
+		{
+		html += "<h5>Requests</h5><ul>";
+		for (i = 0; i < data.requests.length; i++)
+			{
+			dt = new Date(data.requests[i].created_at);
+			html += "<li>Submitted on "
+				+ dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</li>";
+			}
+		html += "</ul>";
+		}
 
 	$curse_panel.find(".panel-body").html(html);
 	}

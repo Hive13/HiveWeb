@@ -52,7 +52,7 @@ END;
 	<div class="[% panel_style %]">
 		<div class="panel [% panel.style %] hive-panel-[% panel.name %]">
 			<div class="panel-heading">
-				<h5>[% panel.title %]</h5>
+				<h4>[% panel.title %]</h4>
 			</div>
 			<div class="panel-body">
 [%~

@@ -61,10 +61,4 @@ sub TO_JSON
 		};
 	}
 
-sub root
-	{
-	my $self = shift;
-
-	return $self->result_sourc
-	}
 1;

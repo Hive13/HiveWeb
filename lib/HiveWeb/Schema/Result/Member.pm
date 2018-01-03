@@ -156,9 +156,16 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'requests',
+	'HiveWeb::Schema::Result::StorageRequest',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 __PACKAGE__->many_to_many('curses', 'member_curses', 'curse');
-__PACKAGE__->many_to_many('issued_curses', 'issued_member_curses', 'curse');
 
 sub TO_JSON
 	{

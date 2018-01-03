@@ -1,4 +1,4 @@
-package HiveWeb::Controller::API::Storage;
+package HiveWeb::Controller::Storage;
 use Moose;
 use namespace::autoclean;
 
@@ -8,24 +8,25 @@ sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	$c->detach('list');
 	}
 
-sub list :Local :Args(0)
+sub request :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $out = $c->stash()->{out};
-	$out->{response} = \0;
-
-	my $user     = $c->user() || return;
-	my @slots    = $user->slots();
-	my @requests = $user->requests();
-
-	$out->{slots}    = \@slots;
-	$out->{requests} = \@requests;
-	$out->{response} = \1;
+	$c->stash()->{template} = 'storage/request.tt';
+	
+	return
+		if ($c->request()->method() eq 'GET');
+	
+	my $form    = $c->request()->params();
+	my $request = $c->user->create_related('requests',
+		{
+		notes => $form->{notes}
+		}) || die $!;
+	$c->response()->redirect($c->uri_for('/'));
 	}
+
 
 =head1 AUTHOR
 
