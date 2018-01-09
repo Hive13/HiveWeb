@@ -25,6 +25,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("slot_id");
 __PACKAGE__->uuid_columns("slot_id");
+__PACKAGE__->resultset_attributes( { order_by => ['name'] } );
 
 __PACKAGE__->belongs_to(
   "member",

@@ -155,11 +155,12 @@ div.tree li.parent_li.selected > span:hover
 <ul id="location_menu" class="dropdown-menu" role="menu" style="display:none" >
 	<li><a tabindex="-1" href="#" value="location_add_sub">Add Sub-Location</a></li>
 	<li><a tabindex="-1" href="#" value="location_add_slot">Add Slot</a></li>
-	<li><a tabindex="-1" href="#" value="location_delete">Delete This Location</a></li>
+	<li><a tabindex="-1" href="#" value="location_delete">Delete this Location</a></li>
 </ul>
 <ul id="slot_menu" class="dropdown-menu" role="menu" style="display:none" >
-	<li class="assign"><a tabindex="-1" href="#" value="slot_assign">Assign This Slot</a></li>
-	<li><a tabindex="-1" href="#" value="slot_delete">Delete This Slot</a></li>
+	<li class="assign"><a tabindex="-1" href="#" value="slot_assign">Assign this Slot</a></li>
+	<li class="fulfil"><a tabindex="-1" href="#" value="slot_fulfil">Fulfil a Request with this Slot</a></li>
+	<li><a tabindex="-1" href="#" value="slot_delete">Delete this Slot</a></li>
 </ul>
 
 <script type="text/javascript">
@@ -368,12 +369,20 @@ function load_storage()
 				},
 			onMenuShow: function($invokedOn)
 				{
-				var $assign_a = $("#slot_menu li.assign a"), $slot = $invokedOn.closest("li.storage-slot");
+				var $assign_a = $("#slot_menu li.assign a"),
+					$slot   = $invokedOn.closest("li.storage-slot"),
+					$fulfil = $("#slot_menu li.fulfil");
 
 				if ($slot.hasClass("storage-slot-assigned"))
+					{
 					$assign_a.attr("value", "slot_unassign").text("Unassign This Slot");
+					$fulfil.hide();
+					}
 				else
+					{
 					$assign_a.attr("value", "slot_assign").text("Assign This Slot");
+					$fulfil.show();
+					}
 				$invokedOn.closest("div.tree").find("li").removeClass("selected");
 				$slot.addClass("selected");
 				}
