@@ -19,7 +19,7 @@ sub list :Local :Args(0)
 	$out->{response} = \0;
 
 	my $user     = $c->user() || return;
-	my @slots    = $user->slots();
+	my @slots    = $user->list_slots();
 	my @requests = $user->requests();
 
 	$out->{slots}    = \@slots;

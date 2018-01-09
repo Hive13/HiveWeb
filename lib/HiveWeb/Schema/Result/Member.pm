@@ -320,5 +320,33 @@ sub lift_curse
 		});
 	}
 
+sub list_slots
+	{
+	my $self  = shift;
+	my @slots = $self->slots();
+	my @ret;
+
+	foreach my $slot (@slots)
+		{
+		my $location = $slot->location();
+		my $lname;
+		while ($location)
+			{
+			$lname = ' &rarr; ' . $lname
+				if ($lname);
+			$lname = $location->name() . $lname;
+			$location = $location->parent();
+			}
+		push(@ret,
+			{
+			slot_id  => $slot->slot_id(),
+			name     => $slot->name(),
+			location => $lname,
+			});
+		}
+
+	return @ret;
+	}
+
 __PACKAGE__->meta->make_immutable;
 1;

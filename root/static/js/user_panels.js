@@ -4,6 +4,17 @@ function display_storage_data(data, $curse_panel)
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
+	else
+		{
+		html += "<h5>My Slots</h5><ul>";
+		for (i = 0; i < data.slots.length; i++)
+			{
+			dt = data.slots[i];
+			html += "<li>" + dt.name + " ("
+				+ dt.location + ")</li>";
+			}
+		html += "</ul>";
+		}
 
 	if (data.requests.length)
 		{
