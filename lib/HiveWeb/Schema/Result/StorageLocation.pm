@@ -53,11 +53,11 @@ sub TO_JSON
 
 	return
 		{
-		storage_location_id => $self->location_id(),
-		parent_id           => $self->parent_id(),
-		name                => $self->name(),
-		children            => \@children,
-		slots               => \@slots,
+		location_id => $self->location_id(),
+		parent_id   => $self->parent_id(),
+		name        => $self->name(),
+		children    => \@children,
+		slots       => \@slots,
 		};
 	}
 

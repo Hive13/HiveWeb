@@ -1,3 +1,4 @@
+<script type="text/javascript" src="[% Catalyst.uri_for('/static/js/jquery.contextmenu.js').dquote %]"></script>
 <style>
 div.tree
 	{
@@ -53,7 +54,7 @@ div.tree li span
 	padding:3px 8px;
 	text-decoration:none;
 	}
-div.tree li.selected span
+div.tree li.selected > span
 	{
 	background-color: #9999ff;
 	}
@@ -76,6 +77,10 @@ div.tree li.parent_li > span:hover
 	border:1px solid #94a0b4;
 	color:#000;
 	}
+div.tree li.parent_li.selected > span:hover
+	{
+	background-color: #8F8FEE;
+	}
 </style>
 <div class="row" id="hive-storage">
 	<div class="col-sm-12 panel panel-default" style="padding: 0;">
@@ -87,13 +92,148 @@ div.tree li.parent_li > span:hover
 	</div>
 </div>
 
+<div class="modal fade" id="slot_edit" tabIndex="-1" role="dialog" aria-labelledby="slot_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="slot_label">Edit Slot</h3>
+			</div>
+			<div class="modal-body">
+				<label>
+					Name:
+					<input type="text" size="30" />
+				</label>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_slot">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="loc_edit" tabIndex="-1" role="dialog" aria-labelledby="loc_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="slot_label">Edit Location</h3>
+			</div>
+			<div class="modal-body">
+				<label>
+					Name:
+					<input type="text" size="30" />
+				</label>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_loc">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<ul id="location_menu" class="dropdown-menu" role="menu" style="display:none" >
+	<li><a tabindex="-1" href="#" value="location_add_sub">Add Sub-Location</a></li>
+	<li><a tabindex="-1" href="#" value="location_add_slot">Add Slot</a></li>
+	<li><a tabindex="-1" href="#" value="location_delete">Delete This Location</a></li>
+</ul>
+<ul id="slot_menu" class="dropdown-menu" role="menu" style="display:none" >
+	<li class="assign"><a tabindex="-1" href="#" value="slot_assign">Assign This Slot</a></li>
+	<li><a tabindex="-1" href="#" value="slot_delete">Delete This Slot</a></li>
+</ul>
+
 <script type="text/javascript">
-var load_url = "[% Catalyst.uri_for('/api/admin/storage/locations').dquote %]";
-var info_url = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
+var load_url     = "[% Catalyst.uri_for('/api/admin/storage/list').dquote %]";
+var info_url     = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
+var new_slot_url = "[% Catalyst.uri_for('/api/admin/storage/new_slot').dquote %]";
+var new_loc_url  = "[% Catalyst.uri_for('/api/admin/storage/new_location').dquote %]";
+var actions  = {};
+
+actions.location_add_slot = function (location_id)
+	{
+	var $dialogue = $("#slot_edit");
+	$dialogue.data("slot_id",     null);
+	$dialogue.data("location_id", location_id);
+
+	$dialogue.find("button.btn-primary").text("Add Slot");
+	$dialogue.find("div.modal-header h3").text("Add Slot");
+	$dialogue.modal("show");
+	};
+actions.location_add_sub = function (location_id)
+	{
+	var $dialogue = $("#loc_edit");
+	$dialogue.data("location_id", null);
+	$dialogue.data("parent_id",   location_id);
+
+	$dialogue.find("button.btn-primary").text("Add Location");
+	$dialogue.find("div.modal-header h3").text("Add Location");
+	$dialogue.modal("show");
+	};
+
+function finish_slot()
+	{
+	var api, $dialogue = $("#slot_edit");
+	var slot_id = $dialogue.data("slot_id"), location_id = $dialogue.data("location_id");
+	var name = $dialogue.find("input").val();
+
+	if (!slot_id && !location_id)
+		return;
+
+	api =
+		{
+		url: new_slot_url,
+		what: "Add Slot",
+		data:
+			{
+			location_id: location_id,
+			name:        name
+			},
+		success: function()
+			{
+			$dialogue.modal("hide");
+			load_storage();
+			}
+		};
+
+	api_json(api);
+	}
+
+function finish_loc()
+	{
+	var api,
+		$dialogue   = $("#loc_edit"),
+		parent_id   = $dialogue.data("parent_id"),
+		location_id = $dialogue.data("location_id"),
+		name        = $dialogue.find("input").val();
+
+	if (!parent_id && !location_id)
+		return;
+
+	api =
+		{
+		url: new_loc_url,
+		what: "Add Location",
+		data:
+			{
+			parent_id: parent_id,
+			name:      name
+			},
+		success: function()
+			{
+			$dialogue.modal("hide");
+			load_storage();
+			}
+		};
+
+	api_json(api);
+	}
 
 function handle_slot(slot)
 	{
-	return "<li class=\"storage-slot\" style=\"display: none\" id=\"" + slot.slot_id + "\"><span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i> " + slot.name + "</span></li>";
+	return "<li class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "") + "\" style=\"display: none\" id=\"" + slot.slot_id + "\">"
+		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i> " + slot.name + "</span></li>";
 	}
 
 function handle_location(loc, show_depth)
@@ -124,18 +264,65 @@ function load_storage()
 			success_toast: false,
 			url: load_url
 			},
-		$tree = $("<div class=\"tree well\" />");
-	
+		$tree = $("<div class=\"tree well\" />"),
+		$reqs = $("<div class=\"requests\" />");
+
 	$div.html(loading_icon());
 
 	api.success = function (data)
 		{
 		var tree = "<ul>" + handle_location(data.locations, 2) + "</ul>";
 
-		$div.empty().append($tree);
+		$div.empty().append($tree).append($reqs);
 		$tree.html(tree);
 		$('div.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this location');
 		$('div.tree li:not(:has(ul))').find(' > span').attr('title', "Double-click for information about this slot.");
+		$reqs.html("There " + (data.requests === 1 ? "is 1 request" : "are " + data.requests + " requests") + " outstanding.");
+
+		$tree.find("li.storage-location").contextMenu(
+			{
+			menuSelector: "#location_menu",
+			menuSelected: function ($invokedOn, $selectedMenu)
+				{
+				var id = $invokedOn.closest("li.storage-location").attr("id");
+				var action = $selectedMenu.attr("value");
+				if (action in actions)
+					actions[action](id);
+				else
+					alert("Commence action " + action + " on UUID " + id);
+				},
+			onMenuShow: function($invokedOn)
+				{
+				var $loc = $invokedOn.closest("li.storage-location");
+				$invokedOn.closest("div.tree").find("li").removeClass("selected");
+				$loc.addClass("selected");
+				}
+			});
+
+		$tree.find("li.storage-slot").contextMenu(
+			{
+			menuSelector: "#slot_menu",
+			menuSelected: function ($invokedOn, $selectedMenu)
+				{
+				var id = $invokedOn.closest("li.storage-location").attr("id");
+				var action = $selectedMenu.attr("value");
+				if (action in actions)
+					actions[action](id);
+				else
+					alert("Commence action " + action + " on UUID " + id);
+				},
+			onMenuShow: function($invokedOn)
+				{
+				var $assign_a = $("#slot_menu li.assign a"), $slot = $invokedOn.closest("li.storage-slot");
+
+				if ($slot.hasClass("storage-slot-assigned"))
+					$assign_a.attr("value", "slot_unassign").text("Unassign This Slot");
+				else
+					$assign_a.attr("value", "slot_assign").text("Assign This Slot");
+				$invokedOn.closest("div.tree").find("li").removeClass("selected");
+				$slot.addClass("selected");
+				}
+			});
 		};
 
 	api_json(api);
@@ -163,18 +350,23 @@ function edit_storage_slot(slot_id)
 $(function ()
 	{
 	var $panel = $("div#hive-storage div.panel-body")
-		.on("click", "div.tree li.parent_li > span", function (e)
+		.on("click", "div.tree li.parent_li > span > i", function (e)
 			{
-			var $this = $(this), $children = $this.parent("li.parent_li").children("ul").children("li");
+			var
+				$expander = $(this),
+				$span     = $expander.closest("span"),
+				$children = $expander.closest("li.parent_li").children("ul").children("li");
 			if ($children.is(":visible"))
 				{
 				$children.hide("fast");
-				$this.attr("title", "Expand this location").find("> i").addClass("glyphicon-plus").removeClass("glyphicon-minus");
+				$span.attr("title", "Expand this location");
+				$expander.addClass("glyphicon-plus").removeClass("glyphicon-minus");
 				}
 			else
 				{
 				$children.show("fast");
-				$this.attr("title", "Collapse this location").find("> i").addClass("glyphicon-minus").removeClass("glyphicon-plus");
+				$span.attr("title", "Collapse this location");
+				$expander.addClass("glyphicon-minus").removeClass("glyphicon-plus");
 				}
 			e.stopPropagation();
 			})
@@ -185,13 +377,17 @@ $(function ()
 			edit_storage_slot($this.attr("id"));
 			return false;
 			})
-		.on("click", "div.tree li.storage-slot", function (e)
+		.on("click", "div.tree li > span", function (e)
 			{
-			$panel.find("div.tree li.storage-slot").removeClass("selected");
-			$(this).addClass("selected");
+			$this = $(this).closest("li");
+			$panel.find("div.tree li").removeClass("selected");
+			$this.addClass("selected");
+			return false;
 			})
 		;
 
+	$("div#slot_edit button#finish_slot").click(finish_slot);
+	$("div#loc_edit button#finish_loc").click(finish_loc);
 
 	load_storage();
 	});
