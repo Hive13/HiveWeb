@@ -2,6 +2,8 @@ package HiveWeb::Controller::API::Admin::Storage;
 use Moose;
 use namespace::autoclean;
 
+use Try::Tiny;
+
 BEGIN { extends 'Catalyst::Controller' }
 
 sub index :Path :Args(0)
@@ -136,9 +138,27 @@ sub assign_slot :Local :Args(0)
 		return;
 		}
 
-	$slot->update({ member_id => $member_id }) || die $!;
 	$out->{response} = \1;
 	$out->{data}     = 'Slot assigned.';
+
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'assign_slot',
+				notes              => 'Assigned slot ' . $slot_id,
+				changing_member_id => $c->user()->member_id(),
+				});
+			$slot->update({ member_id => $member_id }) || die $!;
+			});
+		}
+	catch
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Could not assign slot.';
+		}
 	}
 
 =head1 AUTHOR
