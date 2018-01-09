@@ -112,6 +112,35 @@ sub new_location :Local :Args(0)
 	$out->{location_id}  = $location->location_id();
 	}
 
+sub assign_slot :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $slot_id   = $in->{slot_id};
+	my $member_id = $in->{member_id};
+	my $slot      = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id });
+	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
+
+	$out->{response} = \0;
+	$out->{data}     = 'Could not assign slot.';
+	if (!$slot)
+		{
+		$out->{data} = 'You must provide a valid slot.';
+		return;
+		}
+	if (!$member)
+		{
+		$out->{data} = 'You must provide a valid member.';
+		return;
+		}
+
+	$slot->update({ member_id => $member_id }) || die $!;
+	$out->{response} = \1;
+	$out->{data}     = 'Slot assigned.';
+	}
+
 =head1 AUTHOR
 
 Greg Arnold

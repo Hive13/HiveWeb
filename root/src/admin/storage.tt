@@ -134,6 +134,24 @@ div.tree li.parent_li.selected > span:hover
 	</div>
 </div>
 
+<div class="modal fade" id="slot_assign" tabIndex="-1" role="dialog" aria-labelledby="slot_assign_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="slot_assign_label">Assign Slot</h3>
+			</div>
+			<div class="modal-body">
+				<select name="member" data-placeholder="Start typing the member's name" style="width: 100%"></select>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_slot_assign">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <ul id="location_menu" class="dropdown-menu" role="menu" style="display:none" >
 	<li><a tabindex="-1" href="#" value="location_add_sub">Add Sub-Location</a></li>
 	<li><a tabindex="-1" href="#" value="location_add_slot">Add Slot</a></li>
@@ -145,10 +163,12 @@ div.tree li.parent_li.selected > span:hover
 </ul>
 
 <script type="text/javascript">
-var load_url     = "[% Catalyst.uri_for('/api/admin/storage/list').dquote %]";
-var info_url     = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
-var new_slot_url = "[% Catalyst.uri_for('/api/admin/storage/new_slot').dquote %]";
-var new_loc_url  = "[% Catalyst.uri_for('/api/admin/storage/new_location').dquote %]";
+var load_url          = "[% Catalyst.uri_for('/api/admin/storage/list').dquote %]";
+var info_url          = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
+var new_slot_url      = "[% Catalyst.uri_for('/api/admin/storage/new_slot').dquote %]";
+var new_loc_url       = "[% Catalyst.uri_for('/api/admin/storage/new_location').dquote %]";
+var slot_assign_url   = "[% Catalyst.uri_for('/api/admin/storage/assign_slot').dquote %]";
+var member_search_url = "[% Catalyst.uri_for('/api/admin/members/search').dquote %]";
 var actions  = {};
 
 actions.location_add_slot = function (location_id)
@@ -171,6 +191,12 @@ actions.location_add_sub = function (location_id)
 	$dialogue.find("div.modal-header h3").text("Add Location");
 	$dialogue.modal("show");
 	};
+actions.slot_assign = function (slot_id)
+	{
+	var $dialogue = $("#slot_assign");
+	$dialogue.data("slot_id", slot_id);
+	$dialogue.modal("show");
+	};
 
 function finish_slot()
 	{
@@ -189,6 +215,35 @@ function finish_slot()
 			{
 			location_id: location_id,
 			name:        name
+			},
+		success: function()
+			{
+			$dialogue.modal("hide");
+			load_storage();
+			}
+		};
+
+	api_json(api);
+	}
+
+function finish_slot_assign()
+	{
+	var api,
+		$dialogue = $("#slot_assign"),
+		slot_id   = $dialogue.data("slot_id"),
+		member_id = $dialogue.find("select").val();
+
+	if (!slot_id && !member_id)
+		return;
+
+	api =
+		{
+		url: slot_assign_url,
+		what: "Assign Slot",
+		data:
+			{
+			slot_id:   slot_id,
+			member_id: member_id
 			},
 		success: function()
 			{
@@ -304,7 +359,7 @@ function load_storage()
 			menuSelector: "#slot_menu",
 			menuSelected: function ($invokedOn, $selectedMenu)
 				{
-				var id = $invokedOn.closest("li.storage-location").attr("id");
+				var id = $invokedOn.closest("li.storage-slot").attr("id");
 				var action = $selectedMenu.attr("value");
 				if (action in actions)
 					actions[action](id);
@@ -388,7 +443,50 @@ $(function ()
 
 	$("div#slot_edit button#finish_slot").click(finish_slot);
 	$("div#loc_edit button#finish_loc").click(finish_loc);
+	$("div#slot_assign button#finish_slot_assign").click(finish_slot_assign);
+	$("div#slot_assign select").select2(
+		{
+		ajax:
+			{
+			url: member_search_url,
+			dataType: "json",
+			delay: 250,
+			method: "POST",
+			processData: false,
+			contentType: "application/json",
+			data: function (params)
+				{
+				var query =
+					{
+					name: params.term,
+					page: params.page
+					};
 
+				return JSON.stringify(query);
+				},
+			processResults: function (data, params)
+				{
+				var r, i, items = [];
+				params.page = params.page || 1;
+
+				for (i = 0; i < data.members.length; i++)
+					items.push(
+						{
+						id:   data.members[i].member_id,
+						text: data.members[i].fname + " " + data.members[i].lname
+						});
+				r =
+					{
+					results: items,
+					pagination: { more: ((params.page * 10) < data.count) }
+					};
+
+				return r;
+				}
+			},
+		minimumInputLength: 1,
+		placeholder: "Type a member's name",
+		});
 	load_storage();
 	});
 

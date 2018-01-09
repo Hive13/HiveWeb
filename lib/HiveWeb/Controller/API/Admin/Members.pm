@@ -601,6 +601,50 @@ sub index :Path :Args(0)
 	$out->{response} = \1;
 	}
 
+sub search :Local :Args(0)
+	{
+	my ( $self, $c ) = @_;
+
+	my $in    = $c->stash()->{in};
+	my $out   = $c->stash()->{out};
+	my $order = [ 'lname', 'fname' ];
+	my $page  = $in->{page} || 1;
+	my @names = split(/\s+/, $in->{name});
+	my $names = [];
+
+	foreach my $name (@names)
+		{
+		push (@$names,
+			{
+			-or =>
+				{
+				fname => { ilike => '%' . $name . '%' },
+				lname => { ilike => '%' . $name . '%' },
+				}
+			});
+		}
+
+	my $members_rs = $c->model('DB::Member')->search(
+		{
+		-and => $names,
+		},
+		{
+		order_by => $order
+		});
+	my $count      = $members_rs->count();
+	my @members    = $members_rs->search({},
+		{
+		rows => 10,
+		page => $page,
+		});
+
+	$out->{members}  = \@members;
+	$out->{count}    = $count;
+	$out->{page}     = $page;
+	$out->{per_page} = 10;
+	$out->{response} = \1;
+	}
+
 =encoding utf8
 
 =head1 AUTHOR
