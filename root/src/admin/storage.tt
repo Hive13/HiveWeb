@@ -86,6 +86,9 @@ div.tree li.parent_li.selected > span:hover
 	<div class="col-sm-12 panel panel-default" style="padding: 0;">
 		<div class="panel-heading">
 			<h3>Storage Slots</h3>
+			Right-click on a slot or location to open an action menu.<br />
+			<span><i class="glyphicon glyphicon-check"></i> = Assigned Slot</span><br />
+			<span><i class="glyphicon glyphicon-unchecked"></i> = Unassigned Slot</span><br />
 		</div>
 		<div class="panel-body">
 		</div>
