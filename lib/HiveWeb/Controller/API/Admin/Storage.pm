@@ -28,6 +28,22 @@ sub list :Local :Args(0)
 	$out->{response}  = \1;
 	}
 
+sub requests :Local :Args(0)
+	{
+	my ($self, $c)  = @_;
+	my $out         = $c->stash()->{out};
+	my $requests_rs = $c->model('DB::StorageRequest')->search({});
+	my @requests;
+
+	while (my $request = $requests_rs->next())
+		{
+		push(@requests, $request->TO_FULL_JSON());
+		}
+
+	$out->{requests} = \@requests;
+	$out->{response} = \1;
+	}
+
 sub info :Local :Args(0)
 	{
 	my ($self, $c) = @_;

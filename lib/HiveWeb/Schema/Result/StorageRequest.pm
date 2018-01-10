@@ -53,4 +53,24 @@ sub TO_JSON
 		};
 	}
 
+sub TO_FULL_JSON
+	{
+	my $self   = shift;
+	my $member = $self->member();
+	my @slots;
+	foreach my $slot ($member->slots)
+		{
+		push(@slots, $slot->TO_FULL_JSON());
+		}
+
+	return
+		{
+		request_id  => $self->request_id(),
+		member      => $member,
+		other_slots => \@slots,
+		created_at  => $self->created_at(),
+		notes       => $self->notes(),
+		};
+	}
+
 1;

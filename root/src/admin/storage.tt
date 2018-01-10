@@ -116,6 +116,22 @@ div.tree li.parent_li.selected > span:hover
 	</div>
 </div>
 
+<div class="modal fade" id="request_view" tabIndex="-1" role="dialog" aria-labelledby="request_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="request_label">Outstanding Requests</h3>
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <div class="modal fade" id="loc_edit" tabIndex="-1" role="dialog" aria-labelledby="loc_label">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
@@ -155,16 +171,20 @@ div.tree li.parent_li.selected > span:hover
 	</div>
 </div>
 
-<ul id="location_menu" class="dropdown-menu" role="menu" style="display:none" >
+<ul id="location_menu" class="dropdown-menu" role="menu" style="display:none">
 	<li><a tabindex="-1" href="#" value="location_add_sub">Add Sub-Location</a></li>
 	<li><a tabindex="-1" href="#" value="location_add_slot">Add Slot</a></li>
 	<li><a tabindex="-1" href="#" value="location_delete">Delete this Location</a></li>
 </ul>
-<ul id="slot_menu" class="dropdown-menu" role="menu" style="display:none" >
+<ul id="slot_menu" class="dropdown-menu" role="menu" style="display:none">
 	<li class="assign"><a tabindex="-1" href="#" value="slot_assign">Assign this Slot</a></li>
 	<li class="fulfil"><a tabindex="-1" href="#" value="slot_fulfil">Fulfil a Request with this Slot</a></li>
 	<li><a tabindex="-1" href="#" value="slot_delete">Delete this Slot</a></li>
 	<li><a tabindex="-1" href="#" value="slot_edit">Edit this Slot</a></li>
+</ul>
+<ul id="request_menu" class="dropdown-menu" role="menu" style="display:none">
+	<li><a tabindex="-1" href="#" value="request_reject">Reject this Request</a></li>
+	<li class="accept" style="display: none"><a tabindex="-1" href="#" value="accept_reject">Accept this Request</a></li>
 </ul>
 
 <script type="text/javascript">
@@ -173,8 +193,62 @@ var info_url          = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %
 var edit_slot_url     = "[% Catalyst.uri_for('/api/admin/storage/edit_slot').dquote %]";
 var new_loc_url       = "[% Catalyst.uri_for('/api/admin/storage/new_location').dquote %]";
 var slot_assign_url   = "[% Catalyst.uri_for('/api/admin/storage/assign_slot').dquote %]";
+var requests_url      = "[% Catalyst.uri_for('/api/admin/storage/requests').dquote %]";
 var member_search_url = "[% Catalyst.uri_for('/api/admin/members/search').dquote %]";
 var actions           = {};
+
+function view_requests(slot_id)
+	{
+	var $dialogue = $("#request_view");
+
+	api_json(
+		{
+		what: "Load requests",
+		url:  requests_url,
+		type: "GET",
+		success: function (data)
+			{
+			var i, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"true\" id=\"request_list\">";
+
+			for (i = 0; i < data.requests.length; i++)
+				{
+				request = data.requests[i];
+				rdate = new Date(request.created_at);
+
+				html += "<div class=\"panel panel-default\" id=\"" + request.request_id + "\">"
+					+ "<div class=\"panel-heading\" role=\"tab\" id=\"heading_" + request.request_id + "\">"
+					+ "<h4 class=\"panel-title\">"
+					+ "<a role=\"button\" data-toggle=\"collapse\" data-parent=\"#request_list\" href=\"#body_" + request.request_id + "\" aria-expanded=\"false\" aria-controls=\"body_" + request.request_id + "\">"
+					+ request.member.fname + " " + request.member.lname + " - " + rdate.toLocaleDateString() + " " + rdate.toLocaleTimeString()
+					+ "</a></h4></div>"
+					+ "<div id=\"body_" + request.request_id + "\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"heading_" + request.request_id + "\">"
+					+ "<div class=\"panel-body\">"
+					+ request.notes
+					+ "</div></div>";
+
+				html += "</div>";
+
+				}
+
+			html += "</div>";
+			$dialogue.find("div.modal-body").html(html);
+
+			$dialogue.find("div.modal-body div.panel").contextMenu(
+				{
+				menuSelector: "#request_menu",
+				menuSelected: function ($invokedOn, $selectedMenu)
+					{
+					var id = $invokedOn.closest("div.panel").attr("id");
+					var action = $selectedMenu.attr("value");
+
+					alert("Commence action " + action + " on UUID " + id);
+					}
+				});
+
+			$dialogue.modal("show");
+			}
+		});
+	}
 
 actions.location_add_slot = function (location_id)
 	{
@@ -372,7 +446,8 @@ function load_storage()
 		$tree.html(tree);
 		$('div.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this location');
 		$('div.tree li:not(:has(ul))').find(' > span').attr('title', "Double-click for information about this slot.");
-		$reqs.html("There " + (data.requests === 1 ? "is 1 request" : "are " + data.requests + " requests") + " outstanding.");
+		$reqs.html("<a class=\"anchor-style\">There " + (data.requests === 1 ? "is 1 request" : "are " + data.requests + " requests") + " outstanding.</a>");
+		$reqs.find("a").click(function() { view_requests(); });
 
 		$tree.find("li.storage-location").contextMenu(
 			{
@@ -579,6 +654,7 @@ $(function ()
 			return;
 		return false;
 		});
+
 	load_storage();
 	});
 
