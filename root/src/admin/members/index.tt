@@ -48,11 +48,15 @@
 								<h5>Badges</h5>
 							</div>
 							<div class="panel-body">
-								<select size="2" multiple="multiple"></select><br />
-								<img title="Add" class="add icon" src="/static/icons/add.png" />
-								<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
+								<div class="badge-select">
+									<select size="2" multiple="multiple"></select><br />
+									<img title="Add" class="add icon" src="/static/icons/add.png" />
+									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
+								</div>
 								<div id="badge_edit" style="display: none; max-width: 100%;">
-									<input type="text" id="badge_number" style="max-width: 100%" />
+									<input type="text" id="badge_number" style="max-width: 100%" /><br />
+									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
+									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
 								</div>
 							</div>
 						</div>
@@ -335,9 +339,10 @@ $(function()
 	{
 	var
 		$table         = $("table#hive-member-table"),
-		$nav           = $("nav.hive-member-pagination");
-		$edit_dialogue = $("div#edit_dialogue");
-		$filter        = $("div#filter_dialogue");
+		$nav           = $("nav.hive-member-pagination"),
+		$edit_dialogue = $("div#edit_dialogue"),
+		$filter        = $("div#filter_dialogue"),
+		$badge_edit    = $edit_dialogue.find("div#badge_edit");
 
 	$filter.find("input[name=paypal]").click(function ()
 		{
@@ -560,7 +565,7 @@ $(function()
 			})
 		.on("click", "thead a.sort", sort_click)
 		;
-	
+
 	$("div#password_dialogue button#finish_pass").click(save_password);
 
 	$edit_dialogue.find("div#photo div.panel div.panel-body").on("change", "input[type=file]", upload_photo);
@@ -570,7 +575,7 @@ $(function()
 	$edit_dialogue.find("div#badges select").change(function ()
 		{
 		var $this = $(this);
-		
+
 		if ($this.find("option:selected").length > 0)
 			$edit_dialogue.find("img.delete").removeClass("icon-disabled");
 		else
@@ -586,12 +591,12 @@ $(function()
 			member_id: $edit_dialogue.data("member_id"),
 			badge_id:  badges
 			};
-		
+
 		$edit_dialogue.find("div#badges select option:selected").each(function ()
 			{
 			badges.push($(this).attr("id"));
 			});
-		
+
 		if (badges.length <= 0)
 			return;
 		if (!confirm("Are you sure you want to delete " + badges.length + " badges?"))
@@ -599,12 +604,28 @@ $(function()
 		api_json(url, data, "Badge delete", function (data)
 			{
 			var i;
-			
+
 			for (i = 0; i < badges.length; i++)
 				$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
 			});
 		return false;
 		});
+
+	$badge_edit.find("input").keydown(function (e)
+		{
+		if (e.keyCode == 27)
+			{
+			badge_edit_hide();
+			return false;
+			}
+		else if (e.keyCode == 13)
+			{
+			badge_save();
+			return false;
+			}
+		});
+	$badge_edit.find("img.cancel").click(badge_edit_hide);
+	$badge_edit.find("img.ok").click(badge_save);
 
 	load_members();
 	});
@@ -871,49 +892,61 @@ function load_members()
 	api_json(api);
 	}
 
+function badge_save()
+	{
+	var $dialogue    = $("#edit_dialogue");
+	var $sdiv        = $dialogue.find("div.badge-select");
+	var $div         = $dialogue.find("#badge_edit");
+	var badge_id     = $div.data("badge_id");
+	var member_id    = $dialogue.data("member_id");
+	var badge_number = $div.find("input#badge_number").val();
+	var api =
+		{
+		url: "[% Catalyst.uri_for('/api/admin/members/add_badge').dquote %]",
+		data:
+			{
+			badge_number: badge_number,
+			member_id:    member_id
+			},
+		what: "Badge Add",
+		success: function (data)
+			{
+			var $option = $("<option />")
+				.attr("id", data.badge_id)
+				.attr("value", data.badge_number)
+				.text(data.badge_number);
+			$("#edit_dialogue div#badges select").append($option);
+			badge_edit_hide();
+			}
+		};
+
+	api_json(api);
+	}
+
+function badge_edit_hide()
+	{
+	var $dialogue = $("#edit_dialogue");
+	var $sdiv     = $dialogue.find("div.badge-select");
+	var $div      = $dialogue.find("#badge_edit");
+
+	$div.css("display", "none");
+	$sdiv.css("opacity", "1");
+	$sdiv.find("img.icon").removeClass("icon-disabled").prop("disabled", false);
+	}
+
 function badge_edit(badge_id)
 	{
-	var $div      = $("#badge_edit");
+	var $dialogue = $("#edit_dialogue");
+	var $sdiv     = $dialogue.find("div.badge-select");
+	var $div      = $dialogue.find("#badge_edit");
 	var $edit     = $div.find("input");
-	var member_id = $("#edit_dialogue").data("member_id");
-	var url       = "[% Catalyst.uri_for('/api/admin/members/add_badge') %]";
+	$div.data("badge_id", badge_id);
 
 	$edit.val("");
 	$div.css("display", "");
+	$sdiv.css("opacity", "0.5");
+	$sdiv.find("img.icon").addClass("icon-disabled").prop("disabled", true);
 	$edit.focus();
-
-	$edit.keydown(function (e)
-		{
-		var data;
-		if (e.keyCode == 27)
-			{
-			$div.css("display", "none");
-			$div.parent().focus();
-			return false;
-			}
-		else if (e.keyCode == 13)
-			{
-			data =
-				{
-				badge_number: $("#badge_number").val(),
-				member_id:    member_id
-				};
-			if (badge_id === undefined)
-				{
-				api_json(url, data, "Badge add", function (data)
-					{
-					var $option = $("<option />")
-						.attr("id", data.badge_id)
-						.attr("value", data.badge_number)
-						.text(data.badge_number);
-					$("#edit_dialogue div#badges select").append($option);
-					});
-				}
-			$div.css("display", "none");
-			$div.parent().focus();
-			return false;
-			}
-		});
 	}
 
 function save_password()
@@ -1010,6 +1043,7 @@ function edit(member_id)
 			+ all_groups[i].mgroup_id + "\" /> " + all_groups[i].name
 			+ "</label><br />";
 	$dialogue.find("div#groups").html(html);
+	badge_edit_hide();
 
 	$.ajax(
 		{
