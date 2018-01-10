@@ -46,7 +46,7 @@ sub info :Local :Args(0)
 	delete($out->{data});
 	}
 
-sub new_slot :Local :Args(0)
+sub edit_slot :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
@@ -54,29 +54,48 @@ sub new_slot :Local :Args(0)
 	my $out         = $c->stash()->{out};
 	my $name        = $in->{name};
 	my $location_id = $in->{location_id};
+	my $slot_id     = $in->{slot_id};
 	my $location;
+	my $slot;
 
 	$out->{response} = \0;
-	$out->{data}     = 'Could not add slot.';
+	$out->{data}     = $slot_id ? 'Could not add slot.' : 'Could not add slot.';
+
+	if (!$location_id && !$slot_id)
+		{
+		$out->{data} = 'You must provide either a slot or a location.';
+		return;
+		}
 	if (!$name)
 		{
 		$out->{data} = 'You must provide a name.';
 		return;
 		}
-	if (!$location_id)
+	if ($slot_id && !($slot = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id })))
 		{
-		$out->{data} = 'You must provide a location.';
+		$out->{data} = 'Invalid slot specified.';
 		return;
 		}
-	elsif (!($location = $c->model('DB::StorageLocation')->find({ location_id => $location_id })))
+	if ($location_id && !($location = $c->model('DB::StorageLocation')->find({ location_id => $location_id })))
 		{
 		$out->{data} = 'Invalid parent specified.';
 		return;
 		}
 
-	my $slot = $c->model('DB::StorageSlot')->create({ name => $name, location_id => $location_id }) || die $!;
+	if ($slot)
+		{
+		my $data = { name => $name };
+		$data->{location_id} = $location_id
+			if ($location);
+		$slot->update($data) || die $!;
+		$out->{data} = 'Slot updated.';
+		}
+	else
+		{
+		$slot        = $c->model('DB::StorageSlot')->create({ name => $name, location_id => $location_id }) || die $!;
+		$out->{data} = 'Slot added.';
+		}
 	$out->{response} = \1;
-	$out->{data}     = 'Slot added.';
 	$out->{slot_id}  = $slot->slot_id();
 	}
 
