@@ -185,7 +185,7 @@ actions.location_add_slot = function (location_id)
 	$dialogue.find("button.btn-primary").text("Add Slot");
 	$dialogue.find("div.modal-header h3").text("Add Slot");
 	$dialogue.modal("show");
-	$dialogue.find("input").val("").focus();
+	$dialogue.find("input").val("");
 	};
 actions.location_add_sub = function (location_id)
 	{
@@ -196,13 +196,34 @@ actions.location_add_sub = function (location_id)
 	$dialogue.find("button.btn-primary").text("Add Location");
 	$dialogue.find("div.modal-header h3").text("Add Location");
 	$dialogue.modal("show");
-	$dialogue.find("input").val("").focus();
+	$dialogue.find("input").val("");
 	};
 actions.slot_assign = function (slot_id)
 	{
 	var $dialogue = $("#slot_assign");
 	$dialogue.data("slot_id", slot_id);
 	$dialogue.modal("show");
+	};
+actions.slot_unassign = function (slot_id)
+	{
+	var api;
+
+	if (!confirm("Are you sure?"))
+		return;
+
+	api =
+		{
+		url: slot_assign_url,
+		what: "Unassign Slot",
+		data:
+			{
+			slot_id:   slot_id,
+			member_id: null
+			},
+		success: load_storage
+		};
+
+	api_json(api);
 	};
 actions.slot_edit = function (slot_id)
 	{
@@ -488,6 +509,9 @@ $(function ()
 			return false;
 			})
 		;
+
+	$("div#slot_edit").on("shown.bs.modal", function() { $(this).find("input").focus();	});
+	$("div#loc_edit").on("shown.bs.modal", function() { $(this).find("input").focus();	});
 
 	$("div#slot_edit button#finish_slot").click(finish_slot);
 	$("div#loc_edit button#finish_loc").click(finish_loc);

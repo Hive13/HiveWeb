@@ -142,7 +142,7 @@ sub assign_slot :Local :Args(0)
 	my $slot_id   = $in->{slot_id};
 	my $member_id = $in->{member_id};
 	my $slot      = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id });
-	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
+	my $member;
 
 	$out->{response} = \0;
 	$out->{data}     = 'Could not assign slot.';
@@ -151,9 +151,43 @@ sub assign_slot :Local :Args(0)
 		$out->{data} = 'You must provide a valid slot.';
 		return;
 		}
-	if (!$member)
+	if (!exists($in->{member_id}))
 		{
-		$out->{data} = 'You must provide a valid member.';
+		$out->{data} = 'You must provide a member_id field.';
+		return;
+		}
+
+	if (!$slot->member_id())
+		{
+		$member = $c->model('DB::Member')->find({ member_id => $member_id });
+		if (!$member)
+			{
+			$out->{data} = 'You must provide a valid member.';
+			return;
+			}
+		}
+	elsif (!$member_id)
+		{
+		$out->{response} = \1;
+		$out->{data}     = 'Slot unassigned.';
+		try
+			{
+			$c->model('DB')->txn_do(sub
+				{
+				$slot->member()->create_related('changed_audits',
+					{
+					change_type        => 'unassign_slot',
+					notes              => 'Unassigned slot ' . $slot_id,
+					changing_member_id => $c->user()->member_id(),
+					}) || die $!;
+				$slot->update({ member_id => undef }) || die $!;
+				});
+			}
+		catch
+			{
+			$out->{response} = \0;
+			$out->{data}     = 'Could not unassign slot.';
+			};
 		return;
 		}
 
@@ -177,7 +211,7 @@ sub assign_slot :Local :Args(0)
 		{
 		$out->{response} = \0;
 		$out->{data}     = 'Could not assign slot.';
-		}
+		};
 	}
 
 =head1 AUTHOR
