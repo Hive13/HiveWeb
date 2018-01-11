@@ -126,9 +126,9 @@ div.tree li.parent_li.selected > span:hover
 			<div class="modal-body">
 				<div class="requests">
 				</div>
-				<div class="notes" style="width: 100%; display: none">
+				<div class="notes u-w-100" style="display: none">
 					<span class="info"></span><br />
-					<textarea rows="5" style="width: 100%"></textarea><br />
+					<textarea rows="5" class="u-w-100"></textarea><br />
 					<button type="button" class="btn btn-success">Action</button>
 					<button type="button" class="btn btn-danger">Cancel</button>
 				</div>

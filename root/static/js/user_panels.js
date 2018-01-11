@@ -1,4 +1,4 @@
-function display_storage_data(data, $curse_panel)
+function display_storage_data(data, $panel)
 	{
 	var i, dt, request, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
 
@@ -11,7 +11,7 @@ function display_storage_data(data, $curse_panel)
 			{
 			dt = data.slots[i];
 			html += "<li>" + dt.name + " ("
-				+ dt.location + ")</li>";
+				+ dt.location + ")<br /><a class=\"anchor-style relinquish\" id=\"" + dt.slot_id + "\">Relinquish this Slot</a></li>";
 			}
 		html += "</ul>";
 		}
@@ -37,7 +37,23 @@ function display_storage_data(data, $curse_panel)
 		html += "</ul>";
 		}
 
-	$curse_panel.find(".panel-body").html(html);
+	$panel.find(".panel-body").html(html);
+
+	$panel.find(".panel-body a.relinquish").click(function()
+		{
+		var id = $(this).attr("id");
+
+		if (!confirm("If you want a slot back, you'll have to submit another request.  Click Cancel if you still have belongings in this spot.  Are you sure?"))
+			return;
+
+		api_json(
+			{
+			url: panel_urls.storage_relinquish,
+			what: "Relinquish Slot",
+			data: { slot_id: id },
+			success: function () { init_panel("storage", display_storage_data, false); }
+			});
+		});
 	}
 
 function display_curse_data(data, $curse_panel)
@@ -64,5 +80,8 @@ function display_curse_data(data, $curse_panel)
 	$curse_panel.find(".panel-body").html(html);
 	}
 
-$(function() { init_panel("curse", display_curse_data); });
-$(function() { init_panel("storage", display_storage_data, false); });
+$(function()
+	{
+	init_panel("curse", display_curse_data);
+	init_panel("storage", display_storage_data, false);
+	});
