@@ -226,8 +226,11 @@ function decide_request()
 
 	if ((data.action !== "accept" && data.action !== "reject") || !data.request_id)
 		return;
-	if (data.action === "accept" && !data.slot_id)
-		return;
+	if (data.action === "accept")
+		{
+		if (!data.slot_id)
+			return;
+		}
 	else
 		delete(data.slot_id);
 
