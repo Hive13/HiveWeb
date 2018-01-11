@@ -21,7 +21,7 @@ sub list :Local :Args(0)
 	$out->{response} = \0;
 
 	my $root_location = $c->model('DB::StorageLocation')->find({ parent_id => undef }) || die $!;
-	my $request_count = $c->model('DB::StorageRequest')->count();
+	my $request_count = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
 
 	$out->{locations} = $root_location;
 	$out->{requests}  = $request_count;
