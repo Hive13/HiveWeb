@@ -1,15 +1,6 @@
 use utf8;
 package HiveWeb::Schema::Result::Mgroup;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
-=head1 NAME
-
-HiveWeb::Schema::Result::Mgroup
-
-=cut
-
 use strict;
 use warnings;
 
