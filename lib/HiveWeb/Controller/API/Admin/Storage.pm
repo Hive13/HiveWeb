@@ -44,6 +44,72 @@ sub requests :Local :Args(0)
 	$out->{response} = \1;
 	}
 
+sub decide_request :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+	my $in         = $c->stash()->{in};
+	my $action     = lc($in->{action} || '');
+	my $request    = $c->model('DB::StorageRequest')->find($in->{request_id});
+	my $slot;
+
+	$out->{response} = \0;
+	if (!$request)
+		{
+		$out->{data} = "Could not find request \"$in->{request_id}\".";
+		return;
+		}
+	if ($action ne 'accept' && $action ne 'reject')
+		{
+		$out->{data} = "Invalid action \"$action\".";
+		return;
+		}
+	if ($action eq 'accept')
+		{
+		$slot = $c->model('DB::StorageSlot')->find($in->{slot_id});
+		if (!$slot)
+			{
+			$out->{data} = "Could not find slot \"$in->{slot_id}\".";
+			return;
+			}
+		$out->{response} = \1;
+		try
+			{
+			$c->model('DB')->txn_do(sub
+				{
+				$request->update(
+					{
+					status             => 'accepted',
+					deciding_member_id => $c->user()->member_id(),
+					decision_notes     => $in->{notes},
+					decided_at         => \'NOW()',
+					slot_id            => $slot->slot_id(),
+					}) || die $!;
+				$slot->update(
+					{
+					member_id => $request->member_id(),
+					}) || die $!;
+				});
+			}
+		catch
+			{
+			$out->{response} = \0;
+			$out->{data}     = 'Could not fulfil request.';
+			};
+		}
+	else
+		{
+		$request->update(
+			{
+			status             => 'rejected',
+			deciding_member_id => $c->user()->member_id(),
+			decision_notes     => $in->{notes},
+			decided_at         => \'NOW()',
+			}) || die $!;
+		$out->{response} = \1;
+		}
+	}
+
 sub info :Local :Args(0)
 	{
 	my ($self, $c) = @_;
