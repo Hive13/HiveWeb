@@ -23,6 +23,7 @@ use Catalyst qw/
 	
 	Authentication
 	Authorization::ACL
+	Authorization::Roles
 	Session
 	Session::Store::DBIC
 	Session::State::Cookie
@@ -87,9 +88,11 @@ __PACKAGE__->config
 			{
 			store =>
 				{
-				class      => 'DBIx::Class',
-				user_model => 'DB::Member',
-				id_field   => 'member_id',
+				class         => 'DBIx::Class',
+				user_model    => 'DB::Member',
+				id_field      => 'member_id',
+				role_relation => 'mgroups',
+				role_field    => 'name',
 				},
 			credential =>
 				{

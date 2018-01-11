@@ -102,3 +102,8 @@ ol.accesses li.denied
 	{
 	width: 100% !important;
 	}
+
+.anchor-style
+	{
+	cursor: pointer;
+	}

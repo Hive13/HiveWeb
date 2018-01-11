@@ -148,9 +148,24 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'slots',
+	'HiveWeb::Schema::Result::StorageSlot',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many
+	(
+	'requests',
+	'HiveWeb::Schema::Result::StorageRequest',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 __PACKAGE__->many_to_many('curses', 'member_curses', 'curse');
-__PACKAGE__->many_to_many('issued_curses', 'issued_member_curses', 'curse');
 
 sub TO_JSON
 	{
@@ -303,6 +318,34 @@ sub lift_curse
 			lifted_at         => \'now()',
 			}) || die $!;
 		});
+	}
+
+sub list_slots
+	{
+	my $self  = shift;
+	my @slots = $self->slots();
+	my @ret;
+
+	foreach my $slot (@slots)
+		{
+		my $location = $slot->location();
+		my $lname;
+		while ($location)
+			{
+			$lname = ' &rarr; ' . $lname
+				if ($lname);
+			$lname = $location->name() . $lname;
+			$location = $location->parent();
+			}
+		push(@ret,
+			{
+			slot_id  => $slot->slot_id(),
+			name     => $slot->name(),
+			location => $lname,
+			});
+		}
+
+	return @ret;
 	}
 
 __PACKAGE__->meta->make_immutable;

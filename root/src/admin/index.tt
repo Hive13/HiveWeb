@@ -9,6 +9,7 @@
 					<li><a href="[% Catalyst.uri_for('/admin/members') %]">Member Admin</a></li>
 					<li><a href="[% Catalyst.uri_for('/admin/groups') %]">Group Admin</a></li>
 					<li><a href="[% Catalyst.uri_for('/admin/curses') %]">Curse Admin</a></li>
+					<li><a href="[% Catalyst.uri_for('/admin/storage') %]">Storage Admin</a></li>
 				</ul>
 			</div>
 		</div>

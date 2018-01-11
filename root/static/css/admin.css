@@ -30,11 +30,6 @@ img.icon.icon-disabled
 	opacity: .5;
 	}
 
-.anchor-style
-	{
-	cursor: pointer;
-	}
-
 div#photo div.panel-body .btn img
 	{
 	max-width: 75px;
