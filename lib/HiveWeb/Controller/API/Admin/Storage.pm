@@ -32,7 +32,7 @@ sub requests :Local :Args(0)
 	{
 	my ($self, $c)  = @_;
 	my $out         = $c->stash()->{out};
-	my $requests_rs = $c->model('DB::StorageRequest')->search({});
+	my $requests_rs = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } });
 	my @requests;
 
 	while (my $request = $requests_rs->next())

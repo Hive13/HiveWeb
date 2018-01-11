@@ -204,7 +204,8 @@ function view_requests(slot_id)
 	api_json(
 		{
 		what: "Load requests",
-		url:  requests_url,
+		success_toast: false,
+		url: requests_url,
 		type: "GET",
 		success: function (data)
 			{
