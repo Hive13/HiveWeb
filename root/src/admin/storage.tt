@@ -124,6 +124,14 @@ div.tree li.parent_li.selected > span:hover
 				<h3 class="modal-title" id="request_label">Outstanding Requests</h3>
 			</div>
 			<div class="modal-body">
+				<div class="requests">
+				</div>
+				<div class="notes" style="width: 100%; display: none">
+					<span class="info"></span><br />
+					<textarea rows="5" style="width: 100%"></textarea><br />
+					<button type="button" class="btn btn-success">Action</button>
+					<button type="button" class="btn btn-danger">Cancel</button>
+				</div>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -184,7 +192,7 @@ div.tree li.parent_li.selected > span:hover
 </ul>
 <ul id="request_menu" class="dropdown-menu" role="menu" style="display:none">
 	<li><a tabindex="-1" href="#" value="request_reject">Reject this Request</a></li>
-	<li class="accept" style="display: none"><a tabindex="-1" href="#" value="accept_reject">Accept this Request</a></li>
+	<li class="accept" style="display: none"><a tabindex="-1" href="#" value="request_accept">Accept this Request</a></li>
 </ul>
 
 <script type="text/javascript">
@@ -197,9 +205,19 @@ var requests_url      = "[% Catalyst.uri_for('/api/admin/storage/requests').dquo
 var member_search_url = "[% Catalyst.uri_for('/api/admin/members/search').dquote %]";
 var actions           = {};
 
+function cancel_request_action()
+	{
+	var $dialogue = $("div#request_view");
+
+	$dialogue.find("div.modal-body div.notes").css("display", "none");
+	$dialogue.find("div.modal-body div.notes button.btn-success").off("click");
+	$dialogue.find("div.modal-body div.requests div.panel").removeClass("selected").removeClass("panel-info").addClass("panel-default");
+	}
 function view_requests(slot_id)
 	{
 	var $dialogue = $("#request_view");
+
+	$("#request_menu .accept").css("display", (slot_id ? "" : "none"));
 
 	api_json(
 		{
@@ -209,7 +227,7 @@ function view_requests(slot_id)
 		type: "GET",
 		success: function (data)
 			{
-			var i, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"true\" id=\"request_list\">";
+			var i, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"false\" id=\"request_list\">";
 
 			for (i = 0; i < data.requests.length; i++)
 				{
@@ -232,17 +250,30 @@ function view_requests(slot_id)
 				}
 
 			html += "</div>";
-			$dialogue.find("div.modal-body").html(html);
+			$dialogue.find("div.modal-body div.requests").html(html);
 
-			$dialogue.find("div.modal-body div.panel").contextMenu(
+			$dialogue.find("div.modal-body div.requests div.panel").contextMenu(
 				{
 				menuSelector: "#request_menu",
 				menuSelected: function ($invokedOn, $selectedMenu)
 					{
-					var id = $invokedOn.closest("div.panel").attr("id");
-					var action = $selectedMenu.attr("value");
+					var $panel = $invokedOn.closest("div.panel"),
+						action   = $selectedMenu.attr("value"),
+						$opanels;
 
-					alert("Commence action " + action + " on UUID " + id);
+					$("div#request_view div.modal-body div.requests").off("show.bs.collapse");
+					$("div#request_view div.modal-body div.requests").off("hide.bs.collapse");
+					cancel_request_action();
+					$panel.removeClass("panel-default").addClass("panel-info").addClass("selected");
+					$opanels = $panel.parent().find("div.panel:not(.selected)");
+					$opanels.find(".collapse").collapse("hide");
+					$panel.find(".collapse").collapse("show");
+					$("div#request_view div.modal-body div.requests").on("show.bs.collapse", cancel_request_action);
+					$("div#request_view div.modal-body div.requests").on("hide.bs.collapse", cancel_request_action);
+					if (action in actions)
+						actions[action]($panel.attr("id"));
+					else
+						alert("Commence action " + action + " on UUID " + id);
 					}
 				});
 
@@ -251,6 +282,17 @@ function view_requests(slot_id)
 		});
 	}
 
+actions.slot_fulfil = view_requests;
+actions.request_reject = function (request_id)
+	{
+	var $dialogue = $("div#request_view"),
+		$body = $dialogue.find("div.modal-body");
+
+
+	$body.find("button.btn-success").text("Reject");
+	$body.find("span.info").text("Enter any notes about why this request is being rejected.  Members may view these notes.");
+	$body.find("div.notes").css("display", "");
+	};
 actions.location_add_slot = function (location_id)
 	{
 	var $dialogue = $("#slot_edit");
@@ -655,6 +697,8 @@ $(function ()
 			return;
 		return false;
 		});
+
+	$("div#request_view div.modal-body div.notes button.btn-danger").click(cancel_request_action);
 
 	load_storage();
 	});
