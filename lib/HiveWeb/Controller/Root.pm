@@ -18,7 +18,7 @@ sub auto :Private
 	if (my $user = $c->user())
 		{
 		my $path  = '/';
-		my $paths = [];
+		my $paths = ['/'];
 		my @parts = split(/\//, $c->request()->path());
 		for (my $i = 0; $i < scalar(@parts); $i++)
 			{
