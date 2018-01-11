@@ -399,6 +399,7 @@ $(function()
 		if (!paypal || !paypal.length)
 			paypal = null;
 		filters.paypal = paypal;
+		page = 1;
 		load_members();
 		});
 
