@@ -41,7 +41,7 @@ __PACKAGE__->uuid_columns('image_id');
 __PACKAGE__->belongs_to(
   "member",
   "HiveWeb::Schema::Result::Member",
-  { member_id => "member_id" },
+  { 'foreign.member_image_id' => 'self.image_id' },
   { is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
