@@ -196,14 +196,15 @@ div.tree li.parent_li.selected > span:hover
 </ul>
 
 <script type="text/javascript">
-var load_url          = "[% Catalyst.uri_for('/api/admin/storage/list').dquote %]";
-var info_url          = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
-var edit_slot_url     = "[% Catalyst.uri_for('/api/admin/storage/edit_slot').dquote %]";
-var new_loc_url       = "[% Catalyst.uri_for('/api/admin/storage/new_location').dquote %]";
-var slot_assign_url   = "[% Catalyst.uri_for('/api/admin/storage/assign_slot').dquote %]";
-var requests_url      = "[% Catalyst.uri_for('/api/admin/storage/requests').dquote %]";
-var member_search_url = "[% Catalyst.uri_for('/api/admin/members/search').dquote %]";
-var actions           = {};
+var load_url           = "[% Catalyst.uri_for('/api/admin/storage/list').dquote %]";
+var info_url           = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
+var edit_slot_url      = "[% Catalyst.uri_for('/api/admin/storage/edit_slot').dquote %]";
+var new_loc_url        = "[% Catalyst.uri_for('/api/admin/storage/new_location').dquote %]";
+var slot_assign_url    = "[% Catalyst.uri_for('/api/admin/storage/assign_slot').dquote %]";
+var requests_url       = "[% Catalyst.uri_for('/api/admin/storage/requests').dquote %]";
+var request_decide_url = "[% Catalyst.uri_for('/api/admin/storage/decide_request').dquote %]";
+var member_search_url  = "[% Catalyst.uri_for('/api/admin/members/search').dquote %]";
+var actions            = {};
 
 function cancel_request_action()
 	{
@@ -213,11 +214,42 @@ function cancel_request_action()
 	$dialogue.find("div.modal-body div.notes button.btn-success").off("click");
 	$dialogue.find("div.modal-body div.requests div.panel").removeClass("selected").removeClass("panel-info").addClass("panel-default");
 	}
+function decide_request()
+	{
+	var $dialogue = $("#request_view"), data =
+		{
+		action:     $dialogue.data("action"),
+		slot_id:    $dialogue.data("slot_id"),
+		request_id: $dialogue.data("request_id"),
+		notes:      $dialogue.find("textarea").val()
+		}
+
+	if ((data.action !== "accept" && data.action !== "reject") || !data.request_id)
+		return;
+	if (data.action === "accept" && !data.slot_id)
+		return;
+	else
+		delete(data.slot_id);
+
+	api_json(
+		{
+		what: "Decide request",
+		url: request_decide_url,
+		data: data,
+		success: function ()
+			{
+			$dialogue.modal("hide");
+			load_storage();
+			}
+		});
+	}
 function view_requests(slot_id)
 	{
 	var $dialogue = $("#request_view");
 
 	$("#request_menu .accept").css("display", (slot_id ? "" : "none"));
+	$dialogue.data("slot_id", (slot_id || null));
+	$dialogue.find("div.modal-body div.notes").css("display", "none");
 
 	api_json(
 		{
@@ -288,10 +320,24 @@ actions.request_reject = function (request_id)
 	var $dialogue = $("div#request_view"),
 		$body = $dialogue.find("div.modal-body");
 
+	$dialogue.data("request_id", request_id).data("action", "reject");
 
-	$body.find("button.btn-success").text("Reject");
+	$body.find("button.btn-success").text("Reject").click(decide_request);
 	$body.find("span.info").text("Enter any notes about why this request is being rejected.  Members may view these notes.");
 	$body.find("div.notes").css("display", "");
+	$body.find("textarea").val("");
+	};
+actions.request_accept = function (request_id)
+	{
+	var $dialogue = $("div#request_view"),
+		$body = $dialogue.find("div.modal-body");
+
+	$dialogue.data("request_id", request_id).data("action", "accept");
+
+	$body.find("button.btn-success").text("Accept").click(decide_request);
+	$body.find("span.info").text("Enter any notes about why this request is being accepted.  Members may view these notes.");
+	$body.find("div.notes").css("display", "");
+	$body.find("textarea").val("");
 	};
 actions.location_add_slot = function (location_id)
 	{
