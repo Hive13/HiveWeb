@@ -1,6 +1,6 @@
 function display_storage_data(data, $curse_panel)
 	{
-	var i, dt, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
+	var i, dt, request, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
@@ -21,9 +21,18 @@ function display_storage_data(data, $curse_panel)
 		html += "<h5>Requests</h5><ul>";
 		for (i = 0; i < data.requests.length; i++)
 			{
-			dt = new Date(data.requests[i].created_at);
+			request = data.requests[i];
+			dt = new Date(request.created_at);
 			html += "<li>Submitted on "
-				+ dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</li>";
+				+ dt.toLocaleDateString() + " " + dt.toLocaleTimeString();
+
+			if (request.status !== 'requested')
+				{
+				dt = new Date(request.decided_at);
+				html += ", " + request.status + " on "
+					+ dt.toLocaleDateString() + " " + dt.toLocaleTimeString();
+				}
+			html += "</li>";
 			}
 		html += "</ul>";
 		}

@@ -71,10 +71,13 @@ sub TO_JSON
 
 	return
 		{
-		request_id => $self->request_id(),
-		member_id  => $self->member_id(),
-		created_at => $self->created_at(),
-		notes      => $self->notes(),
+		request_id     => $self->request_id(),
+		member_id      => $self->member_id(),
+		created_at     => $self->created_at(),
+		notes          => $self->notes(),
+		status         => $self->status(),
+		decided_at     => $self->decided_at(),
+		decision_notes => $self->decision_notes(),
 		};
 	}
 
