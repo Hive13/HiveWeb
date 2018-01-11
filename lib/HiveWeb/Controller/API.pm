@@ -31,7 +31,6 @@ sub find_member :Private
 
 	return $badge->member()
 		if (defined($badge));
-	return $c->model('DB::Member')->find( { accesscard => $badge_no } );
 	}
 
 sub has_access :Private

@@ -30,8 +30,6 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "encrypted_password",
   { data_type => "varchar", is_nullable => 1, size => 255, accessor => 'password' },
-  "accesscard",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
   "is_lockedout",
   { data_type => "boolean", is_nullable => 1 },
 	"vend_enabled",
