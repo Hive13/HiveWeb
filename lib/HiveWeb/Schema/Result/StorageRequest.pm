@@ -30,9 +30,11 @@ __PACKAGE__->add_columns(
   { data_type => 'character varying', is_nullable => 0, default_value => 'requested' },
   'slot_id',
   { data_type => 'uuid', is_nullable => 1, size => 16 },
-  'action_notes',
-  { data_type => 'text', is_nullable => 0 },
-  'action_time',
+  'deciding_member_id',
+  { data_type => 'uuid', is_nullable => 1 },
+  'decision_notes',
+  { data_type => 'text', is_nullable => 1 },
+  'decided_at',
   {
     data_type     => 'timestamp with time zone',
     is_nullable   => 1,
@@ -46,6 +48,12 @@ __PACKAGE__->belongs_to(
   'member',
   'HiveWeb::Schema::Result::Member',
   { 'foreign.member_id' => 'self.member_id' },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+__PACKAGE__->belongs_to(
+  'deciding_member',
+  'HiveWeb::Schema::Result::Member',
+  { 'foreign.member_id' => 'self.deciding_member_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 __PACKAGE__->belongs_to(
