@@ -62,8 +62,6 @@ sub has_access :Private
 	
 	return "Invalid badge"
 		if (!defined($member));
-	return "Locked out"
-		if ($member->is_lockedout());
 	return $access ? undef : "Access denied";
 	}
 

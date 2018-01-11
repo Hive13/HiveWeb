@@ -8,43 +8,6 @@ use DateTime;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub lock :Local :Args(0)
-	{
-	my ($self, $c) = @_;
-
-	my $out       = $c->stash()->{out};
-	my $member_id = $c->stash()->{in}->{member_id};
-	my $lock      = $c->stash()->{in}->{lock} // 1;
-	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
-	if (!defined($member))
-		{
-		$out->{response} = \0;
-		$out->{data}     = "Cannot find member " . $member_id;
-		return;
-		}
-
-	$out->{response} = \1;
-	$out->{data}     = 'Member ' . ($lock ? 'locked out' : 'unlocked');
-	try
-		{
-		$c->model('DB')->txn_do(sub
-			{
-			$member->create_related('changed_audits',
-				{
-				change_type        => $lock ? 'lock' : 'unlock',
-				changing_member_id => $c->user()->member_id(),
-				});
-			$member->is_lockedout($lock);
-			$member->update();
-			});
-		}
-	catch
-		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not update member.';
-		};
-	}
-
 sub info :Local :Args(1)
 	{
 	my ($self, $c, $member_id) = @_;
@@ -456,9 +419,6 @@ sub index :Path :Args(0)
 		my $sorder .= "$order $dir";
 		$member_attrs->{order_by} = $sorder;
 		}
-
-	$filters->{is_lockedout} = ($in->{filters}->{active} ? 0 : 1)
-		if (defined($in->{filters}->{active}));
 
 	$filters->{member_image_id} = ($in->{filters}->{photo} ? { '!=' => undef } : undef)
 		if (defined($in->{filters}->{photo}));

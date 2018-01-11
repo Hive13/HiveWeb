@@ -151,28 +151,7 @@
 			</div>
 			<div class="modal-body">
 				<div class="row row-eq-height u-pb-5">
-					<div class="col-md-4">
-						<div class="panel panel-default">
-							<div class="panel-heading">
-								<h4>Active or Inactive</h4>
-							</div>
-							<div class="panel-body">
-								<label>
-									<input type="radio" name="active" value="null" />
-									All
-								</label><br />
-								<label>
-									<input type="radio" name="active" value="true" />
-									Active
-								</label><br />
-								<label>
-									<input type="radio" name="active" value="false" />
-									Inactive
-								</label><br />
-							</div>
-						</div>
-					</div>
-					<div class="col-md-4">
+					<div class="col-md-6">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>Profile Picture</h4>
@@ -193,7 +172,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="col-md-4">
+					<div class="col-md-6">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>PayPal Status</h4>
@@ -286,7 +265,6 @@
 </div>
 
 <script type="text/javascript">
-var lock_url   = "[% Catalyst.uri_for('/api/admin/members/lock').dquote %]";
 var load_url   = "[% Catalyst.uri_for('/api/admin/members').dquote %]";
 var order      = "lname";
 var dir        = "ASC";
@@ -296,7 +274,6 @@ var per_page   = [% Catalyst.session.member_table.per_page %];
 var count      = 0;
 var filters    =
 	{
-	active:     null,
 	photo:      null,
 	paypal:     null,
 	group_type: null,
@@ -356,10 +333,9 @@ $(function()
 
 	$filter.find("button#refresh_filters").click(function ()
 		{
-		var active, photo, group_type, paypal = [], group_list = [];
+		var photo, group_type, paypal = [], group_list = [];
 
 		$filter.modal("hide");
-		active     = $filter.find("input[name=active]:checked").val();
 		photo      = $filter.find("input[name=photo]:checked").val();
 		group_type = $filter.find("input[name=group_filter]:checked").val();
 		$filter.find("input[name=paypal]:checked").each(function ()
@@ -390,12 +366,6 @@ $(function()
 			filters.photo = false;
 		else
 			filters.photo = null;
-		if (active === "true")
-			filters.active = true;
-		else if (active === "false")
-			filters.active = false;
-		else
-			filters.active = null;
 		if (!paypal || !paypal.length)
 			paypal = null;
 		filters.paypal = paypal;
@@ -423,12 +393,6 @@ $(function()
 			for (i = 0; i < filters.group_list.length; i++)
 				$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
 
-		if (filters.active === true)
-			$filter.find("input[name=active][value=true]").prop("checked", true);
-		else if (filters.active === false)
-			$filter.find("input[name=active][value=false]").prop("checked", true);
-		else
-			$filter.find("input[name=active][value=null]").prop("checked", true);
 		if (filters.photo === true)
 			$filter.find("input[name=photo][value=true]").prop("checked", true);
 		else if (filters.photo === false)
@@ -504,64 +468,6 @@ $(function()
 			var $this = $(this);
 			var member_id = $this.parents("tr").attr("id");
 			curse(member_id);
-			return false;
-			})
-		.on("mouseover", "td.lock img", function()
-			{
-			var $this = $(this);
-
-			if ($this.hasClass("lock"))
-				$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
-			else
-				$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
-
-			return false;
-			})
-		.on("mouseout", "td.lock img", function ()
-			{
-			var $this = $(this);
-
-			if ($this.hasClass("lock"))
-				$this.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
-			else
-				$this.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
-
-			return false;
-			})
-		.on("click", "td.lock img", function ()
-			{
-			var $this, req_data = {};
-			if (confirm("Are you sure?"))
-				{
-				$this = $(this);
-				req_data.member_id = $this.parents("tr").attr("id");
-				if ($this.hasClass("unlock"))
-					req_data.lock = 0;
-				else
-					req_data.lock = 1;
-				api_json(lock_url, req_data, "Lock/unlock", function (data)
-					{
-					if ($this.hasClass("unlock"))
-						{
-						$this
-							.removeClass("unlock")
-							.addClass("lock")
-							.attr("title", "Lock")
-							.attr("src", "[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]");
-						$this.parents("tr").removeClass("locked").removeClass("danger");
-						}
-					else
-						{
-						$this
-							.removeClass("lock")
-							.addClass("unlock")
-							.attr("title", "Unlock")
-							.attr("src", "[% Catalyst.uri_for('/static/icons/lock.png').dquote %]");
-						$this.parents("tr").addClass("locked").addClass("danger");
-						}
-					});
-				}
-
 			return false;
 			})
 		.on("click", "thead a.sort", sort_click)
@@ -838,10 +744,7 @@ function load_members()
 			create = new Date(member.create_time);
 			access = new Date(member.last_access_time);
 
-			html += "<tr id=\""
-				+ member.member_id + "\""
-				+ (member.locked_out ? " class=\"danger locked\"" : "")
-				+ ">";
+			html += "<tr id=\"" + member.member_id + "\">";
 
 			html += "<td class=\"edit\">"
 				+ "<img src=\"[% Catalyst.uri_for('/static/icons/key.png').dquote %]\" title=\"Change Password\" class=\"password icon\" />"
@@ -854,12 +757,6 @@ function load_members()
 				html += " id=\"" + member.member_image_id + "\"><img src=\"[% Catalyst.uri_for('/static/icons/photo.png').dquote %]\" title=\"Member Photo\" class=\"icon\" />";
 			else
 				html += ">";
-			html += "</td><td class=\"lock\">";
-			if (member.locked_out)
-				html += "<img title=\"Unlock\" class=\"unlock icon\" src=\"[% Catalyst.uri_for('/static/icons/lock.png').dquote %]\" />";
-			else
-				html += "<img title=\"Lock\" class=\"lock icon\" src=\"[% Catalyst.uri_for('/static/icons/unlock.png').dquote %]\" />";
-			html += "</td>";
 
 			for (j = 0; j < columns.length; j++)
 				{
