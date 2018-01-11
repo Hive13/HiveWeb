@@ -15,6 +15,9 @@ var panel_urls =
 	, storage_request: "[% Catalyst.uri_for('/storage/request').dquote %]"
 [%~ IF Catalyst.user.is_admin %]
 	, access: "[% Catalyst.uri_for('/api/admin/access/recent').dquote %]"
+[%~ IF Catalyst.check_user_roles('storage')%]
+	, storage_status: "[% Catalyst.uri_for('/api/admin/storage/status').dquote %]"
+[%~ END %]
 [%~ END %]
 [%~ END %]
 	};
@@ -35,6 +38,9 @@ IF Catalyst.user_exists;
 	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
 	IF Catalyst.user.is_admin;
 		panels.push({ name => 'access' style => 'panel-primary', title => 'Recent Accesses' });
+		IF Catalyst.check_user_roles('storage');
+			panels.push({ name => 'storage_status' style => 'panel-info', title => 'Storage Overview' });
+		END;
 	END;
 END;
 SET panel_style  = 'col-sm-10 col-lg-6 col-sm-offset-1 col-lg-offset-3';

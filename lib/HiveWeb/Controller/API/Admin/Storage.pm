@@ -28,6 +28,23 @@ sub list :Local :Args(0)
 	$out->{response}  = \1;
 	}
 
+sub status :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $out = $c->stash()->{out};
+	$out->{response} = \0;
+
+	my $request_count   = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
+	my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef })->count();
+	my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef } })->count();
+
+	$out->{free_slots}     = $available_slots;
+	$out->{occupied_slots} = $occupied_slots;
+	$out->{requests}       = $request_count;
+	$out->{response}       = \1;
+	}
+
 sub requests :Local :Args(0)
 	{
 	my ($self, $c)  = @_;
