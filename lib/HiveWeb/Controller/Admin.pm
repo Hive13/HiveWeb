@@ -31,6 +31,19 @@ sub storage :Local :Args(0)
 	$c->stash()->{template} = 'admin/storage.tt';
 	}
 
+sub access_log :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	$c->session()->{access_log_table} //=
+		{
+		page     => 1,
+		per_page => 50,
+		};
+
+	$c->stash()->{template} = 'admin/access_log.tt';
+	}
+
 =encoding utf8
 
 =head1 AUTHOR

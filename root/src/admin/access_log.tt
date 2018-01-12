@@ -1,0 +1,501 @@
+<style>
+div.search
+	{
+	width: 25%;
+	min-width: 100px;
+	float: right;
+	height: 34px;
+	}
+
+nav ul.pagination
+	{
+	margin: 0;
+	}
+</style>
+<div class="row">
+	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+		<div class="panel-heading">
+			<h3>Access Logs</h3>
+		</div>
+		<div class="panel-body">
+			<div class="search" style="float: right; width: 25%; min-width: 100px;">
+				<input type="text" class="form-control" placeholder="Search for members" />
+			</div>
+			<nav id="pagination_top" class="hive-member-pagination">
+			</nav>
+			<table id="hive-member-table" class="table table-striped table-hover table-condensed hive-edit-table">
+				<thead></thead>
+				<tbody></tbody>
+			</table>
+			<nav id="pagination_bottom" class="hive-member-pagination">
+			</nav>
+	</div>
+</div>
+
+<div class="modal fade" id="filter_dialogue" tabIndex="-1" role="dialog" aria-labelledby="filter_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="filter_label">Select Filters</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row row-eq-height u-pb-5">
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Profile Picture</h4>
+							</div>
+							<div class="panel-body">
+								<label>
+									<input type="radio" name="photo" value="null" />
+									All
+								</label><br />
+								<label>
+									<input type="radio" name="photo" value="true" />
+									Yes
+								</label><br />
+								<label>
+									<input type="radio" name="photo" value="false" />
+									No
+								</label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>PayPal Status</h4>
+							</div>
+							<div class="panel-body">
+								<label>
+									<input type="checkbox" name="paypal" value="any" />
+									Any
+								</label><br />
+								<label>
+									<input type="checkbox" name="paypal" value="same" />
+									Yes, same as primary e-mail
+								</label><br />
+								<label>
+									<input type="checkbox" name="paypal" value="diff" />
+									Different PayPal e-mail
+								</label><br />
+								<label>
+									<input type="checkbox" name="paypal" value="no" />
+									Does not use PayPal
+								</label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-xs-12">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Group Membership</h4>
+							</div>
+							<div class="panel-body">
+								<div class="row">
+									<div class="col-md-6">
+										<h5>Filtering Options</h5>
+										<label>
+											<input type="radio" name="group_filter" value="null" />
+											Don't use this filter
+										</label><br />
+										<label>
+											<input type="radio" name="group_filter" value="any" />
+											<b>Show</b> members who are in <b>any</b> of the following groups
+										</label><br />
+										<label>
+											<input type="radio" name="group_filter" value="all" />
+											<b>Show</b> members who are in <b>all</b> of the following groups
+										</label><br />
+										<label>
+											<input type="radio" name="group_filter" value="not_any" />
+											<b>Hide</b> members who are in <b>any</b> of the following groups
+										</label><br />
+										[%~
+											# I'll figure this out eventually.
+										  # <label>
+											#		<input type="radio" name="group_filter" value="not_all" />
+											#		<b>Hide</b> members who are in <b>all</b> of the following groups
+											#	</label><br />
+										%]
+									</div>
+									<div class="col-md-6">
+										<h5>Group Selection</h5>
+										<div id="group_list"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="refresh_filters">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+var load_url   = "[% Catalyst.uri_for('/api/admin/accesslog').dquote %]";
+var order      = "access_time";
+var dir        = "DESC";
+var all_groups = [];
+var page       = [% Catalyst.session.access_log_table.page %];
+var per_page   = [% Catalyst.session.access_log_table.per_page %];
+var count      = 0;
+var total      = null;
+var filters    =
+	{
+	}
+var columns    =
+	[
+		{
+		name: "name",
+		desc: "Name",
+		display: function(access, members, items)
+			{
+			var member = members[access.member_id];
+			return member.fname + " " + member.lname;
+			}
+		},
+		{
+		name: "access_time",
+		desc: "Access Time",
+		display: function(access, members, items)
+			{
+			var dt = new Date(access.access_time);
+			return dt.toLocaleDateString() + " " + dt.toLocaleTimeString();
+			}
+		},
+		{
+		name: "item",
+		desc: "Item",
+		display: function(access, members, items)
+			{
+			return items[access.item_id].display_name;
+			}
+		},
+		{
+		name: "granted",
+		desc: "Granted",
+		display: function(access, members, items)
+			{
+			return "<span class=\"label " + (access.granted ? "label-success" : "label-danger") + "\">"
+				+ "<span class=\"glyphicon " + (access.granted ? "glyphicon-ok" : "glyphicon-remove") + "\"></span></span>";
+			}
+		}
+	];
+
+$(function()
+	{
+	var
+		$table         = $("table#hive-member-table"),
+		$nav           = $("nav.hive-member-pagination"),
+		$edit_dialogue = $("div#edit_dialogue"),
+		$filter        = $("div#filter_dialogue"),
+		$badge_edit    = $edit_dialogue.find("div#badge_edit");
+
+	$filter.find("input[name=paypal]").click(function ()
+		{
+		var $this = $(this);
+
+		if ($this.val() === "any")
+			$("div#filter_dialogue input[name=paypal][value!=any]").prop("checked", false);
+		else
+			$("div#filter_dialogue input[name=paypal][value=any]").prop("checked", false);
+		});
+
+	$filter.find("button#refresh_filters").click(function ()
+		{
+		var photo, group_type, paypal = [], group_list = [];
+
+		$filter.modal("hide");
+		photo      = $filter.find("input[name=photo]:checked").val();
+		group_type = $filter.find("input[name=group_filter]:checked").val();
+		$filter.find("input[name=paypal]:checked").each(function ()
+			{
+			var v = $(this).attr("value");
+
+			if (v === "any")
+				{
+				paypal = null;
+				return false;
+				}
+			paypal.push(v);
+			});
+
+		if (group_type === "null")
+			filters.group_type = null;
+		else
+			filters.group_type = group_type;
+		$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
+		if (!group_list.length)
+			filters.group_list = null;
+		else
+			filters.group_list = group_list;
+
+		if (photo === "true")
+			filters.photo = true;
+		else if (photo === "false")
+			filters.photo = false;
+		else
+			filters.photo = null;
+		if (!paypal || !paypal.length)
+			paypal = null;
+		filters.paypal = paypal;
+		page = 1;
+		load_accesses();
+		});
+
+	$filter.on("show.bs.modal", function ()
+		{
+		var i, html = "";
+
+		for (i = 0; i < all_groups.length; i++)
+			html += "<label>"
+				+ "<input type=\"checkbox\" name=\"group_list\" value=\""
+				+ all_groups[i].mgroup_id + "\" />\n"
+				+ all_groups[i].name
+				+ "</label><br />";
+		$filter.find("div#group_list").html(html);
+
+		if (filters.group_type === null)
+			$filter.find("input[name=group_filter][value=null]").prop("checked", true);
+		else
+			$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
+		if (filters.group_list)
+			for (i = 0; i < filters.group_list.length; i++)
+				$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
+
+		if (filters.photo === true)
+			$filter.find("input[name=photo][value=true]").prop("checked", true);
+		else if (filters.photo === false)
+			$filter.find("input[name=photo][value=false]").prop("checked", true);
+		else
+			$filter.find("input[name=photo][value=null]").prop("checked", true);
+		if (filters.paypal === null)
+			{
+			$filter.find("input[name=paypal][value!=any]").prop("checked", false);
+			$filter.find("input[name=paypal][value=any]").prop("checked", true);
+			}
+		else
+			{
+			$filter.find("input[name=paypal][value=any]").prop("checked", false);
+			for (i = 0; i < filters.paypal.length; i++)
+				$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
+			}
+		});
+
+	$nav.on("click", "li a", function ()
+		{
+		var id = $(this).attr("id");
+
+		if (id === "page_first")
+			page = 1;
+		else if (id === "page_last")
+			page = Math.ceil(count / per_page);
+		else
+			page = parseInt(id.substr(5));
+		load_accesses();
+		});
+
+	$table
+		.on("change", "select.per-page", function ()
+			{
+			var new_per_page = $(this).val();
+
+			page     = Math.floor((page - 1) * per_page / new_per_page + 1);
+			per_page = new_per_page;
+
+			load_accesses();
+			})
+		.on("click", "thead a.sort", sort_click)
+		;
+
+	$edit_dialogue.find("input#different_paypal").click(paypal_checkbox);
+
+	$("div.search input").keydown(function()
+		{
+		if (key_timer !== null)
+			{
+			clearTimeout(key_timer);
+			key_timer = null;
+			}
+		key_timer = setTimeout(do_search, 375);
+		});
+
+	load_accesses();
+	});
+
+var key_timer = null;
+var search    = null;
+
+function do_search()
+	{
+	var val = $("div.search input").val();
+
+	search = val;
+	load_accesses();
+	}
+
+function paypal_checkbox()
+	{
+	var checked     = $("input#different_paypal").prop("checked");
+	var $paypal_div = $("div#paypal_div");
+
+	if (checked)
+		$paypal_div.css("display", "");
+	else
+		$paypal_div.css("display", "none");
+	}
+
+function sort_click()
+	{
+	var $this     = $(this);
+	var new_dir   = $this.hasClass("sort-asc") ? "ASC" : "DESC";
+	var new_order = $this.attr("id").substring(5);
+
+	order = new_order;
+	dir   = new_dir;
+	load_accesses();
+	}
+
+function load_header($table)
+	{
+	var html, i;
+
+	html = "<tr><th>"
+		+ "<select class=\"per-page\">";
+
+	for (i = 1; i < 5; i++)
+		{
+		html += "<option value=\"" + (i * 25) + "\"";
+		if (per_page == (i * 25))
+			html += " selected=\"selected\"";
+		html += ">" + (i * 25) + " per page</option>";
+		}
+
+	html += "</select>"
+		+ "</th>";
+
+	html += "<th>"
+		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
+		+ "</th>";
+
+	for (i = 0; i < columns.length; i++)
+		{
+		html += "<th";
+		if ("hidden" in columns[i])
+			html += " class=\"" + hidden_styles(columns[i].hidden) + "\"";
+		html += "><a id=\"sort-" + columns[i].name + "\" class=\"anchor-style sort sort-";
+		html += (order === columns[i].name && dir === "ASC") ? "desc" : "asc";
+		html += "\">" + columns[i].desc;
+		if (order === columns[i].name)
+			html += ((dir === "ASC") ? "(&darr;)" : "(&uarr;)");
+		html += "</a></th>";
+		}
+	$table.find("thead").html(html);
+	}
+
+function load_accesses()
+	{
+	var $table = $("table#hive-member-table");
+	var $tbody = $table.find("tbody");
+	var params =
+		{
+		order:    order,
+		dir:      dir,
+		filters:  filters,
+		page:     page,
+		per_page: per_page,
+		search:   search
+		};
+	var api =
+		{
+		what: "Access Load",
+		success_toast: false,
+		url: load_url,
+		data: params
+		};
+
+	$("nav.hive-member-pagination").html("");
+
+	load_header($table);
+
+	$tbody.html("<tr class=\"loading\"><td colspan=\"9\">" + loading_icon() + "</td></tr>");
+	api.success = function (data)
+		{
+		var i, j, date_obj, access, val, html = "<ul class=\"pagination\">";
+
+		all_groups = data.groups;
+		count      = data.count;
+		per_page   = data.per_page;
+		page       = data.page;
+		total      = data.total;
+
+		i   = data.page - 3;
+		val = Math.ceil(data.count / data.per_page);
+		if (i < 1)
+			i = 1;
+
+		if (i > 1)
+			html += "<li><a class=\"anchor-style\" id=\"page_first\">&laquo;</a></li>";
+
+		for (j = 0; j < 7 && i <= val; i++, j++)
+			{
+			html += "<li";
+			if (i == data.page)
+				html += " class=\"active\"";
+			html += "><a class=\"anchor-style\" id=\"page_" + i + "\">" + i + "</a></li>";
+			}
+
+		if (i < val)
+			html += "<li><a class=\"anchor-style\" id=\"page_last\">&raquo;</a></li>";
+
+		html += "</ul>";
+		$("nav.hive-member-pagination").html(html);
+
+		html = "";
+
+		for (i = 0; i < data.accesses.length; i++)
+			{
+			access = data.accesses[i];
+
+			html += "<tr id=\"" + access.access_id + "\"><td colspan=\"2\"></td>";
+
+			for (j = 0; j < columns.length; j++)
+				{
+				if ("display" in columns[j])
+					val = columns[j].display(access, data.members, data.items);
+				else
+					val = access[columns[j].name];
+				html += "<td>";
+
+				if ("date" in columns[j] && columns[j].date)
+					{
+					if (val)
+						{
+						date_obj = new Date(val);
+						html += date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString();
+						}
+					else
+						html += "--";
+					}
+				else
+					html += val;
+
+				html += "</td>";
+				}
+
+			html += "</tr>";
+			}
+		$tbody.html(html);
+		};
+
+	api_json(api);
+	}
+</script>
+[%~ # vim:set filetype=tt2html: ~%]

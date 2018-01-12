@@ -20,7 +20,7 @@ function display_access_data(data, $access_panel)
 		html += "</span></li>";
 		}
 	
-	html += "</ol>";
+	html += "</ol><br /><a href=\"/admin/access_log\">View All Access Logs</a>";
 	$access_panel.find(".panel-body").html(html);
 	}
 
