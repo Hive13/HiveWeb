@@ -272,6 +272,7 @@ var all_groups = [];
 var page       = [% Catalyst.session.member_table.page %];
 var per_page   = [% Catalyst.session.member_table.per_page %];
 var count      = 0;
+var total      = null;
 var filters    =
 	{
 	photo:      null,
@@ -705,14 +706,16 @@ function load_members()
 	load_header($table);
 
 	$tbody.html("<tr class=\"loading\"><td colspan=\"9\">" + loading_icon() + "</td></tr>");
+	$("div.row div.panel div.panel-heading h3").html("Members <span class=\"badge\">..." + (total !== null ? "/" + total : "") + "</span>");
 	api.success = function (data)
 		{
 		var i, j, date_obj, member, val, html = "<ul class=\"pagination\">";
 
 		all_groups = data.groups;
 		count      = data.count;
-		per_page    = data.per_page;
+		per_page   = data.per_page;
 		page       = data.page;
+		total      = data.total;
 
 		i   = data.page - 3;
 		val = Math.ceil(data.count / data.per_page);
@@ -734,6 +737,7 @@ function load_members()
 			html += "<li><a class=\"anchor-style\" id=\"page_last\">&raquo;</a></li>";
 
 		html += "</ul>";
+		$("div.row div.panel div.panel-heading h3").html("Members <span class=\"badge\">" + count + "/" + total + "</span>");
 		$("nav.hive-member-pagination").html(html);
 
 		html = "";
