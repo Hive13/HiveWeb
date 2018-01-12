@@ -81,6 +81,10 @@ div.tree li.parent_li.selected > span:hover
 	{
 	background-color: #8F8FEE;
 	}
+i.glyphicon
+	{
+	margin-right: 0.4em;
+	}
 </style>
 <div class="row" id="hive-storage">
 	<div class="col-sm-12 panel panel-default" style="padding: 0;">
@@ -491,32 +495,38 @@ function finish_loc()
 	api_json(api);
 	}
 
-function handle_slot(slot)
+function handle_slot(slot, selected_id)
 	{
-	return "<li class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "") + "\" style=\"display: none\" id=\"" + slot.slot_id + "\">"
-		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i> " + slot.name + "</span></li>";
+	return "<li class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
+		+ (slot.slot_id == selected_id ? " selected" : "")
+		+ "\" style=\"display: none\" id=\"" + slot.slot_id + "\">"
+		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
+		+ slot.name + "</span></li>";
 	}
 
-function handle_location(loc, show_depth)
+function handle_location(loc, show_depth, selected_id)
 	{
-	var i, ret = "<li class=\"storage-location\""
-	 + (((show_depth) > 0) ? "" : "style=\"display: none\"")
-	 + "id=\"" + loc.location_id + "\"><span><i class=\"glyphicon "
-	 + (((show_depth - 1) > 0) ? "glyphicon-minus" : "glyphicon-plus") + "\"></i> " + loc.name + "</span><ul>";
+	var i, ret = "<li class=\"storage-location"
+		+ (loc.location_id == selected_id ? " selected" : "")
+		+ "\"" + (((show_depth) > 0) ? "" : "style=\"display: none\"")
+		+ "id=\"" + loc.location_id + "\"><span><i class=\"glyphicon"
+		+ (((show_depth - 1) > 0) ? " glyphicon-minus" : " glyphicon-plus")
+		+ "\"></i>" + loc.name + "</span><ul>";
 
 	if ("children" in loc && loc.children.length > 0)
 		for (i = 0; i < loc.children.length; i++)
-			ret += handle_location(loc.children[i], show_depth - 1);
+			ret += handle_location(loc.children[i], show_depth - 1, selected_id);
 
 	if ("slots" in loc && loc.slots.length > 0)
 		for (i = 0; i < loc.slots.length; i++)
-			ret += handle_slot(loc.slots[i]);
+			ret += handle_slot(loc.slots[i], selected_id);
 
 	return ret + "</ul></li>";
 	}
 
 function load_storage()
 	{
+	var selected_id = null;
 	var $div = $("div#hive-storage div.panel-body"),
 		api =
 			{
@@ -528,11 +538,13 @@ function load_storage()
 		$tree = $("<div class=\"tree well\" />"),
 		$reqs = $("<div class=\"requests\" />");
 
+	selected_id = $div.find("li.selected").attr("id");
+
 	$div.html(loading_icon());
 
 	api.success = function (data)
 		{
-		var tree = "<ul>" + handle_location(data.locations, 2) + "</ul>";
+		var tree = "<ul>" + handle_location(data.locations, 2, selected_id) + "</ul>";
 
 		$div.empty().append($tree).append($reqs);
 		$tree.html(tree);
@@ -541,6 +553,24 @@ function load_storage()
 		$reqs.html("<a class=\"anchor-style\">There " + (data.requests === 1 ? "is 1 request" : "are " + data.requests + " requests") + " outstanding.</a>");
 		$reqs.find("a").click(function() { view_requests(); });
 
+		$tree.find("li.selected").each(function()
+			{
+			var $this = $(this), $parents = $this.parents("li.parent_li");
+			$this.show();
+
+			if ($this.hasClass("parent_li"))
+				{
+				$this.children("ul").children("li").show();
+				$this.children("span").attr("title", "Collapse this location")
+					.children("i").removeClass("glyphicon-plus").addClass("glyphicon-minus");
+				}
+
+			$parents
+				.show()
+				.children("span").attr("title", "Collapse this location")
+					.children("i").removeClass("glyphicon-plus").addClass("glyphicon-minus");
+			$parents.children("ul").children("li").show();
+			});
 		$tree.find("li.storage-location").contextMenu(
 			{
 			menuSelector: "#location_menu",
