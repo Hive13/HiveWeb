@@ -53,7 +53,6 @@ sub index :Path :Args(0)
 		$filters->{member_id} = { -in => $member_id_query };
 		}
 	
-	my $needed_items   = {};
 	my $needed_members = {};
 	my $access_log_rs  = $c->model('DB::AccessLog')->search($filters, $member_attrs);
 	my $access_count   = $c->model('DB::AccessLog')->search({})->count();
@@ -78,24 +77,14 @@ sub index :Path :Args(0)
 			item_id     => $access->item_id(),
 			});
 
-		$needed_items->{$access->item_id()} = 1
-			if ($access->item_id());
 		$needed_members->{$access->member_id()} = 1
 			if ($access->member_id());
 		}
 	
-	my @items = $c->model('DB::Item')->search({ item_id => [ keys %$needed_items ] });
-	my $item_hash = {};
-	foreach my $item (@items)
-		{
-		$item_hash->{$item->item_id()} = $item;
-		}
+	my @items = $c->model('DB::Item')->search({});
+	my $item_hash = { map { $_->item_id() => $_ } @items };
 	my @members = $c->model('DB::Member')->search({ member_id => [ keys %$needed_members ] });
-	my $member_hash = {};
-	foreach my $member (@members)
-		{
-		$member_hash->{$member->member_id()} = $member;
-		}
+	my $member_hash = { map { $_->member_id() => $_ } @members };
 
 	$out->{accesses} = $ao;
 	$out->{items}    = $item_hash;
