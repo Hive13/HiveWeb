@@ -186,6 +186,7 @@ sub TO_JSON
 		vend_credits    => $self->vend_credits(),
 		paypal_email    => $self->paypal_email(),
 		member_image_id => $self->member_image_id(),
+		door_count      => $self->door_count(),
 		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
 		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
 		};
