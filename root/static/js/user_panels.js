@@ -23,7 +23,7 @@ function display_storage_data(data, $panel)
 			{
 			request = data.requests[i];
 			dt = new Date(request.created_at);
-			html += "<li>Submitted on "
+			html += "<li id=\"" + request.request_id + "\">Submitted on "
 				+ dt.toLocaleDateString() + " " + dt.toLocaleTimeString();
 
 			if (request.status !== 'requested')
@@ -31,6 +31,7 @@ function display_storage_data(data, $panel)
 				dt = new Date(request.decided_at);
 				html += ", " + request.status + " on "
 					+ dt.toLocaleDateString() + " " + dt.toLocaleTimeString();
+				html += " - <a class=\"request-hide anchor-style\">Hide</a>";
 				}
 			html += "</li>";
 			}
@@ -39,6 +40,20 @@ function display_storage_data(data, $panel)
 
 	$panel.find(".panel-body").html(html);
 
+	$panel.find(".panel-body a.request-hide").click(function()
+		{
+		var $li = $(this).closest("li"),
+			id = $li.attr("id");
+
+		api_json(
+			{
+			url: panel_urls.storage_hide,
+			what: "Relinquish Slot",
+			data: { request_id: id },
+			success: function () { $li.slideUp(); },
+			success_toast: false
+			});
+		});
 	$panel.find(".panel-body a.relinquish").click(function()
 		{
 		var id = $(this).attr("id");

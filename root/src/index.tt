@@ -14,6 +14,7 @@ var panel_urls =
 	, storage: "[% Catalyst.uri_for('/api/storage/list').dquote %]"
 	, storage_relinquish: "[% Catalyst.uri_for('/api/storage/relinquish').dquote %]"
 	, storage_request: "[% Catalyst.uri_for('/storage/request').dquote %]"
+	, storage_hide: "[% Catalyst.uri_for('/api/storage/hide').dquote %]"
 [%~ IF Catalyst.check_user_roles('board') %]
 	, access: "[% Catalyst.uri_for('/api/admin/accesslog/recent').dquote %]"
 [%~ IF Catalyst.check_user_roles('storage')%]
