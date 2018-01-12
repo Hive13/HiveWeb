@@ -161,6 +161,13 @@ sub register :Local :Args(0)
 	$c->response()->redirect($c->uri_for('/'));
 	}
 
+sub pay :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	$c->stash()->{template} = 'member/pay.tt';
+	}
+
 =head1 AUTHOR
 
 Greg Arnold

@@ -35,6 +35,13 @@
 			text => 'Register',
 			});
 	END;
+	IF Catalyst.check_user_roles('members');
+		links.push(
+			{
+			uri  => Catalyst.uri_for('/member/pay'),
+			text => 'Payments',
+			});
+	END;
 ~%]
 <!DOCTYPE html>
 <html lang="en">
