@@ -513,6 +513,27 @@ sub index :Path :Args(0)
 			}
 		}
 
+	if (defined(my $search = $in->{search}))
+		{
+		my @names = split(/\s+/, $in->{search});
+
+		$filters->{'-and'} = []
+			if (!exists($filters->{'-and'}));
+		my $names = $filters->{'-and'};
+
+		foreach my $name (@names)
+			{
+			push (@$names,
+				{
+				-or =>
+					{
+					fname => { ilike => '%' . $name . '%' },
+					lname => { ilike => '%' . $name . '%' },
+					}
+				});
+			}
+		}
+
 	my $members_rs = $c->model('DB::Member')->search($filters, $member_attrs);
 	my $tot_count  = $c->model('DB::Member')->search({})->count();
 	my $count      = $members_rs->count();
