@@ -647,7 +647,7 @@ function load_header($table)
 	{
 	var html, i;
 
-	html = "<tr><th colspan=\"2\">"
+	html = "<tr><th>"
 		+ "<select class=\"per-page\">";
 
 	for (i = 1; i < 5; i++)
