@@ -297,7 +297,14 @@ var columns    =
 		{
 		name: "accesses",
 		desc: "Accesses",
-		hidden: "xs"
+		hidden: "xs",
+		display: function (member)
+			{
+			var dc = parseInt(member.door_count) || 0;
+			var ac = parseInt(member.accesses)   || 0;
+			return "<span title=\"" + ac + " intweb + " + dc + " door\">"
+			 + (ac + dc) + "</span>";
+			}
 		},
 		{
 		name: "last_access_time",
@@ -764,7 +771,10 @@ function load_members()
 
 			for (j = 0; j < columns.length; j++)
 				{
-				val = member[columns[j].name];
+				if ("display" in columns[j])
+					val = columns[j].display(member);
+				else
+					val = member[columns[j].name];
 				html += "<td";
 				if ("hidden" in columns[j])
 					html += " class=\"" + hidden_styles(columns[j].hidden) + "\"";
@@ -781,7 +791,7 @@ function load_members()
 						html += "--";
 					}
 				else
-					html += member[columns[j].name];
+					html += val;
 
 				html += "</td>";
 				}
