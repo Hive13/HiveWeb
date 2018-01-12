@@ -246,6 +246,13 @@ sub forgot_password :Local
 	$stash->{template} = 'forgot_updated.tt';
 	}
 
+sub access_denied :Private
+	{
+	my ($self, $c) = @_;
+
+	$c->response()->redirect($c->uri_for('/login'))
+	}
+
 sub default :Path
 	{
 	my ( $self, $c ) = @_;

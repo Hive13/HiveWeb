@@ -110,21 +110,6 @@ __PACKAGE__->config
 	);
 
 __PACKAGE__->setup();
-__PACKAGE__->deny_access_unless("/api/admin", sub
-	{
-	my $c = shift;
-
-	return 0
-		if (!$c->user());
-	return $c->user()->is_admin();
-	});
-__PACKAGE__->deny_access_unless("/admin", sub
-	{
-	my $c = shift;
-
-	return 0
-		if (!$c->user());
-	return $c->user()->is_admin();
-	});
-
+__PACKAGE__->deny_access_unless("/api/admin", ['board']);
+__PACKAGE__->deny_access_unless("/admin",     ['board']);
 1;
