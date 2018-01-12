@@ -35,6 +35,28 @@ sub index :Path :Args(0)
 	$filters->{granted} = ($in->{filters}->{granted} ? 't' : 'f')
 		if (defined($in->{filters}->{granted}));
 
+	if (defined(my $list = $in->{filters}->{item_list}) && defined(my $type = $in->{filters}->{item_type}))
+		{
+		$list = [ $list ]
+			if (ref($list) ne 'ARRAY');
+		$type = lc($type);
+
+		if ($type eq 'any')
+			{
+			$filters->{'item_id'} = $list;
+			}
+		elsif ($type eq 'not_any')
+			{
+			$filters->{'item_id'} = { -not_in => $list };
+			}
+		else
+			{
+			$out->{error}    = 'Unknown item filter type ' . $type;
+			$out->{response} = \0;
+			return;
+			}
+		}
+
 	if (defined(my $search = $in->{search}))
 		{
 		my @names = split(/\s+/, $in->{search});
