@@ -32,6 +32,9 @@ sub index :Path :Args(0)
 	my $sorder .= "$order $dir";
 	$member_attrs->{order_by} = $sorder;
 
+	$filters->{granted} = ($in->{filters}->{granted} ? 't' : 'f')
+		if (defined($in->{filters}->{granted}));
+
 	if (defined(my $search = $in->{search}))
 		{
 		my @names = split(/\s+/, $in->{search});
