@@ -21,13 +21,13 @@ nav ul.pagination
 			<div class="search" style="float: right; width: 25%; min-width: 100px;">
 				<input type="text" class="form-control" placeholder="Search for members" />
 			</div>
-			<nav id="pagination_top" class="hive-member-pagination">
+			<nav id="pagination_top" class="hive-accesslog-pagination">
 			</nav>
-			<table id="hive-member-table" class="table table-striped table-hover table-condensed hive-edit-table">
+			<table id="hive-accesslog-table" class="table table-striped table-hover table-condensed hive-edit-table">
 				<thead></thead>
 				<tbody></tbody>
 			</table>
-			<nav id="pagination_bottom" class="hive-member-pagination">
+			<nav id="pagination_bottom" class="hive-accesslog-pagination">
 			</nav>
 	</div>
 </div>
@@ -113,6 +113,8 @@ var count      = 0;
 var total      = null;
 var filters    =
 	{
+	item_type: null,
+	granted:   null
 	}
 var columns    =
 	[
@@ -147,7 +149,7 @@ var columns    =
 		{
 		name: "granted",
 		desc: "Granted",
-		display: function(access, members, items)
+		display: function(access, members)
 			{
 			return "<span class=\"label " + (access.granted ? "label-success" : "label-danger") + "\">"
 				+ "<span class=\"glyphicon " + (access.granted ? "glyphicon-ok" : "glyphicon-remove") + "\"></span></span>";
@@ -158,8 +160,8 @@ var columns    =
 $(function()
 	{
 	var
-		$table         = $("table#hive-member-table"),
-		$nav           = $("nav.hive-member-pagination"),
+		$table         = $("table#hive-accesslog-table"),
+		$nav           = $("nav.hive-accesslog-pagination"),
 		$edit_dialogue = $("div#edit_dialogue"),
 		$filter        = $("div#filter_dialogue"),
 		$badge_edit    = $edit_dialogue.find("div#badge_edit");
@@ -323,7 +325,7 @@ function load_header($table)
 
 function load_accesses()
 	{
-	var $table = $("table#hive-member-table");
+	var $table = $("table#hive-accesslog-table");
 	var $tbody = $table.find("tbody");
 	var params =
 		{
@@ -342,7 +344,7 @@ function load_accesses()
 		data: params
 		};
 
-	$("nav.hive-member-pagination").html("");
+	$("nav.hive-accesslog-pagination").html("");
 
 	load_header($table);
 
@@ -377,7 +379,7 @@ function load_accesses()
 			html += "<li><a class=\"anchor-style\" id=\"page_last\">&raquo;</a></li>";
 
 		html += "</ul>";
-		$("nav.hive-member-pagination").html(html);
+		$("nav.hive-accesslog-pagination").html(html);
 
 		html = "";
 
