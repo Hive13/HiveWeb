@@ -102,6 +102,8 @@ sub login :Local
 
 	if ($c->request()->method() eq 'GET')
 		{
+		$c->response()->redirect($c->uri_for('/'))
+			if ($c->user());
 		$c->stash()->{template} = 'login.tt';
 		return;
 		}
