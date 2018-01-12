@@ -39,6 +39,12 @@ __PACKAGE__->add_columns(
     data_type     => 'timestamp with time zone',
     is_nullable   => 1,
 	},
+	'hidden',
+	{
+		data_type     => 'boolean',
+		is_nullable   => 0,
+		default_value => 'f',
+	},
 );
 
 __PACKAGE__->set_primary_key('request_id');
@@ -78,6 +84,7 @@ sub TO_JSON
 		status         => $self->status(),
 		decided_at     => $self->decided_at(),
 		decision_notes => $self->decision_notes(),
+		hidden         => $self->hidden() ? \1 : \0,
 		};
 	}
 
@@ -98,6 +105,7 @@ sub TO_FULL_JSON
 		other_slots => \@slots,
 		created_at  => $self->created_at(),
 		notes       => $self->notes(),
+		hidden      => $self->hidden() ? \1 : \0,
 		};
 	}
 
