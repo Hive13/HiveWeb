@@ -1,9 +1,26 @@
+<style>
+div.search
+	{
+	width: 25%;
+	min-width: 100px;
+	float: right;
+	height: 34px;
+	}
+
+nav ul.pagination
+	{
+	margin: 0;
+	}
+</style>
 <div class="row">
 	<div class="col-sm-12 panel panel-default" style="padding: 0;">
 		<div class="panel-heading">
 			<h3>Members</h3>
 		</div>
 		<div class="panel-body">
+			<div class="search" style="float: right; width: 25%; min-width: 100px;">
+				<input type="text" class="form-control" placeholder="Search for members" />
+			</div>
 			<nav id="pagination_top" class="hive-member-pagination">
 			</nav>
 			<table id="hive-member-table" class="table table-striped table-hover table-condensed hive-edit-table">
@@ -542,8 +559,29 @@ $(function()
 	$badge_edit.find("img.cancel").click(badge_edit_hide);
 	$badge_edit.find("img.ok").click(badge_save);
 
+	$("div.search input").keydown(function()
+		{
+		if (key_timer !== null)
+			{
+			clearTimeout(key_timer);
+			key_timer = null;
+			}
+		key_timer = setTimeout(do_search, 375);
+		});
+
 	load_members();
 	});
+
+var key_timer = null;
+var search    = null;
+
+function do_search()
+	{
+	var val = $("div.search input").val();
+
+	search = val;
+	load_members();
+	}
 
 function upload_photo()
 	{
@@ -694,11 +732,12 @@ function load_members()
 	var $tbody = $table.find("tbody");
 	var params =
 		{
-		order:   order,
-		dir:     dir,
-		filters: filters,
-		page:    page,
-		per_page: per_page
+		order:    order,
+		dir:      dir,
+		filters:  filters,
+		page:     page,
+		per_page: per_page,
+		search:   search
 		};
 	var api =
 		{
