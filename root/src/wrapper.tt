@@ -11,7 +11,7 @@
 			uri  => Catalyst.uri_for('/logout'),
 			text => 'Sign Out',
 			});
-		IF Catalyst.user.is_admin;
+		IF Catalyst.check_user_roles('board');
 			links.push(
 				{
 				uri  => Catalyst.uri_for('/admin'),

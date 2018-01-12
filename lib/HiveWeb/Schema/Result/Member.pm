@@ -238,14 +238,6 @@ sub has_access
 	return $access > 0;
 	}
 
-sub is_admin
-	{
-	my $self    = shift;
-	my $officer = $self->mgroups()->find({ name => 'board' });
-
-	return defined($officer);
-	}
-
 sub do_vend
 	{
 	my $self    = shift;
@@ -259,8 +251,8 @@ sub do_vend
 	$credits--;
 	$self->update(
 		{
-			vend_total   => $count,
-			vend_credits => $credits,
+		vend_total   => $count,
+		vend_credits => $credits,
 		});
 
 	return 1;
@@ -277,40 +269,10 @@ sub add_vend_credits
 
 	$self->update(
 		{
-			vend_credits => $credits,
+		vend_credits => $credits,
 		});
 
 	return 1;
-	}
-
-sub lift_curse
-	{
-	my $self              = shift;
-	my $curse             = shift;
-	my $notes             = shift;
-	my $lifting_member_id = shift || $self->member_id();
-	my $schema            = $self->result_source()->schema();
-
-	if (ref($curse) eq '')
-		{
-		$curse = $schema->resultset('Curse')->find({ name => $curse })
-			|| die "Cannot find curse $curse.";
-		}
-
-	my $mcs = $self->search_related('member_curses',
-		{
-		curse_id  => $curse->curse_id(),
-		lifted_at => undef,
-		});
-	$schema->txn_do(sub
-		{
-		$mcs->update(
-			{
-			lifting_member_id => $lifting_member_id,
-			lifting_notes     => $notes,
-			lifted_at         => \'now()',
-			}) || die $!;
-		});
 	}
 
 sub list_slots
