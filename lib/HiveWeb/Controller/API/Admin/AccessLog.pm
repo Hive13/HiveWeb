@@ -77,7 +77,7 @@ sub index :Path :Args(0)
 		my $member_id_query = $c->model('DB::Member')->search({ -and => $names })->get_column('me.member_id')->as_query();
 		$filters->{member_id} = { -in => $member_id_query };
 		}
-	
+
 	my $needed_members = {};
 	my $access_log_rs  = $c->model('DB::AccessLog')->search($filters, $member_attrs);
 	my $access_count   = $c->model('DB::AccessLog')->search({})->count();
@@ -87,7 +87,7 @@ sub index :Path :Args(0)
 		rows => $access_log_table->{per_page},
 		page => $access_log_table->{page},
 		});
-	
+
 	my $ao = [];
 
 	foreach my $access (@accesses)
@@ -105,7 +105,7 @@ sub index :Path :Args(0)
 		$needed_members->{$access->member_id()} = 1
 			if ($access->member_id());
 		}
-	
+
 	my @items = $c->model('DB::Item')->search({});
 	my $item_hash = { map { $_->item_id() => $_ } @items };
 	my @members = $c->model('DB::Member')->search({ member_id => [ keys %$needed_members ] });
@@ -118,6 +118,21 @@ sub index :Path :Args(0)
 	$out->{total}    = $access_count;
 	$out->{page}     = $access_log_table->{page};
 	$out->{per_page} = $access_log_table->{per_page};
+	$out->{response} = \1;
+	}
+
+sub recent :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+
+	my @accesses = $c->model('DB::AccessLog')->search({},
+		{
+		order_by => { -desc => 'me.access_time' },
+		rows     => 10,
+		prefetch => [ 'item', 'member' ],
+		});
+	$out->{accesses} = \@accesses;
 	$out->{response} = \1;
 	}
 
