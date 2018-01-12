@@ -89,3 +89,29 @@ ol.accesses li.denied
 	{
 	cursor: pointer;
 	}
+
+div.panel.hive-panel-access ol
+	{
+	list-style: none;
+	}
+div.panel.hive-panel-access ol li
+	{
+	cursor: pointer;
+	}
+div.panel.hive-panel-access ol li:before
+	{
+	content: "[+]";
+	margin-right: 0.5em;
+	}
+div.panel.hive-panel-access ol li span.info
+	{
+	display: none;
+	}
+div.panel.hive-panel-access ol li.shown:before
+	{
+	content: "[-]";
+	}
+div.panel.hive-panel-access ol li.shown span.info
+	{
+	display: inline;
+	}

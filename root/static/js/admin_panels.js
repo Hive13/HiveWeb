@@ -10,17 +10,17 @@ function display_access_data(data, $access_panel)
 		html += "<li"
 		if (!access.granted)
 			html += " class=\"denied\"";
-		html += " title=\"" + date.toLocaleDateString() + " " + date.toLocaleTimeString() + "\">";
-		html += access.item.display_name + " by ";
+		html += ">" + access.item.display_name + " by ";
 		if (access.member)
 			html += access.member.fname + " " + access.member.lname;
 		else
 			html += "Unknown badge " + access.badge_number;
-			
-		html += "</li>";
+		html += "<span class=\"info\"><br />";
+		html += "Access Time: " + date.toLocaleDateString() + " " + date.toLocaleTimeString();
+		html += "</span></li>";
 		}
 	
-	html += "</ol>";
+	html += "</ol><div class=\"u-w-100 text-center\"><a href=\"/admin/access_log\" class=\"btn btn-primary\">View All Access Logs</a></div>";
 	$access_panel.find(".panel-body").html(html);
 	}
 
@@ -33,7 +33,7 @@ function display_storage_status_data(data, $panel)
 		+ "Occupied Slots: " + data.occupied_slots + "<br />"
 		+ "<br />";
 
-	html += "<a href=\"/admin/storage\" class=\"btn btn-primary\">Visit the Storage Admin Area</a><br />";
+	html += "<div class=\"u-w-100 text-center\"><a href=\"/admin/storage\" class=\"btn btn-primary\">Visit the Storage Admin Area</a></div>";
 
 	$panel.find(".panel-body").html(html);
 	}
@@ -42,4 +42,9 @@ $(function()
 	{
 	init_panel("access", display_access_data);
 	init_panel("storage_status", display_storage_status_data, 0);
+
+	$("div.panel.hive-panel-access").on("click", "ol li", function()
+		{
+		$(this).toggleClass("shown");
+		});
 	});
