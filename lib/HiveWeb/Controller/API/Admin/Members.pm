@@ -514,6 +514,7 @@ sub index :Path :Args(0)
 		}
 
 	my $members_rs = $c->model('DB::Member')->search($filters, $member_attrs);
+	my $tot_count  = $c->model('DB::Member')->search({})->count();
 	my $count      = $members_rs->count();
 	my @members    = $members_rs->search({},
 		{
@@ -556,6 +557,7 @@ sub index :Path :Args(0)
 	$out->{groups}   = \@groups;
 	$out->{members}  = \@members;
 	$out->{count}    = $count;
+	$out->{total}    = $tot_count;
 	$out->{page}     = $member_table->{page};
 	$out->{per_page} = $member_table->{per_page};
 	$out->{response} = \1;
