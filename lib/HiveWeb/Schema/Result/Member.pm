@@ -12,49 +12,51 @@ extends 'DBIx::Class::Core';
 use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
-__PACKAGE__->table_class("DBIx::Class::ResultSource::View");
-__PACKAGE__->table("members");
+__PACKAGE__->table_class('DBIx::Class::ResultSource::View');
+__PACKAGE__->table('members');
 
 __PACKAGE__->add_columns(
-  "member_id",
-  { data_type => "uuid", is_nullable => 0, size => 16 },
-  "fname",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
-  "lname",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
-  "email",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
-  "paypal_email",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
-  "phone",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
-  "encrypted_password",
-  { data_type => "varchar", is_nullable => 1, size => 255, accessor => 'password' },
-	"vend_credits",
-  { data_type => "integer", is_nullable => 1 },
-	"vend_total",
-  { data_type => "integer", is_nullable => 1 },
-	"created_at",
+  'member_id',
+  { data_type => 'uuid', is_nullable => 0, size => 16 },
+  'fname',
+  { data_type => 'varchar', is_nullable => 1, size => 255 },
+  'lname',
+  { data_type => 'varchar', is_nullable => 1, size => 255 },
+  'email',
+  { data_type => 'varchar', is_nullable => 1, size => 255 },
+  'paypal_email',
+  { data_type => 'varchar', is_nullable => 1, size => 255 },
+  'phone',
+  { data_type => 'varchar', is_nullable => 1, size => 255 },
+  'encrypted_password',
+  { data_type => 'varchar', is_nullable => 1, size => 255, accessor => 'password' },
+	'vend_credits',
+  { data_type => 'integer', is_nullable => 1 },
+	'vend_total',
+  { data_type => 'integer', is_nullable => 1 },
+	'created_at',
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"current_timestamp",
+    data_type     => 'timestamp without time zone',
+    default_value => \'current_timestamp',
     is_nullable   => 0,
-    original      => { default_value => \"now()" },
+    original      => { default_value => \'now()' },
   },
-	"updated_at",
+	'updated_at',
   {
-    data_type     => "timestamp without time zone",
-    default_value => \"current_timestamp",
+    data_type     => 'timestamp without time zone',
+    default_value => \'current_timestamp',
     is_nullable   => 0,
-    original      => { default_value => \"now()" },
+    original      => { default_value => \'now()' },
   },
-	"handle",
+	'handle',
 	{
 		data_type     => 'character varying',
 		is_nullable   => 1,
 	},
-  "member_image_id",
-  { data_type => "uuid", is_nullable => 1, size => 16 },
+  'member_image_id',
+  { data_type => 'uuid', is_nullable => 1, size => 16 },
+	'door_count',
+  { data_type => 'integer', is_nullable => 1 },
 );
 
 __PACKAGE__->uuid_columns('member_id');
