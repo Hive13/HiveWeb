@@ -123,7 +123,12 @@ var columns    =
 		desc: "Name",
 		display: function(access, members)
 			{
-			var member = members[access.member_id];
+			var member;
+
+			if (!access.member_id)
+				return "Unknown badge " + access.badge;
+
+			member = members[access.member_id];
 			return member.fname + " " + member.lname;
 			}
 		},
