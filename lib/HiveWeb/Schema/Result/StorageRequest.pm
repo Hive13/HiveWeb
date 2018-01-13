@@ -95,13 +95,26 @@ sub TO_FULL_JSON
 	my @slots;
 	foreach my $slot ($member->slots)
 		{
-		push(@slots, $slot->TO_FULL_JSON());
+		my $hierarchy = [];
+		my $location = $slot->location();
+		while ($location)
+			{
+			unshift(@$hierarchy, $location->name());
+			$location = $location->parent();
+			}
+
+		push(@slots,
+			{
+			slot_id   => $slot->slot_id(),
+			name      => $slot->name(),
+			hierarchy => $hierarchy
+			});
 		}
 
 	return
 		{
 		request_id  => $self->request_id(),
-		member      => $member,
+		member      => $member->TO_SUMMARY_JSON(),
 		other_slots => \@slots,
 		created_at  => $self->created_at(),
 		notes       => $self->notes(),
