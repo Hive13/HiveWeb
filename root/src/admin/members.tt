@@ -13,7 +13,7 @@ nav ul.pagination
 	}
 </style>
 <div class="row">
-	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+	<div class="col-sm-12 panel panel-default hive-member-panel" style="padding: 0;">
 		<div class="panel-heading">
 			<h3>Members</h3>
 		</div>
@@ -728,7 +728,7 @@ function load_header($table)
 
 function set_top_html(count)
 	{
-	var i, html = "<h3>Members <span class=\"badge\">" + (count === null ? "..." : count) + (total !== null ? "/" + total : "") + "</span></h3>";
+	var i, j, group_id, html = "<h3>Members <span class=\"badge\">" + (count === null ? "..." : count) + (total !== null ? "/" + total : "") + "</span></h3>";
 	if (filters.photo !== null)
 		html += " <span class=\"label label-info\">Photo: " + (filters.photo ? "Yes" : "No") + "</span>";
 
@@ -751,7 +751,39 @@ function set_top_html(count)
 		html += "</span>";
 		}
 
-	$("div.row div.panel div.panel-heading").html(html);
+	if (filters.group_type !== null)
+		{
+		html += " <span class=\"label label-info\">";
+		if (filters.group_type === "any")
+			html += "In any group";
+		else if (filters.group_type === "all")
+			html += "In all groups";
+		else if (filters.group_type === "not_any")
+			html += "Not in any groups";
+		else if (filters.group_type === "not_all")
+			html += "Not in all groups";
+		else
+			html += "???";
+
+		html += ": ";
+		for (i = 0; i < filters.group_list.length; i++)
+			{
+			group_id = filters.group_list[i];
+			if (i)
+				html += ", ";
+			for (j = 0; j < all_groups.length; j++)
+				if (group_id == all_groups[j].mgroup_id)
+					{
+					html += all_groups[j].name;
+					break;
+					}
+			if (j == all_groups.length)
+				html += "???";
+			}
+		html += "</span>";
+		}
+
+	$("div.row div.panel.hive-member-panel div.panel-heading").html(html);
 	}
 
 function load_members()
