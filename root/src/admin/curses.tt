@@ -1,3 +1,5 @@
+<link href="[% Catalyst.uri_for('/static/css/bootstrap-markdown.min.css').dquote %]" rel="stylesheet">
+<script src="[% Catalyst.uri_for('/static/js/bootstrap-markdown.js').dquote %]" type="text/javascript"></script>
 <div class="row">
 	<div class="col-xs-12 col-lg-8 col-lg-offset-2">
 		<div class="panel panel-danger hive-curse-panel">
@@ -75,7 +77,7 @@
 								<h5>Notification Message</h5>
 							</div>
 							<div class="panel-body">
-								Markdown Editor Goes Here!
+								<textarea id="notification" rows="10" class="u-w-100" data-provide="markdown"></textarea>
 							</div>
 						</div>
 					</div>
@@ -445,6 +447,7 @@ function curse_edit(curse_id)
 
 	$dialogue.find("input#curse_name").val(curse.name || "");
 	$dialogue.find("input#display_name").val(curse.display_name || "");
+	$dialogue.find("textarea#notification").val(curse.notification_markdown || "");
 	$dialogue.find("input#priority").val(curse.priority !== undefined ? curse.priority : 10000);
 
 	$dialogue.modal("show");

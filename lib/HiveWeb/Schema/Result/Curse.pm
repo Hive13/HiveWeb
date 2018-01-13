@@ -72,13 +72,14 @@ sub TO_JSON
 
 	return
 		{
-		curse_id           => $self->curse_id(),
-		name               => $self->name(),
-		display_name       => $self->display_name(),
-		notification       => markdown($self->notification_markdown()),
-		protect_group_cast => $self->protect_group_cast() ? \1 : \0,
-		protect_user_cast  => $self->protect_user_cast() ? \1 : \0,
-		priority           => $self->priority(),
+		curse_id              => $self->curse_id(),
+		name                  => $self->name(),
+		display_name          => $self->display_name(),
+		notification          => markdown($self->notification_markdown()),
+		notification_markdown => $self->notification_markdown(),
+		protect_group_cast    => $self->protect_group_cast() ? \1 : \0,
+		protect_user_cast     => $self->protect_user_cast() ? \1 : \0,
+		priority              => $self->priority(),
 		};
 	}
 
