@@ -13,7 +13,7 @@ nav ul.pagination
 	}
 </style>
 <div class="row">
-	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+	<div class="col-sm-12 panel panel-default hive-member-panel" style="padding: 0;">
 		<div class="panel-heading">
 			<h3>Members</h3>
 		</div>
@@ -726,6 +726,66 @@ function load_header($table)
 	$table.find("thead").html(html);
 	}
 
+function set_top_html(count)
+	{
+	var i, j, group_id, html = "<h3>Members <span class=\"badge\">" + (count === null ? "..." : count) + (total !== null ? "/" + total : "") + "</span></h3>";
+	if (filters.photo !== null)
+		html += " <span class=\"label label-info\">Photo: " + (filters.photo ? "Yes" : "No") + "</span>";
+
+	if (filters.paypal !== null)
+		{
+		html += " <span class=\"label label-info\">PayPal: ";
+		for (i = 0; i < filters.paypal.length; i++)
+			{
+			if (i)
+				html += ", ";
+			if (filters.paypal[i] === "same")
+				html += "Same As Primary";
+			else if (filters.paypal[i] === "diff")
+				html += "Different";
+			else if (filters.paypal[i] === "no")
+				html += "No PayPal";
+			else
+				html += "???";
+			}
+		html += "</span>";
+		}
+
+	if (filters.group_type !== null)
+		{
+		html += " <span class=\"label label-info\">";
+		if (filters.group_type === "any")
+			html += "In any group";
+		else if (filters.group_type === "all")
+			html += "In all groups";
+		else if (filters.group_type === "not_any")
+			html += "Not in any groups";
+		else if (filters.group_type === "not_all")
+			html += "Not in all groups";
+		else
+			html += "???";
+
+		html += ": ";
+		for (i = 0; i < filters.group_list.length; i++)
+			{
+			group_id = filters.group_list[i];
+			if (i)
+				html += ", ";
+			for (j = 0; j < all_groups.length; j++)
+				if (group_id == all_groups[j].mgroup_id)
+					{
+					html += all_groups[j].name;
+					break;
+					}
+			if (j == all_groups.length)
+				html += "???";
+			}
+		html += "</span>";
+		}
+
+	$("div.row div.panel.hive-member-panel div.panel-heading").html(html);
+	}
+
 function load_members()
 	{
 	var $table = $("table#hive-member-table");
@@ -752,7 +812,8 @@ function load_members()
 	load_header($table);
 
 	$tbody.html("<tr class=\"loading\"><td colspan=\"9\">" + loading_icon() + "</td></tr>");
-	$("div.row div.panel div.panel-heading h3").html("Members <span class=\"badge\">..." + (total !== null ? "/" + total : "") + "</span>");
+	set_top_html(null);
+
 	api.success = function (data)
 		{
 		var i, j, date_obj, member, val, html = "<ul class=\"pagination\">";
@@ -783,7 +844,7 @@ function load_members()
 			html += "<li><a class=\"anchor-style\" id=\"page_last\">&raquo;</a></li>";
 
 		html += "</ul>";
-		$("div.row div.panel div.panel-heading h3").html("Members <span class=\"badge\">" + count + "/" + total + "</span>");
+		set_top_html(count);
 		$("nav.hive-member-pagination").html(html);
 
 		html = "";
