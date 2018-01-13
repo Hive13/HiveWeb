@@ -19,6 +19,58 @@ sub index :Path :Args(0)
 	$out->{curses}   = \@curses;
 	}
 
+sub edit :Local :Args(0)
+	{
+	my ($self, $c)   = @_;
+	my $in           = $c->stash()->{in};
+	my $out          = $c->stash()->{out};
+	$out->{response} = \0;
+
+	my $curse;
+
+	if ($in->{curse_id})
+		{
+		$curse = $c->model('DB::Curse')->find($in->{curse_id});
+		if (!$curse)
+			{
+			$out->{data} = "Could not locate curse \"$in->{curse_id}\".";
+			return;
+			}
+		}
+	elsif (!$in->{name})
+		{
+		$out->{data} = 'You must provide a curse name.';
+		return;
+		}
+
+	if (my $other_curse = $c->model('DB::Curse')->find({ name => $in->{name} }))
+		{
+		if (!$curse || $curse->curse_id ne $other_curse->curse_id())
+			{
+			$out->{data} = 'That curse name already exists.';
+			return;
+			}
+		}
+
+	if (!$curse)
+		{
+		$curse = $c->model('DB::Curse')->create($in);
+		if (!$curse)
+			{
+			$out->{data} = 'Could not create curse.';
+			return;
+			}
+		}
+	elsif (!$curse->update($in))
+		{
+		$out->{data} = 'Could not update curse.';
+		return;
+		}
+
+	$out->{response} = \1;
+	$out->{curse}    = $curse;
+	}
+
 sub cast :Local :Args(0)
 	{
 	my ($self, $c) = @_;

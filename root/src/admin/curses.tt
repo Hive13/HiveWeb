@@ -92,18 +92,19 @@
 </div>
 
 <script type="text/javascript">
-var load_url   = "[% Catalyst.uri_for('/api/admin/curses').dquote %]";
-var order      = "priority";
-var dir        = "ASC";
-var page       = [% Catalyst.session.curse_table.page %];
-var per_page   = [% Catalyst.session.curse_table.per_page %];
-var count      = 0;
-var curses     = {};
-var total      = null;
-var filters    =
+var load_url = "[% Catalyst.uri_for('/api/admin/curses').dquote %]";
+var edit_url = "[% Catalyst.uri_for('/api/admin/curses/edit').dquote %]";
+var order    = "priority";
+var dir      = "ASC";
+var page     = [% Catalyst.session.curse_table.page %];
+var per_page = [% Catalyst.session.curse_table.per_page %];
+var count    = 0;
+var curses   = {};
+var total    = null;
+var filters  =
 	{
 	}
-var columns    =
+var columns  =
 	[
 		{
 		name: "display_name",
@@ -260,6 +261,7 @@ $(function()
 		;
 
 	$("button#new_curse").click(function() { curse_edit(null); });
+	$("button#finish_edit").click(curse_save);
 
 	$("div.search input").keydown(function()
 		{
@@ -451,6 +453,33 @@ function curse_edit(curse_id)
 	$dialogue.find("input#priority").val(curse.priority !== undefined ? curse.priority : 10000);
 
 	$dialogue.modal("show");
+	}
+
+function curse_save()
+	{
+	var $dialogue = $("div#curse_edit");
+	var data =
+		{
+		curse_id:              $dialogue.data("curse_id"),
+		protect_user_cast:     $dialogue.find("input#protect_user_cast").prop("checked"),
+		protect_group_cast:    $dialogue.find("input#protect_group_cast").prop("checked"),
+		name:                  $dialogue.find("input#curse_name").val(),
+		display_name:          $dialogue.find("input#display_name").val(),
+		notification_markdown: $dialogue.find("textarea#notification").val(),
+		priority:              $dialogue.find("input#priority").val()
+		};
+
+	api_json(
+		{
+		url: edit_url,
+		what: data.curse_id ? "Edit Curse" : "Add Curse",
+		data: data,
+		success: function ()
+			{
+			$dialogue.modal("hide");
+			load_curses();
+			}
+		});
 	}
 </script>
 [%~ # vim:set filetype=tt2html: ~%]
