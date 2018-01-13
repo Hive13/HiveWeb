@@ -44,6 +44,20 @@ sub access_log :Local :Args(0)
 	$c->stash()->{template} = 'admin/access_log.tt';
 	}
 
+sub members :Local
+	{
+	my $self  = shift;
+	my $c     = shift;
+
+	$c->session()->{member_table} //=
+		{
+		page     => 1,
+		per_page => 50,
+		};
+
+	$c->stash()->{template} = 'admin/members.tt';
+	}
+
 =encoding utf8
 
 =head1 AUTHOR
