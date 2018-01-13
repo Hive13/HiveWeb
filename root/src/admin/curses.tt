@@ -2,6 +2,7 @@
 	<div class="col-xs-12 col-lg-8 col-lg-offset-2">
 		<div class="panel panel-danger hive-curse-panel">
 			<div class="panel-heading" style="text-align: center;">
+				<button type="button" class="pull-right btn btn-success" aria-label="New Curse" title="New Curse" id="new_curse"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></button>
 				<h4>Curses</h4>
 			</div>
 			<div class="panel-body">
@@ -255,6 +256,8 @@ $(function()
 			})
 		.on("click", "thead a.sort", sort_click)
 		;
+
+	$("button#new_curse").click(function() { curse_edit(null); });
 
 	$("div.search input").keydown(function()
 		{
