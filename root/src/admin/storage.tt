@@ -266,7 +266,7 @@ function view_requests(slot_id)
 		type: "GET",
 		success: function (data)
 			{
-			var i, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"false\" id=\"request_list\">";
+			var i, j, slot, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"false\" id=\"request_list\">";
 
 			for (i = 0; i < data.requests.length; i++)
 				{
@@ -282,10 +282,14 @@ function view_requests(slot_id)
 					+ "<div id=\"body_" + request.request_id + "\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"heading_" + request.request_id + "\">"
 					+ "<div class=\"panel-body\">"
 					+ request.notes
-					+ "</div></div>";
+					+ "</div><div class=\"panel-footer\">Other Slots:<br /><ul>";
 
-				html += "</div>";
-
+				for (j = 0; j < request.other_slots.length; j++)
+					{
+					slot = request.other_slots[j];
+					html += "<li>" + slot.name + " (" + slot.hierarchy.join(" &rarr; ") + ")</li>";
+					}
+				html += "</ul></div></div></div>";
 				}
 
 			html += "</div>";
