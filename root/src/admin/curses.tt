@@ -21,6 +21,73 @@
 	</div>
 </div>
 
+<div class="modal fade" id="curse_edit" tabIndex="-1" role="dialog" aria-labelledby="curse_edit_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="edit_label">Edit Curse</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row row-eq-height">
+					<div class="col-sm-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h5>Basics</h5>
+							</div>
+							<div class="panel-body">
+								<label>
+									Curse Name:
+									<input type="text" id="curse_name" />
+								</label><br />
+								<label>
+									Display Name:
+									<input type="text" id="display_name" />
+								</label><br />
+								<label>
+									Priority:
+									<input type="text" id="priority" />
+								</label>
+							</div>
+						</div>
+					</div>
+					<div id="photo" class="col-sm-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h5>Cast Protection</h5>
+							</div>
+							<div class="panel-body text-center">
+								<label>
+									<input type="checkbox" id="protect_user_cast" />
+									Users
+								</label><br />
+								<label>
+									<input type="checkbox" id="protect_group_cast" />
+									Groups
+								</label>
+							</div>
+						</div>
+					</div>
+					<div id="badges" class="col-xs-12">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h5>Notification Message</h5>
+							</div>
+							<div class="panel-body">
+								Markdown Editor Goes Here!
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_edit">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <script type="text/javascript">
 var load_url   = "[% Catalyst.uri_for('/api/admin/curses').dquote %]";
 var order      = "priority";
@@ -28,6 +95,7 @@ var dir        = "ASC";
 var page       = [% Catalyst.session.curse_table.page %];
 var per_page   = [% Catalyst.session.curse_table.per_page %];
 var count      = 0;
+var curses     = {};
 var total      = null;
 var filters    =
 	{
@@ -175,7 +243,14 @@ $(function()
 			})
 		.on("dblclick", "tr", function ()
 			{
-			edit($(this).attr("id"));
+			curse_edit($(this).attr("id"));
+			return false;
+			})
+		.on("click", "td.edit img.edit", function ()
+			{
+			var curse_id = $(this).closest("tr").attr("id");
+
+			curse_edit(curse_id);
 			return false;
 			})
 		.on("click", "thead a.sort", sort_click)
@@ -284,11 +359,11 @@ function load_curses()
 		{
 		var i, j, date_obj, curse, val, html = "<ul class=\"pagination\">";
 
-		all_groups = data.groups;
-		count      = data.count;
-		per_page   = data.per_page;
-		page       = data.page;
-		total      = data.total;
+		count    = data.count;
+		per_page = data.per_page;
+		page     = data.page;
+		total    = data.total;
+		curses   = {};
 
 		i   = data.page - 3;
 		val = Math.ceil(data.count / data.per_page);
@@ -316,7 +391,8 @@ function load_curses()
 
 		for (i = 0; i < data.curses.length; i++)
 			{
-			curse = data.curses[i];
+			curse                  = data.curses[i];
+			curses[curse.curse_id] = curse;
 
 			html += "<tr id=\"" + curse.curse_id + "\">";
 
@@ -331,22 +407,7 @@ function load_curses()
 					val = columns[j].display(curse);
 				else
 					val = curse[columns[j].name];
-				html += "<td>";
-
-				if ("date" in columns[j] && columns[j].date)
-					{
-					if (val)
-						{
-						date_obj = new Date(val);
-						html += date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString();
-						}
-					else
-						html += "--";
-					}
-				else
-					html += val;
-
-				html += "</td>";
+				html += "<td>" + val + "</td>";
 				}
 
 			html += "</tr>";
@@ -355,6 +416,35 @@ function load_curses()
 		};
 
 	api_json(api);
+	}
+
+function curse_edit(curse_id)
+	{
+	var $dialogue = $("div#curse_edit"),
+		$title      = $dialogue.find(".modal-title"),
+		curse       = null;
+
+	if (curse_id)
+		{
+		if (!(curse_id in curses))
+			return;
+		else
+			curse = curses[curse_id];
+		}
+	else
+		curse = {};
+
+	$dialogue.data("curse_id", curse_id);
+	$title.text(curse_id ? "Edit Curse" : "New Curse");
+
+	$dialogue.find("input#protect_user_cast").prop("checked", (curse.protect_user_cast !== undefined ? curse.protect_user_cast : true));
+	$dialogue.find("input#protect_group_cast").prop("checked", (curse.protect_group_cast !== undefined ? curse.protect_group_cast : true));
+
+	$dialogue.find("input#curse_name").val(curse.name || "");
+	$dialogue.find("input#display_name").val(curse.display_name || "");
+	$dialogue.find("input#priority").val(curse.priority !== undefined ? curse.priority : 10000);
+
+	$dialogue.modal("show");
 	}
 </script>
 [%~ # vim:set filetype=tt2html: ~%]
