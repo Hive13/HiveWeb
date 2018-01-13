@@ -726,6 +726,34 @@ function load_header($table)
 	$table.find("thead").html(html);
 	}
 
+function set_top_html(count)
+	{
+	var i, html = "<h3>Members <span class=\"badge\">" + (count === null ? "..." : count) + (total !== null ? "/" + total : "") + "</span></h3>";
+	if (filters.photo !== null)
+		html += " <span class=\"label label-info\">Photo: " + (filters.photo ? "Yes" : "No") + "</span>";
+
+	if (filters.paypal !== null)
+		{
+		html += " <span class=\"label label-info\">PayPal: ";
+		for (i = 0; i < filters.paypal.length; i++)
+			{
+			if (i)
+				html += ", ";
+			if (filters.paypal[i] === "same")
+				html += "Same As Primary";
+			else if (filters.paypal[i] === "diff")
+				html += "Different";
+			else if (filters.paypal[i] === "no")
+				html += "No PayPal";
+			else
+				html += "???";
+			}
+		html += "</span>";
+		}
+
+	$("div.row div.panel div.panel-heading").html(html);
+	}
+
 function load_members()
 	{
 	var $table = $("table#hive-member-table");
@@ -752,7 +780,8 @@ function load_members()
 	load_header($table);
 
 	$tbody.html("<tr class=\"loading\"><td colspan=\"9\">" + loading_icon() + "</td></tr>");
-	$("div.row div.panel div.panel-heading h3").html("Members <span class=\"badge\">..." + (total !== null ? "/" + total : "") + "</span>");
+	set_top_html(null);
+
 	api.success = function (data)
 		{
 		var i, j, date_obj, member, val, html = "<ul class=\"pagination\">";
@@ -783,7 +812,7 @@ function load_members()
 			html += "<li><a class=\"anchor-style\" id=\"page_last\">&raquo;</a></li>";
 
 		html += "</ul>";
-		$("div.row div.panel div.panel-heading h3").html("Members <span class=\"badge\">" + count + "/" + total + "</span>");
+		set_top_html(count);
 		$("nav.hive-member-pagination").html(html);
 
 		html = "";
