@@ -78,6 +78,7 @@ sub TO_JSON
 		notification       => markdown($self->notification_markdown()),
 		protect_group_cast => $self->protect_group_cast() ? \1 : \0,
 		protect_user_cast  => $self->protect_user_cast() ? \1 : \0,
+		priority           => $self->priority(),
 		};
 	}
 
