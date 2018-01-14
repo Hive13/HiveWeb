@@ -1,7 +1,7 @@
 <link href="[% Catalyst.uri_for('/static/css/bootstrap-markdown.min.css').dquote %]" rel="stylesheet">
 <script src="[% Catalyst.uri_for('/static/js/bootstrap-markdown.js').dquote %]" type="text/javascript"></script>
 <div class="row">
-	<div class="col-xs-12 col-lg-8 col-lg-offset-2">
+	<div class="col-xs-12 col-lg-10 col-lg-offset-1">
 		<div class="panel panel-danger hive-curse-panel">
 			<div class="panel-heading" style="text-align: center;">
 				<button type="button" class="pull-right btn btn-success" aria-label="New Curse" title="New Curse" id="new_curse"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></button>
@@ -131,6 +131,15 @@ var columns  =
 			return "<span class=\"label " + (curse.protect_user_cast ? "label-success" : "label-danger") + "\">"
 				+ "<span class=\"glyphicon " + (curse.protect_user_cast ? "glyphicon-ok" : "glyphicon-remove") + "\"></span></span>";
 			}
+		},
+		{
+		name: "actions",
+		desc: "Associated Actions",
+		sort: false,
+		display: function(curse)
+			{
+			return "<a class=\"curse_actions anchor-style\">" + curse.actions.length + "</a>";
+			}
 		}
 	];
 
@@ -257,6 +266,12 @@ $(function()
 			curse_edit(curse_id);
 			return false;
 			})
+		.on("click", "a.curse_actions", function ()
+			{
+			var curse_id = $(this).closest("tr").attr("id");
+
+			return false;
+			})
 		.on("click", "thead a.sort", sort_click)
 		;
 
@@ -300,7 +315,7 @@ function sort_click()
 
 function load_header($table)
 	{
-	var html, i;
+	var html, i, column;
 
 	html = "<tr><th>"
 		+ "<select class=\"per-page\">";
@@ -322,15 +337,24 @@ function load_header($table)
 
 	for (i = 0; i < columns.length; i++)
 		{
+		column = columns[i];
+
 		html += "<th";
-		if ("hidden" in columns[i])
-			html += " class=\"" + hidden_styles(columns[i].hidden) + "\"";
-		html += "><a id=\"sort-" + columns[i].name + "\" class=\"anchor-style sort sort-";
-		html += (order === columns[i].name && dir === "ASC") ? "desc" : "asc";
-		html += "\">" + columns[i].desc;
+		if ("hidden" in column)
+			html += " class=\"" + hidden_styles(column.hidden) + "\"";
+		html += ">";
+		if (column.sort !== false)
+			{
+			html += "<a id=\"sort-" + column.name + "\" class=\"anchor-style sort sort-";
+			html += (order === column.name && dir === "ASC") ? "desc" : "asc";
+			html += "\">";
+			}
+		html += columns[i].desc;
 		if (order === columns[i].name)
 			html += ((dir === "ASC") ? "(&darr;)" : "(&uarr;)");
-		html += "</a></th>";
+		if (column.sort !== false)
+			html += "</a>";
+		html += "</th>";
 		}
 	$table.find("thead").html(html);
 	}
