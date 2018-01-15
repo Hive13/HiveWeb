@@ -466,8 +466,15 @@ $(function()
 			data: data,
 			url: "[% Catalyst.uri_for('/api/admin/curses/action_edit').dquote %]",
 			what: ((action_idx >= 0) ? "Edit Curse Action" : "Add Curse Action"),
-			success: function (data)
+			success: function (rdata)
 				{
+				action.path    = data.path;
+				action.message = data.message;
+				action.action  = data.action;
+				if (add)
+					curses[curse_id].actions.push(action);
+
+				action_edit(curse_id);
 				}
 			});
 
