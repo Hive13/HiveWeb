@@ -185,6 +185,30 @@ sub cast :Local :Args(0)
 		}
 	}
 
+sub action_edit :Local :Args(0)
+	{
+	my ($self, $c)   = @_;
+	my $in           = $c->stash()->{in};
+	my $out          = $c->stash()->{out};
+	$out->{response} = \0;
+
+	my $action;
+
+	if (my $curse_id = delete($in->{curse_id}))
+		{
+		my $curse = $c->model('DB::Curse')->find($curse_id);
+		if (!$curse)
+			{
+			$out->{data} = "Could not find curse \"$curse_id\".";
+			return;
+			}
+		$action = $curse->create_related('curse_actions', $in) || die $!;
+		$out->{response}  = \1;
+		$out->{action_id} = $action->curse_action_id();
+		return;
+		}
+	}
+
 =encoding utf8
 
 =head1 AUTHOR

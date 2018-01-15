@@ -472,7 +472,10 @@ $(function()
 				action.message = data.message;
 				action.action  = data.action;
 				if (add)
+					{
+					action.curse_action_id = rdata.action_id;
 					curses[curse_id].actions.push(action);
+					}
 
 				action_edit(curse_id);
 				}
