@@ -192,8 +192,6 @@ sub action_edit :Local :Args(0)
 	my $out          = $c->stash()->{out};
 	$out->{response} = \0;
 
-	my $action;
-
 	if (my $curse_id = delete($in->{curse_id}))
 		{
 		my $curse = $c->model('DB::Curse')->find($curse_id);
@@ -202,10 +200,26 @@ sub action_edit :Local :Args(0)
 			$out->{data} = "Could not find curse \"$curse_id\".";
 			return;
 			}
-		$action = $curse->create_related('curse_actions', $in) || die $!;
+		my $action = $curse->create_related('curse_actions', $in) || die $!;
 		$out->{response}  = \1;
 		$out->{action_id} = $action->curse_action_id();
 		return;
+		}
+	elsif (my $action_id = delete($in->{action_id}))
+		{
+		my $action = $c->model('DB::CurseAction')->find($action_id);
+		if (!$action)
+			{
+			$out->{data} = "Could not find action \"$action_id\".";
+			return;
+			}
+		$action->update($in) || die $!;
+		$out->{response} = \1;
+		return;
+		}
+	else
+		{
+		$out->{data} = 'You must specify a curse to add an action to or an action to edit.';
 		}
 	}
 
