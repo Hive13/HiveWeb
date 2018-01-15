@@ -58,6 +58,20 @@ sub members :Local
 	$c->stash()->{template} = 'admin/members.tt';
 	}
 
+sub curses :Local
+	{
+	my $self = shift;
+	my $c    = shift;
+
+	$c->session()->{curse_table} //=
+		{
+		page     => 1,
+		per_page => 50,
+		};
+
+	$c->stash()->{template} = 'admin/curses.tt';
+	}
+
 =encoding utf8
 
 =head1 AUTHOR

@@ -41,7 +41,7 @@ sub TO_JSON
 	my $self = shift;
 	return
 		{
-		curse_action_id => $self->member_curse_id(),
+		curse_action_id => $self->curse_action_id(),
 		curse           => $self->curse(),
 		path            => $self->path(),
 		action          => $self->action(),

@@ -68,16 +68,32 @@ __PACKAGE__->many_to_many('members', 'member_curses', 'member');
 
 sub TO_JSON
 	{
-	my $self = shift;
+	my $self    = shift;
+	my $actions = $self->curse_actions();
+	my @actions;
+
+	while (my $action = $actions->next())
+		{
+		push (@actions,
+			{
+			curse_action_id => $action->curse_action_id(),
+			path            => $action->path(),
+			action          => $action->action(),
+			message         => $action->message(),
+			});
+		}
 
 	return
 		{
-		curse_id           => $self->curse_id(),
-		name               => $self->name(),
-		display_name       => $self->display_name(),
-		notification       => markdown($self->notification_markdown()),
-		protect_group_cast => $self->protect_group_cast() ? \1 : \0,
-		protect_user_cast  => $self->protect_user_cast() ? \1 : \0,
+		curse_id              => $self->curse_id(),
+		name                  => $self->name(),
+		display_name          => $self->display_name(),
+		notification          => markdown($self->notification_markdown()),
+		notification_markdown => $self->notification_markdown(),
+		protect_group_cast    => $self->protect_group_cast() ? \1 : \0,
+		protect_user_cast     => $self->protect_user_cast() ? \1 : \0,
+		priority              => $self->priority(),
+		actions               => \@actions,
 		};
 	}
 

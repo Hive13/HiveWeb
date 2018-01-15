@@ -10,6 +10,7 @@
 .hive-edit-table tbody tr td.edit
 	{
 	opacity: 0;
+	text-align: center;
 	}
 
 .hive-edit-table tbody tr:not(.loading):hover td.edit

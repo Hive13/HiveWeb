@@ -1,3 +1,6 @@
 [submodule "submodules/jquery-toast-plugin"]
 	path = submodules/jquery-toast-plugin
 	url = https://github.com/kamranahmedse/jquery-toast-plugin.git
+[submodule "submodules/markdown"]
+	path = submodules/markdown
+	url = https://github.com/toopay/bootstrap-markdown.git
