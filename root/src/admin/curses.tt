@@ -54,7 +54,7 @@
 							</div>
 						</div>
 					</div>
-					<div id="photo" class="col-sm-6">
+					<div class="col-sm-6">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h5>Cast Protection</h5>
@@ -71,7 +71,7 @@
 							</div>
 						</div>
 					</div>
-					<div id="badges" class="col-xs-12">
+					<div class="col-xs-12">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h5>Notification Message</h5>
@@ -86,6 +86,62 @@
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
 				<button type="button" class="btn btn-primary" id="finish_edit">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="action_edit" tabIndex="-1" role="dialog" aria-labelledby="action_edit_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="action_edit_label">Curse Actions</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row row-eq-height">
+					<div class="col-md-5">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h5>Actions</h5>
+							</div>
+							<div class="panel-body text-center">
+								<select id="curse_actions" class="u-w-100" size="4"></select><br />
+								<button type="button" class="btn btn-success" id="add_action">Add New Action</button>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-7">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h5>Action Info</h5>
+							</div>
+							<div class="panel-body">
+								<div class="edit" class="hide">
+									<label>
+										Path:
+										<input type="text" id="action_path" />
+									</label><br />
+									<label>
+										Action:
+										<select id="action_action">
+											<option value="">Select Action</option>
+											<option value="lift">Lift Curse</option>
+											<option value="block">Block Access</option>
+										</select>
+									</label><br />
+									<span class="edit_text"></span><br />
+									<textarea id="action_message" rows="10" class="u-w-100"></textarea>
+									<div class="panel-footer text-center">
+										<button type="button" class="btn btn-info" id="cancel_action">Cancel</button>
+										<button type="button" class="btn btn-danger" id="delete_action">Delete</button>
+										<button type="button" class="btn btn-success" id="finish_action">Save</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -270,6 +326,7 @@ $(function()
 			{
 			var curse_id = $(this).closest("tr").attr("id");
 
+			action_edit(curse_id);
 			return false;
 			})
 		.on("click", "thead a.sort", sort_click)
@@ -286,6 +343,85 @@ $(function()
 			key_timer = null;
 			}
 		key_timer = setTimeout(do_search, 375);
+		});
+
+	$("div#action_edit button#cancel_action").click(function ()
+		{
+		var $select = $("div#action_edit select#curse_actions");
+
+		$select.find("option:selected").prop("selected", false);
+		$select.change();
+		});
+	$("div#action_edit button#add_action").click(function ()
+		{
+		var action_id = $(this).val(),
+			$dialogue   = $("div#action_edit"),
+			curse_id    = $dialogue.data("curse_id"),
+			$edit       = $dialogue.find("div.edit"),
+			curse, action, i;
+
+		if (!curse_id)
+			return;
+		if (!(curse = curses[curse_id]))
+			return;
+
+		$dialogue.data("action_idx", -1);
+		$dialogue.find("input#action_path").val("");
+		$dialogue.find("select#action_action").find("option:selected").prop("selected", false);
+		$dialogue.find("select#action_action").change();
+		$dialogue.find("textarea#action_message").val("");
+
+		$edit.removeClass("hide");
+		});
+	$("div#action_edit select#action_action").change(function ()
+		{
+		var $this = $(this), val = $this.val(), $text = $("div#action_edit span.edit_text");
+
+		if (val === "lift")
+			$text.text("Show the following message in the lift toast");
+		else if (val === "block")
+			$text.text("Show the following message on the blocked page.");
+		else if (val === "")
+			$text.text("Select an action.  Message varies by action.");
+		else
+			$text.text("Unknown action type.  Message varies by action.");
+		});
+	$("div#action_edit select#curse_actions").change(function ()
+		{
+		var action_id = $(this).val(),
+			$dialogue   = $("div#action_edit"),
+			curse_id    = $dialogue.data("curse_id"),
+			$edit       = $dialogue.find("div.edit"),
+			curse, action, i;
+
+		if (!curse_id)
+			return;
+		if (!(curse = curses[curse_id]))
+			return;
+
+		if (!action_id)
+			{
+			$edit.addClass("hide");
+			return;
+			}
+		for (i = 0; i < curse.actions.length; i++)
+			if (curse.actions[i].curse_action_id == action_id)
+				{
+				action = curse.actions[i];
+				break;
+				}
+		if (!action)
+			{
+			$edit.addClass("hide");
+			return;
+			}
+
+		$dialogue.data("action_idx", i);
+		$dialogue.find("input#action_path").val(action.path);
+		$dialogue.find("select#action_action").val(action.action).change();
+		$dialogue.find("textarea#action_message").val(action.message);
+
+		$edit.removeClass("hide");
 		});
 
 	load_curses();
@@ -504,6 +640,29 @@ function curse_save()
 			load_curses();
 			}
 		});
+	}
+
+function action_edit(curse_id)
+	{
+	var $dialogue = $("#action_edit"),
+		$select     = $dialogue.find("#curse_actions"),
+		curse       = curses[curse_id],
+		i, $option;
+
+	if (!curse)
+		return;
+
+	$dialogue.data("curse_id", curse_id);
+	$select.empty();
+	$dialogue.find("div.edit").addClass("hide");
+	for (i = 0; i < curse.actions.length; i++)
+		{
+		$option = $("<option />").attr("value", curse.actions[i].curse_action_id).text(curse.actions[i].path + ": " + curse.actions[i].action);
+
+		$select.append($option);
+		}
+
+	$dialogue.modal("show");
 	}
 </script>
 [%~ # vim:set filetype=tt2html: ~%]
