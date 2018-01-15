@@ -223,6 +223,24 @@ sub action_edit :Local :Args(0)
 		}
 	}
 
+sub action_delete :Local :Args(0)
+	{
+	my ($self, $c)   = @_;
+	my $in           = $c->stash()->{in};
+	my $out          = $c->stash()->{out};
+	$out->{response} = \0;
+
+	my $action_id = delete($in->{action_id});
+	my $action = $c->model('DB::CurseAction')->find($action_id);
+	if (!$action)
+		{
+		$out->{data} = "Could not find action \"$action_id\".";
+		return;
+		}
+	$action->delete() || die $!;
+	$out->{response} = \1;
+	}
+
 =encoding utf8
 
 =head1 AUTHOR

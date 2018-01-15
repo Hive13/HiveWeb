@@ -352,6 +352,34 @@ $(function()
 		$select.find("option:selected").prop("selected", false);
 		$select.change();
 		});
+	$("div#action_edit button#delete_action").click(function ()
+		{
+		var $dialogue = $("div#action_edit"),
+			curse_id    = $dialogue.data("curse_id"),
+			action_idx  = $dialogue.data("action_idx"),
+			action_id;
+
+		if (!curse_id || action_idx < 0)
+			return;
+		action_id = curses[curse_id].actions[action_idx].curse_action_id;
+		if (!action_id)
+			return;
+
+		if (!confirm("Are you sure?"))
+			return;
+
+		api_json(
+			{
+			what: "Delete Curse Action",
+			url: "[% Catalyst.uri_for('/api/admin/curses/action_delete').dquote %]",
+			data: { action_id: action_id },
+			success: function ()
+				{
+				curses[curse_id].actions.splice(action_idx, 1);
+				action_edit(curse_id);
+				}
+			});
+		});
 	$("div#action_edit button#add_action").click(function ()
 		{
 		var action_id = $(this).val(),
