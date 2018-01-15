@@ -424,6 +424,55 @@ $(function()
 		$edit.removeClass("hide");
 		});
 
+	$("div#action_edit button#finish_action").click(function ()
+		{
+		var $dialogue = $("div#action_edit"),
+			curse_id    = $dialogue.data("curse_id"),
+			action_idx  = $dialogue.data("action_idx"),
+			what        = $dialogue.find("select#action_action").val(),
+			data = {}, action, add = false;
+
+		if (!what)
+			{
+			$.toast(
+				{
+				icon: "error",
+				heading: "Error",
+				position: "top-right",
+				message: "You must select an action."
+				});
+			return;
+			}
+		if (!curse_id)
+			return;
+		if (action_idx >= 0)
+			{
+			action = curses[curse_id].actions[action_idx];
+			data.action_id = action.curse_action_id;
+			}
+		else
+			{
+			data.curse_id = curse_id;
+			add = true;
+			action = {};
+			}
+
+		data.path    = $dialogue.find("input#action_path").val();
+		data.action  = what;
+		data.message = $dialogue.find("textarea#action_message").val();
+
+		api_json(
+			{
+			data: data,
+			url: "[% Catalyst.uri_for('/api/admin/curses/action_edit').dquote %]",
+			what: ((action_idx >= 0) ? "Edit Curse Action" : "Add Curse Action"),
+			success: function (data)
+				{
+				}
+			});
+
+		});
+
 	load_curses();
 	});
 
