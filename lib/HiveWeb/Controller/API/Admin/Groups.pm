@@ -42,14 +42,11 @@ sub index :Path :Args(0)
 	my $sorder = "$order $dir";
 	$group_attrs->{order_by} = $sorder;
 
-	my @members   = $c->model('DB::Member')->search({});
-	my $groups_rs = $c->model('DB::MGroup')->search({}, $group_attrs);
-	my $count     = $groups_rs->count();
-	my @groups    = $groups_rs->search({},
-		{
-		rows => $group_table->{per_page},
-		page => $group_table->{page},
-		});
+	my @members          = $c->model('DB::Member')->search({}, { prefetch  => 'member_mgroups' });
+	my $count            = $c->model('DB::MGroup')->search({})->count();
+	$group_attrs->{rows} = $group_table->{per_page};
+	$group_attrs->{page} = $group_table->{page};
+	my @groups           = $c->model('DB::MGroup')->search({}, $group_attrs);
 
 	$out->{groups}   = \@groups;
 	$out->{members}  = \@members;

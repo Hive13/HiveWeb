@@ -43,7 +43,12 @@ sub TO_JSON
 	{
 	my $self    = shift;
 	my $columns = { $self->get_columns() };
-	my @members = $self->member_mgroups()->get_column('member_id')->all();
+	my @members;
+	my $mgs = $self->member_mgroups();
+	while (my $mg = $mgs->next())
+		{
+		push(@members, $mg->member_id());
+		}
 
 	return
 		{
