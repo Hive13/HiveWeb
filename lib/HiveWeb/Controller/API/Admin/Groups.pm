@@ -7,24 +7,6 @@ use JSON;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub info :Local :Args(1)
-	{
-	my ($self, $c, $group_id) = @_;
-
-	my $out   = $c->stash()->{out};
-	my $group = $c->model('DB::MGroup')->find($group_id, { prefetch => 'member_mgroups' });
-
-	if (!defined($group))
-		{
-		$out->{response} = \0;
-		$out->{data}     = "Cannot find group";
-		return;
-		}
-
-	$out->{group}    = $group;
-	$out->{response} = \1;
-	}
-
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
