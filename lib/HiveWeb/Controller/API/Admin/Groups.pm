@@ -121,7 +121,8 @@ sub edit :Local :Args(0)
 			{
 			if (!$mgroup)
 				{
-				$mgroup = $c->model('DB::MGroup')->create({ name => $name }) || die $!;
+				$mgroup    = $c->model('DB::MGroup')->create({ name => $name }) || die $!;
+				$mgroup_id = $mgroup->mgroup_id();
 				}
 			elsif ($name)
 				{
