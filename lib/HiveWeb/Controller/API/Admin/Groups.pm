@@ -7,24 +7,6 @@ use JSON;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub info :Local :Args(1)
-	{
-	my ($self, $c, $group_id) = @_;
-
-	my $out   = $c->stash()->{out};
-	my $group = $c->model('DB::MGroup')->find($group_id, { prefetch => 'member_mgroups' });
-
-	if (!defined($group))
-		{
-		$out->{response} = \0;
-		$out->{data}     = "Cannot find group";
-		return;
-		}
-	
-	$out->{group}    = $group;
-	$out->{response} = \1;
-	}
-
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
@@ -60,14 +42,11 @@ sub index :Path :Args(0)
 	my $sorder = "$order $dir";
 	$group_attrs->{order_by} = $sorder;
 
-	my @members   = $c->model('DB::Member')->search({});
-	my $groups_rs = $c->model('DB::MGroup')->search({}, $group_attrs);
-	my $count     = $groups_rs->count();
-	my @groups    = $groups_rs->search({},
-		{
-		rows => $group_table->{per_page},
-		page => $group_table->{page},
-		});
+	my @members          = $c->model('DB::Member')->search({}, { prefetch  => 'member_mgroups' });
+	my $count            = $c->model('DB::MGroup')->search({})->count();
+	$group_attrs->{rows} = $group_table->{per_page};
+	$group_attrs->{page} = $group_table->{page};
+	my @groups           = $c->model('DB::MGroup')->search({}, $group_attrs);
 
 	$out->{groups}   = \@groups;
 	$out->{members}  = \@members;
@@ -83,21 +62,52 @@ sub edit :Local :Args(0)
 
 	my $in        = $c->stash()->{in};
 	my $out       = $c->stash()->{out};
-	my $mgroup_id = $c->stash()->{in}->{mgroup_id};
-	my $mgroup    = $c->model('DB::MGroup')->find({ mgroup_id => $mgroup_id });
+	my $mgroup_id = $in->{mgroup_id};
+	my $name      = $in->{name};
+	my $mgroup;
 
-	if (!defined($mgroup))
+	$out->{response} = \0;
+
+	if ($mgroup_id)
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Cannot find member';
+		$mgroup = $c->model('DB::MGroup')->find({ mgroup_id => $mgroup_id });
+		if (!defined($mgroup))
+			{
+			$out->{data} = 'Cannot find group';
+			return;
+			}
+		}
+	if (!$name && !$mgroup)
+		{
+		$out->{data} = 'You must specify a group to edit or a name to create.';
 		return;
 		}
+	if ($name)
+		{
+		my $other_group = $c->model('DB::MGroup')->find({ name => $name });
+		if ($other_group && (!$mgroup || $mgroup->mgroup_id() eq $other_group->mgroup_id()))
+			{
+			$out->{data} = 'That group name already exists.';
+			return;
+			}
+		}
+
 	my %new_members = map { $_ => 1; } @{$in->{members}};
 	my @members     = $c->model('DB::Member')->all();
 	try
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			if (!$mgroup)
+				{
+				$mgroup    = $c->model('DB::MGroup')->create({ name => $name }) || die $!;
+				$mgroup_id = $mgroup->mgroup_id();
+				}
+			elsif ($name)
+				{
+				$mgroup->update({ name => $name });
+				}
+
 			foreach my $member (@members)
 				{
 				my $member_id = $member->member_id();
@@ -129,8 +139,7 @@ sub edit :Local :Args(0)
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not update group.';
+		$out->{data} = "Could not update group.";
 		};
 	}
 

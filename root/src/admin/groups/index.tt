@@ -1,6 +1,7 @@
 <div class="row">
 	<div class="col-sm-12 panel panel-default" style="padding: 0;">
 		<div class="panel-heading">
+				<button type="button" class="pull-right btn btn-success" aria-label="New Group" title="New Group" id="new_group"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></button>
 			<h3>Groups</h3>
 		</div>
 		<div class="panel-body">
@@ -66,10 +67,13 @@
 				<h3 class="modal-title" id="edit_label">Edit Group</h3>
 			</div>
 			<div class="modal-body">
-				<div class="container-fluid">
-					<div class="row" id="members">
-					</div>
+				<div class="hide group-name">
+					<label>
+						Name:
+						<input type="text" size="30" id="group_name" />
+					</label>
 				</div>
+				<select id="group_members" style="width: 100%; min-height: 100px;" multiple="multiple"></select>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -86,6 +90,8 @@ var dir        = "ASC";
 var page       = [% Catalyst.session.group_table.page %];
 var per_page   = [% Catalyst.session.group_table.per_page %];
 var count      = 0;
+var all_groups;
+var all_members;
 var columns    =
 	[
 		{
@@ -147,6 +153,10 @@ $(function()
 			})
 		.on("click", "thead a.sort", sort_click)
 		;
+
+	$("select#group_members").select2();
+	$("button#new_group").click(function() { edit_group(); });
+	$("button#finish_edit").click(save_group);
 
 	load_groups();
 	});
@@ -239,6 +249,7 @@ function load_groups()
 		var i, j, date_obj, group, val, html = "<ul class=\"pagination\">";
 
 		all_members = data.members;
+		all_groups  = data.groups;
 		count       = data.count;
 		per_page    = data.per_page;
 		page        = data.page;
@@ -314,7 +325,7 @@ function load_groups()
 function save_group()
 	{
 	var $this = $(this).parents(".modal"), members = [], mgroup_id = $this.data("mgroup_id");
-	var url, what, data =
+	var url = "[% Catalyst.uri_for('/api/admin/groups/edit') %]", what, data =
 		{
 		members: members
 		};
@@ -322,16 +333,15 @@ function save_group()
 	if (mgroup_id)
 		{
 		what = "Group edit";
-		url = "[% Catalyst.uri_for('/api/admin/groups/edit') %]";
 		data.mgroup_id = mgroup_id;
 		}
 	else
 		{
 		what = "Group add";
-		url = "[% Catalyst.uri_for('/api/admin/groups/new') %]";
+		data.name = $this.find("input#group_name").val();
 		}
 
-	$this.find("input.members[type=\"checkbox\"]:checked").each(function()
+	$this.find("select#group_members option:selected").each(function()
 		{
 		members.push($(this).val());
 		});
@@ -347,37 +357,42 @@ function save_group()
 
 function edit_group(mgroup_id)
 	{
-	var i, html = "";
-	var $dialogue = $("#edit_dialogue");
+	var i, html = "", group, title;
+	var $dialogue = $("#edit_dialogue"),
+		$select     = $dialogue.find("select#group_members");
 	$dialogue.data("mgroup_id", mgroup_id);
 
 	for (i = 0; i < all_members.length; i++)
-		html += "<div class=\"col-xs-12 col-sm-6 col-md-4 col-lg-3\"><label><input type=\"checkbox\" class=\"members\" value=\""
-			+ all_members[i].member_id + "\" /> " + all_members[i].fname + " " + all_members[i].lname
-			+ "</label></div>";
-	$dialogue.find("div#members").html(html);
+		html += "<option value=\"" + all_members[i].member_id
+			+ "\"> " + all_members[i].fname + " " + all_members[i].lname + "</option>";
+	$dialogue.find("select#group_members").html(html);
 
-	$.ajax(
+	if (mgroup_id)
 		{
-		dataType: "json",
-		url: "[% Catalyst.uri_for('/api/admin/groups/info') %]" + "/" + mgroup_id,
-		cache: false,
-		success: function (data)
-			{
-			var i, title;
+		for (i = 0; i < all_groups.length; i++)
+			if (all_groups[i].mgroup_id === mgroup_id)
+				{
+				group = all_groups[i];
+				break;
+				}
+		if (!group)
+			return;
+		title = "Edit " + group.name;
+		$dialogue.find("div.group-name").addClass("hide");
 
-			title = "Edit " + data.group.name;
+		$select.find("option").prop("selected", false);
+		for (i = 0; i < group.members.length; i++)
+			$select.find("option[value=\"" + group.members[i] + "\"]").prop("selected", true);
+		$select.trigger("change");
+		}
+	else
+		{
+		title = "New Group";
+		$dialogue.find("div.group-name").removeClass("hide");
+		}
 
-			$dialogue.find("input.members[type=\"checkbox\"]").prop("checked", false);
-
-			for (i = 0; i < data.group.members.length; i++)
-				$dialogue.find("input.members[type=\"checkbox\"][value=\"" + data.group.members[i] + "\"]").prop("checked", true);
-
-			$dialogue.find("#edit_label").text(title);
-			$dialogue.modal("show");
-			$dialogue.find("button#finish_edit").off("click").click(save_group);
-			}
-		});
+	$dialogue.find("#edit_label").text(title);
+	$dialogue.modal("show");
 	}
 
 function curse_group(mgroup_id)

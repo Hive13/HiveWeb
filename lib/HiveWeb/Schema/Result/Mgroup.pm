@@ -9,7 +9,7 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components(qw[ InflateColumn::DateTime UUIDColumns ]);
 __PACKAGE__->table("mgroup");
 
 __PACKAGE__->add_columns(
@@ -20,6 +20,7 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->set_primary_key("mgroup_id");
+__PACKAGE__->uuid_columns("mgroup_id");
 
 __PACKAGE__->has_many(
   "item_mgroups",
@@ -42,7 +43,12 @@ sub TO_JSON
 	{
 	my $self    = shift;
 	my $columns = { $self->get_columns() };
-	my @members = $self->member_mgroups()->get_column('member_id')->all();
+	my @members;
+	my $mgs = $self->member_mgroups();
+	while (my $mg = $mgs->next())
+		{
+		push(@members, $mg->member_id());
+		}
 
 	return
 		{

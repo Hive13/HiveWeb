@@ -166,12 +166,18 @@ __PACKAGE__->many_to_many('curses', 'member_curses', 'curse');
 sub TO_JSON
 	{
 	my $self    = shift;
-	my @groups  = $self->member_mgroups()->get_column('mgroup_id')->all();
 	my $columns = { $self->get_columns() };
 	my $dtp     = $self->result_source()->schema()->storage()->datetime_parser();
 	my $lat;
 	$lat = $dtp->parse_datetime($columns->{last_access_time})
 		if (exists($columns->{last_access_time}) && $columns->{last_access_time});
+
+	my @groups;
+	my $mgs = $self->member_mgroups();
+	while (my $mg = $mgs->next())
+		{
+		push(@groups, $mg->mgroup_id());
+		}
 
 	return
 		{
@@ -251,7 +257,7 @@ sub has_access
 		->search_related('mgroup')
 		->search_related('item_mgroups', { item_id => $item->item_id() })
 		->count();
-	
+
 	return $access > 0;
 	}
 
