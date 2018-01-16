@@ -20,7 +20,7 @@ sub info :Local :Args(1)
 		$out->{data}     = "Cannot find group";
 		return;
 		}
-	
+
 	$out->{group}    = $group;
 	$out->{response} = \1;
 	}
@@ -83,21 +83,51 @@ sub edit :Local :Args(0)
 
 	my $in        = $c->stash()->{in};
 	my $out       = $c->stash()->{out};
-	my $mgroup_id = $c->stash()->{in}->{mgroup_id};
-	my $mgroup    = $c->model('DB::MGroup')->find({ mgroup_id => $mgroup_id });
+	my $mgroup_id = $in->{mgroup_id};
+	my $name      = $in->{name};
+	my $mgroup;
 
-	if (!defined($mgroup))
+	$out->{response} = \0;
+
+	if ($mgroup_id)
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Cannot find member';
+		$mgroup = $c->model('DB::MGroup')->find({ mgroup_id => $mgroup_id });
+		if (!defined($mgroup))
+			{
+			$out->{data} = 'Cannot find group';
+			return;
+			}
+		}
+	if (!$name && !$mgroup)
+		{
+		$out->{data} = 'You must specify a group to edit or a name to create.';
 		return;
 		}
+	if ($name)
+		{
+		my $other_group = $c->model('DB::MGroup')->find({ name => $name });
+		if ($other_group && (!$mgroup || $mgroup->mgroup_id() eq $other_group->mgroup_id()))
+			{
+			$out->{data} = 'That group name already exists.';
+			return;
+			}
+		}
+
 	my %new_members = map { $_ => 1; } @{$in->{members}};
 	my @members     = $c->model('DB::Member')->all();
 	try
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			if (!$mgroup)
+				{
+				$mgroup = $c->model('DB::MGroup')->create({ name => $name }) || die $!;
+				}
+			elsif ($name)
+				{
+				$mgroup->update({ name => $name });
+				}
+
 			foreach my $member (@members)
 				{
 				my $member_id = $member->member_id();
@@ -129,8 +159,7 @@ sub edit :Local :Args(0)
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not update group.';
+		$out->{data} = "Could not update group.";
 		};
 	}
 
