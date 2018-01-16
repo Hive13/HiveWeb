@@ -66,10 +66,7 @@
 				<h3 class="modal-title" id="edit_label">Edit Group</h3>
 			</div>
 			<div class="modal-body">
-				<div class="container-fluid">
-					<div class="row" id="members">
-					</div>
-				</div>
+				<select id="group_members" style="width: 100%; min-height: 100px;" multiple="multiple"></select>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -147,6 +144,8 @@ $(function()
 			})
 		.on("click", "thead a.sort", sort_click)
 		;
+
+	$("select#group_members").select2();
 
 	load_groups();
 	});
@@ -331,7 +330,7 @@ function save_group()
 		url = "[% Catalyst.uri_for('/api/admin/groups/new') %]";
 		}
 
-	$this.find("input.members[type=\"checkbox\"]:checked").each(function()
+	$this.find("select#group_members option:selected").each(function()
 		{
 		members.push($(this).val());
 		});
@@ -352,10 +351,9 @@ function edit_group(mgroup_id)
 	$dialogue.data("mgroup_id", mgroup_id);
 
 	for (i = 0; i < all_members.length; i++)
-		html += "<div class=\"col-xs-12 col-sm-6 col-md-4 col-lg-3\"><label><input type=\"checkbox\" class=\"members\" value=\""
-			+ all_members[i].member_id + "\" /> " + all_members[i].fname + " " + all_members[i].lname
-			+ "</label></div>";
-	$dialogue.find("div#members").html(html);
+		html += "<option value=\"" + all_members[i].member_id
+			+ "\"> " + all_members[i].fname + " " + all_members[i].lname + "</option>";
+	$dialogue.find("select#group_members").html(html);
 
 	$.ajax(
 		{
@@ -364,14 +362,15 @@ function edit_group(mgroup_id)
 		cache: false,
 		success: function (data)
 			{
-			var i, title;
+			var i, title, $select = $dialogue.find("select#group_members");
 
 			title = "Edit " + data.group.name;
 
-			$dialogue.find("input.members[type=\"checkbox\"]").prop("checked", false);
+			$select.find("option").prop("selected", false);
 
 			for (i = 0; i < data.group.members.length; i++)
-				$dialogue.find("input.members[type=\"checkbox\"][value=\"" + data.group.members[i] + "\"]").prop("checked", true);
+				$select.find("option[value=\"" + data.group.members[i] + "\"]").prop("selected", true);
+			$select.trigger("change");
 
 			$dialogue.find("#edit_label").text(title);
 			$dialogue.modal("show");
