@@ -12,11 +12,40 @@ sub info :Local :Args(1)
 	{
 	my ($self, $c, $member_id) = @_;
 
-	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	my $out = $c->stash()->{out};
+
+	my $count_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		alias => 'al_count',
+		})->count_rs()->as_query();
+	my $last_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		select => { max => 'access_time' },
+		as     => [ 'last_access_time' ],
+		alias  => 'al_time',
+		}
+	)->get_column('last_access_time')->as_query();
+
+	my $member = $c->model('DB::Member')->find(
+		{
+		member_id => $member_id,
+		},
+		{
+		'+select' => [ $count_query, $last_query ],
+		'+as'     => [ 'accesses', 'last_access_time' ],
+		});
 	if (!defined($member))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "Cannot find member";
+		$out->{response} = \0;
+		$out->{data}     = "Cannot find member";
 		return;
 		}
 
@@ -24,11 +53,18 @@ sub info :Local :Args(1)
 	my @obadges;
 	foreach my $badge (@badges)
 		{
-		push(@obadges, { $badge->get_inflated_columns() });
+		push(@obadges,
+			{
+			badge_id     => $badge->badge_id(),
+			badge_number => $badge->badge_number()
+			});
 		}
-	$c->stash()->{out}->{badges}   = \@obadges;
-	$c->stash()->{out}->{member}   = $member;
-	$c->stash()->{out}->{response} = \1;
+	my @slots = $member->list_slots();
+
+	$out->{slots}    = \@slots;
+	$out->{badges}   = \@obadges;
+	$out->{member}   = $member;
+	$out->{response} = \1;
 	}
 
 sub add_badge :Local :Args(0)

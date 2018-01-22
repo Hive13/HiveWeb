@@ -78,7 +78,7 @@ nav ul.pagination
 							</div>
 						</div>
 					</div>
-					<div id="soda_credit_div" class="col-sm-12 col-lg-9">
+					<div id="soda_credit_div" class="col-sm-12 col-lg-4">
 						<div class="panel panel-info">
 							<div class="panel-heading">
 								<h5>Member Profile</h5>
@@ -97,6 +97,15 @@ nav ul.pagination
 									<br />
 									Leave blank if member does not use PayPal.
 								</div>
+							</div>
+						</div>
+					</div>
+					<div id="info_div" class="col-sm-12 col-lg-5">
+						<div class="panel panel-info">
+							<div class="panel-heading">
+								<h5>Member Info</h5>
+							</div>
+							<div class="panel-body">
 							</div>
 						</div>
 					</div>
@@ -1064,15 +1073,37 @@ function edit(member_id)
 		cache: false,
 		success: function (data)
 			{
-			var i, badge, $option, $select, $soda_credits, $remove;
+			var i, badge, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc;
 			var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
 			var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
+			var $info         = $dialogue.find("div#info_div div.panel-body");
 
 			title = "Edit " + data.member.fname + " " + data.member.lname;
 
 			$("input.group[type=\"checkbox\"]").prop("checked", false);
 			$select       = $dialogue.find("div#badges select").empty();
 			$soda_credits = $dialogue.find("input#soda_credits");
+
+			date_obj = new Date(data.member.last_access_time);
+			dc = parseInt(data.member.door_count) || 0;
+			ac = parseInt(data.member.accesses)   || 0;
+			html = "E-mail Address: " + data.member.email + "<br />"
+				+ "Handle: " + data.member.handle + "<br />"
+				+ "Access Count: " + (ac + dc) + " (" + ac + " intweb + " + dc + " door)<br />"
+				+ "Last Acces Time: " + date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString() + "<br />";
+
+			date_obj = new Date(data.member.created_at);
+			html += "Created: " + date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString() + "<br />";
+
+			if (data.slots.length)
+				{
+				html += "Slots:<br /><ul>";
+				for (i = 0; i < data.slots.length; i++)
+					html += "<li>" + data.slots[i].name + " (" + data.slots[i].location +  ")</li>";
+				html += "</ul>";
+				}
+
+			$info.html(html);
 
 			$soda_credits.val(data.member.vend_credits);
 			$photo_header.find("span").remove();
