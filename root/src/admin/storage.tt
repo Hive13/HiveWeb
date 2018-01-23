@@ -501,11 +501,17 @@ function finish_loc()
 
 function handle_slot(slot, selected_id)
 	{
-	return "<li class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
+	var html = "<li class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
 		+ (slot.slot_id == selected_id ? " selected" : "")
 		+ "\" style=\"display: none\" id=\"" + slot.slot_id + "\">"
 		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
-		+ slot.name + "</span></li>";
+		+ slot.name;
+
+	if (slot.member)
+		html += " - " + slot.member.fname + " " + slot.member.lname;
+
+	html += "</span></li>";
+	return html;
 	}
 
 function handle_location(loc, show_depth, selected_id)
