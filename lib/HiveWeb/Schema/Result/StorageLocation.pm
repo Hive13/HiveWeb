@@ -62,4 +62,30 @@ sub TO_JSON
 		};
 	}
 
+sub TO_FULL_JSON
+	{
+	my $self     = shift;
+	my @children = $self->children();
+	my @slots    = $self->slots();
+	my @ochildren;
+	my @oslots;
+	foreach my $child (@children)
+		{
+		push(@ochildren, $child->TO_FULL_JSON());
+		}
+	foreach my $slot (@slots)
+		{
+		push(@oslots, $slot->TO_FULL_JSON());
+		}
+
+	return
+		{
+		location_id => $self->location_id(),
+		parent_id   => $self->parent_id(),
+		name        => $self->name(),
+		children    => \@ochildren,
+		slots       => \@oslots,
+		};
+	}
+
 1;

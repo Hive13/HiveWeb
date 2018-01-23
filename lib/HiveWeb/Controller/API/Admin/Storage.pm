@@ -23,7 +23,7 @@ sub list :Local :Args(0)
 	my $root_location = $c->model('DB::StorageLocation')->find({ parent_id => undef }) || die $!;
 	my $request_count = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
 
-	$out->{locations} = $root_location;
+	$out->{locations} = $root_location->TO_FULL_JSON();
 	$out->{requests}  = $request_count;
 	$out->{response}  = \1;
 	}
