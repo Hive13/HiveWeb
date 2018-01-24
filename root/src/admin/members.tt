@@ -872,6 +872,25 @@ function set_top_html(count)
 		html += "</span>";
 		}
 
+	if (filters.storage_type !== null)
+		{
+		html += " <span class=\"label label-info\">";
+		i = filters.storage_value;
+		if (filters.storage_type === "l")
+			html += "Less than " + i + " slots";
+		else if (filters.storage_type === "le")
+			html += "At most " + i + " slots";
+		else if (filters.storage_type === "e")
+			html += i + " slots";
+		else if (filters.storage_type === "ge")
+			html += "At least " + i + " slots";
+		else if (filters.storage_type === "g")
+			html += "More than " + i + " slots";
+		else
+			html += "???";
+		html += "</span>";
+		}
+
 	$("div.row div.panel.hive-member-panel div.panel-heading").html(html);
 	}
 
