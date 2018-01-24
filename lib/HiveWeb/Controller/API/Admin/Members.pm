@@ -576,6 +576,38 @@ sub index :Path :Args(0)
 			return;
 			}
 		}
+	if (defined(my $value = $in->{filters}->{storage_value}) && defined(my $type = $in->{filters}->{storage_type}))
+		{
+		$value = int($value) || 0;
+		$type  = lc($type);
+
+		if ($type eq 'l')
+			{
+			#$filters
+			}
+		elsif ($type eq 'le')
+			{
+			#$filters
+			}
+		elsif ($type eq 'e')
+			{
+			#$filters
+			}
+		elsif ($type eq 'ge')
+			{
+			#$filters
+			}
+		elsif ($type eq 'e')
+			{
+			#$filters
+			}
+		else
+			{
+			$out->{error}    = "Unknown storage filter type '$type'.";
+			$out->{response} = \0;
+			return;
+			}
+		}
 
 	if (defined(my $search = $in->{search}))
 		{
