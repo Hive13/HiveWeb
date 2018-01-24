@@ -107,13 +107,28 @@ sub login :Local
 		$c->stash()->{template} = 'login.tt';
 		return;
 		}
-	
+
 	my $params = $c->request()->params();
 
-	my $auth          = {};
-	$auth->{email}    = $params->{email};
-	$auth->{password} = $params->{password};
-	my $user = $c->authenticate($auth);
+	my $user = $c->authenticate(
+		{
+		password     => $params->{password},
+		'dbix_class' =>
+			{
+			searchargs =>
+				[
+					{
+						'-or' =>
+							[
+							{ handle => $params->{email} },
+							{ email  => $params->{email} },
+							],
+					},
+					{
+					}
+				]
+			},
+		});
 	my $log  = $c->model('DB::SignInLog')->create(
 		{
 		email     => $params->{email},
@@ -256,7 +271,7 @@ sub access_denied :Private
 sub default :Path
 	{
 	my ( $self, $c ) = @_;
-	
+
 	$c->stash()->{template} = '404.tt';
 	$c->response->status(404);
 	}
