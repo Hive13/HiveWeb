@@ -177,7 +177,7 @@ nav ul.pagination
 			</div>
 			<div class="modal-body">
 				<div class="row row-eq-height u-pb-5">
-					<div class="col-md-6">
+					<div class="col-md-4">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>Profile Picture</h4>
@@ -198,7 +198,7 @@ nav ul.pagination
 							</div>
 						</div>
 					</div>
-					<div class="col-md-6">
+					<div class="col-md-4">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>PayPal Status</h4>
@@ -220,6 +220,68 @@ nav ul.pagination
 									<input type="checkbox" name="paypal" value="no" />
 									Does not use PayPal
 								</label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Storage Slots</h4>
+							</div>
+							<div class="panel-body">
+								<table>
+									<tr>
+										<td colspan="2">
+											<label>
+												<input type="radio" name="storage_type" value="null" />
+												Do not use this filter
+											</label><br />
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label>
+												<input type="radio" name="storage_type" value="l" />
+												&lt;
+											</label>
+										</td>
+										<td rowspan="5" valign="middle">
+											<input type="text" id="storage_value" size="4" />
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label>
+												<input type="radio" name="storage_type" value="le" />
+												&leq;
+											</label>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label>
+												<input type="radio" name="storage_type" value="e" />
+												=
+											</label>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label>
+												<input type="radio" name="storage_type" value="ge" />
+												&geq;
+											</label>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											<label>
+												<input type="radio" name="storage_type" value="g" />
+												&gt;
+											</label>
+										</td>
+									</tr>
+								</table>
 							</div>
 						</div>
 					</div>
@@ -301,10 +363,12 @@ var count      = 0;
 var total      = null;
 var filters    =
 	{
-	photo:      null,
-	paypal:     null,
-	group_type: null,
-	group_list: null
+	photo:         null,
+	paypal:        null,
+	group_type:    null,
+	group_list:    null,
+	storage_type:  null,
+	storage_value: null
 	}
 var columns    =
 	[
@@ -367,12 +431,13 @@ $(function()
 
 	$filter.find("button#refresh_filters").click(function ()
 		{
-		var photo, group_type, paypal = [], group_list = [];
+		var paypal = [], group_list = [],
+			photo         = $filter.find("input[name=photo]:checked").val(),
+			group_type    = $filter.find("input[name=group_filter]:checked").val(),
+			storage_value = parseInt($filter.find("input#storage_value").val()) || 0,
+			storage_type  = $filter.find("input[name=storage_type]:checked").val();
 
-		$filter.modal("hide");
-		photo      = $filter.find("input[name=photo]:checked").val();
-		group_type = $filter.find("input[name=group_filter]:checked").val();
-		$filter.find("input[name=paypal]:checked").each(function ()
+		$filter.modal("hide").find("input[name=paypal]:checked").each(function ()
 			{
 			var v = $(this).attr("value");
 
@@ -384,6 +449,16 @@ $(function()
 			paypal.push(v);
 			});
 
+		if (storage_type === "null")
+			{
+			filters.storage_type  = null;
+			filters.storage_value = null;
+			}
+		else
+			{
+			filters.storage_type  = storage_type;
+			filters.storage_value = storage_value;
+			}
 		if (group_type === "null")
 			filters.group_type = null;
 		else
@@ -419,6 +494,11 @@ $(function()
 				+ "</label><br />";
 		$filter.find("div#group_list").html(html);
 
+		if (filters.storage_type === null)
+			$filter.find("input[name=storage_type][value=null]").prop("checked", true);
+		else
+			$filter.find("input[name=storage_type][value=" + filters.storage_type + "]").prop("checked", true);
+		$filter.find("input#storage_value").val(filters.storage_value);
 		if (filters.group_type === null)
 			$filter.find("input[name=group_filter][value=null]").prop("checked", true);
 		else
