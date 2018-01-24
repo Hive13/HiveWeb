@@ -576,6 +576,41 @@ sub index :Path :Args(0)
 			return;
 			}
 		}
+	if (defined(my $value = $in->{filters}->{storage_value}) && defined(my $type = $in->{filters}->{storage_type}))
+		{
+		$value = int($value) || 0;
+		$type  = lc($type);
+		my $query;
+
+		if ($type eq 'l')
+			{
+			$query = { '<' => $value};
+			}
+		elsif ($type eq 'le')
+			{
+			$query = { '<=' => $value};
+			}
+		elsif ($type eq 'e')
+			{
+			$query = $value;
+			}
+		elsif ($type eq 'ge')
+			{
+			$query = { '>=' => $value};
+			}
+		elsif ($type eq 'g')
+			{
+			$query = { '>' => $value};
+			}
+		else
+			{
+			$out->{error}    = "Unknown storage filter type '$type'.";
+			$out->{response} = \0;
+			return;
+			}
+		my $ss = $c->model('DB::StorageSlot')->search({ member_id => { '-ident' => 'me.member_id' } }, { alias => 'slots' })->count_rs()->as_query();
+		$filters->{$$ss->[0]} = $query;
+		}
 
 	if (defined(my $search = $in->{search}))
 		{
