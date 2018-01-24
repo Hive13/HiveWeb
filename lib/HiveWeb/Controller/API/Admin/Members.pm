@@ -580,26 +580,27 @@ sub index :Path :Args(0)
 		{
 		$value = int($value) || 0;
 		$type  = lc($type);
+		my $query;
 
 		if ($type eq 'l')
 			{
-			#$filters
+			$query = { '<' => $value};
 			}
 		elsif ($type eq 'le')
 			{
-			#$filters
+			$query = { '<=' => $value};
 			}
 		elsif ($type eq 'e')
 			{
-			#$filters
+			$query = $value;
 			}
 		elsif ($type eq 'ge')
 			{
-			#$filters
+			$query = { '>=' => $value};
 			}
-		elsif ($type eq 'e')
+		elsif ($type eq 'g')
 			{
-			#$filters
+			$query = { '>' => $value};
 			}
 		else
 			{
@@ -607,6 +608,8 @@ sub index :Path :Args(0)
 			$out->{response} = \0;
 			return;
 			}
+		my $ss = $c->model('DB::StorageSlot')->search({ member_id => { '-ident' => 'me.member_id' } }, { alias => 'slots' })->count_rs()->as_query();
+		$filters->{$$ss->[0]} = $query;
 		}
 
 	if (defined(my $search = $in->{search}))
