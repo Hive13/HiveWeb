@@ -167,8 +167,7 @@ sub register :Local :Args(0)
 		{
 		my $member = $c->model('DB::Member')->create($form) || die $!;
 		$member->set_password($password);
-		my $user = $c->find_user({ member_id => $member->member_id() });
-		$c->set_authenticated($user);
+		$c->authenticate({ password => $password, 'dbix_class' => { result => $member } }) || die $!;
 		});
 
 	$c->response()->redirect($c->uri_for('/'));
