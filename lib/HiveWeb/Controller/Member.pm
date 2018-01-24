@@ -27,6 +27,19 @@ sub verify_user_data
 		{
 		$form->{paypal_email} = undef;
 		}
+	if ($form->{handle})
+		{
+		my $member = $c->model('DB::Member')->search({ handle => $form->{handle} });
+		if ($member->count())
+			{
+			$fail = 1;
+			$message->{handle} = 'That handle is already in use.';
+			}
+		}
+	else
+		{
+		$form->{handle} = undef;
+		}
 	if (!$form->{email} || $form->{email} eq '' || $form->{email} !~ /.+@.+\..+/)
 		{
 		$message->{email} = "You must specify a valid e-mail address.";

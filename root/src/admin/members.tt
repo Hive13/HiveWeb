@@ -1090,7 +1090,7 @@ function edit(member_id)
 			html = "E-mail Address: " + data.member.email + "<br />"
 				+ "Handle: " + data.member.handle + "<br />"
 				+ "Access Count: " + (ac + dc) + " (" + ac + " intweb + " + dc + " door)<br />"
-				+ "Last Acces Time: " + date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString() + "<br />";
+				+ "Last Access Time: " + date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString() + "<br />";
 
 			date_obj = new Date(data.member.created_at);
 			html += "Created: " + date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString() + "<br />";
