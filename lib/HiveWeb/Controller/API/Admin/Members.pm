@@ -409,8 +409,8 @@ sub index :Path :Args(0)
 
 	my $in      = $c->stash()->{in};
 	my $out     = $c->stash()->{out};
-	my $order   = $in->{order} || 'lname';
-	my $dir     = uc($in->{dir} || 'ASC');
+	my $order   = lc($in->{order} || 'lname');
+	my $dir     = lc($in->{dir} || 'asc');
 	my $dtp     = $c->model('DB')->storage()->datetime_parser();
 	my $filters = {};
 
@@ -419,8 +419,8 @@ sub index :Path :Args(0)
 	$member_table->{page}     = int($in->{page}) || 1;
 	$member_table->{per_page} = int($in->{per_page}) || 10;
 
-	$dir = 'ASC'
-		if ($dir ne 'ASC' && $dir ne 'DESC');
+	$dir = 'asc'
+		if ($dir ne 'asc' && $dir ne 'desc');
 
 	my $count_query = $c->model('DB::AccessLog')->search(
 		{
@@ -430,6 +430,19 @@ sub index :Path :Args(0)
 		{
 		alias => 'al_count',
 		})->count_rs()->as_query();
+	$$count_query->[0] .= ' AS accesses';
+
+	my $sum_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		alias  => 'access_total',
+		select => \'count(access_total.*) + coalesce(me.door_count, 0)',
+		as     => 'atot'
+		})->get_column('atot')->as_query();
+	$$sum_query->[0] .= ' AS access_total';
 
 	my $last_query = $c->model('DB::AccessLog')->search(
 		{
@@ -442,18 +455,33 @@ sub index :Path :Args(0)
 		alias  => 'al_time',
 		}
 	)->get_column('last_access_time')->as_query();
+	$$last_query->[0] .= ' AS last_access_time';
 
 	my $member_attrs =
 		{
-		'+select' => [ $count_query, $last_query ],
-		'+as'     => [ 'accesses', 'last_access_time' ],
+		'+select' => [ $count_query, $last_query, $sum_query ],
+		'+as'     => [ 'accesses', 'last_access_time', 'access_total' ],
 		prefetch  => 'member_mgroups',
 		};
 
-	if ($order ne 'accesses' && $order ne 'last_access_time')
+	if ($order eq 'last_access_time')
 		{
-		my $sorder .= "$order $dir";
-		$member_attrs->{order_by} = $sorder;
+		if ($dir eq 'desc')
+			{
+			$member_attrs->{order_by} = \'last_access_time DESC NULLS LAST';
+			}
+		else
+			{
+			$member_attrs->{order_by} = \'last_access_time ASC NULLS FIRST';
+			}
+		}
+	elsif ($order eq 'accesses')
+		{
+		$member_attrs->{order_by} = { "-$dir" => 'access_total' };
+		}
+	else
+		{
+		$member_attrs->{order_by} = { "-$dir" => $order };
 		}
 
 	$filters->{member_image_id} = ($in->{filters}->{photo} ? { '!=' => undef } : undef)
@@ -570,46 +598,13 @@ sub index :Path :Args(0)
 			}
 		}
 
-	my $members_rs = $c->model('DB::Member')->search($filters, $member_attrs);
-	my $tot_count  = $c->model('DB::Member')->search({})->count();
-	my $count      = $members_rs->count();
-	my @members    = $members_rs->search({},
-		{
-		rows => $member_table->{per_page},
-		page => $member_table->{page},
-		});
-	my @groups     = $c->model('DB::MGroup')->search({});
+	my $tot_count = $c->model('DB::Member')->search({})->count();
+	my $count     = $c->model('DB::Member')->search($filters, $member_attrs)->count();
 
-	if ($order eq 'accesses')
-		{
-		@members = sort { $a->get_column('accesses') - $b->get_column('accesses') } @members;
-		@members = reverse(@members)
-			if ($dir eq 'DESC');
-		}
-	elsif ($order eq 'last_access_time')
-		{
-		@members = sort
-			{
-			my $ad = $a->get_column('last_access_time');
-			my $bd = $b->get_column('last_access_time');
-
-			if (!defined($ad))
-				{
-				return -1
-					if (defined($bd));
-				return 0;
-				}
-			return 1
-				if (!defined($bd));
-
-			my $at = $dtp->parse_datetime($ad);
-			my $bt = $dtp->parse_datetime($bd);
-			DateTime->compare($at, $bt);
-			}
-			@members;
-		@members = reverse(@members)
-			if ($dir eq 'DESC');
-		}
+	$member_attrs->{rows} = $member_table->{per_page};
+	$member_attrs->{page} = $member_table->{page};
+	my @members           = $c->model('DB::Member')->search($filters, $member_attrs);
+	my @groups            = $c->model('DB::MGroup')->search({});
 
 	$out->{groups}   = \@groups;
 	$out->{members}  = \@members;
