@@ -38,6 +38,7 @@ function display_storage_data(data, $panel)
 		html += "</ul>";
 		}
 
+	html += "<div class=\"u-w-100 text-center\"><a href=\"/member/requests\" class=\"btn btn-info\">View All Requests</a></div>";
 	$panel.find(".panel-body").html(html);
 
 	$panel.find(".panel-body a.request-hide").click(function()
