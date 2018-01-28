@@ -457,11 +457,11 @@ sub index :Path :Args(0)
 	)->get_column('last_access_time')->as_query();
 	$$last_query->[0] .= ' AS last_access_time';
 
+	# Cannot prefetch 'member_mgroups' as it conflicts with the 'AS X' hack on the subqueries.
 	my $member_attrs =
 		{
 		'+select' => [ $count_query, $last_query, $sum_query ],
 		'+as'     => [ 'accesses', 'last_access_time', 'access_total' ],
-		prefetch  => 'member_mgroups',
 		};
 
 	if ($order eq 'last_access_time')
@@ -546,6 +546,7 @@ sub index :Path :Args(0)
 			}
 		elsif ($type eq 'any')
 			{
+			$member_attrs->{join} = 'member_mgroups';
 			$filters->{'member_mgroups.mgroup_id'} = $list;
 			}
 		elsif ($type eq 'not_any')
@@ -612,9 +613,9 @@ sub index :Path :Args(0)
 		$filters->{$$ss->[0]} = $query;
 		}
 
-	if (defined(my $search = $in->{search}))
+	if (my $search = $in->{search})
 		{
-		my @names = split(/\s+/, $in->{search});
+		my @names = split(/\s+/, $search);
 
 		$filters->{'-and'} = []
 			if (!exists($filters->{'-and'}));
@@ -635,6 +636,9 @@ sub index :Path :Args(0)
 
 	my $tot_count = $c->model('DB::Member')->search({})->count();
 	my $count     = $c->model('DB::Member')->search($filters, $member_attrs)->count();
+
+	$member_table->{page} = int(($count + $member_table->{per_page} - 1) / $member_table->{per_page})
+		if (($member_table->{per_page} * $member_table->{page}) > $count);
 
 	$member_attrs->{rows} = $member_table->{per_page};
 	$member_attrs->{page} = $member_table->{page};
