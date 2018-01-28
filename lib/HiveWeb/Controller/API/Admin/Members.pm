@@ -457,6 +457,7 @@ sub index :Path :Args(0)
 	)->get_column('last_access_time')->as_query();
 	$$last_query->[0] .= ' AS last_access_time';
 
+	# Cannot prefetch 'member_mgroups' as it conflicts with the 'AS X' hack on the subqueries.
 	my $member_attrs =
 		{
 		'+select' => [ $count_query, $last_query, $sum_query ],
