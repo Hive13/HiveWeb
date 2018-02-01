@@ -35,5 +35,10 @@
 			temp_plain => 'email/forgot_password_plain.tt',
 			subject    => 'Hive13 intweb password reset',
 			},
+		assigned_slot =>
+			{
+			temp_plain => 'email/assigned_slot_plain.tt',
+			subject    => 'Storage Slot assigned at Hive13',
+			},
 		},
 	}
