@@ -623,14 +623,51 @@ sub index :Path :Args(0)
 
 		foreach my $name (@names)
 			{
-			push (@$names,
+			if ($name =~ s/^email://i)
 				{
-				-or =>
+				push(@$names, { email => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^handle://i)
+				{
+				push(@$names, { handle => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^paypal://i)
+				{
+				push(@$names, { paypal_email => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^fname://i)
+				{
+				push(@$names, { fname => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^lname://i)
+				{
+				push(@$names, { lname => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^name://i)
+				{
+				push(@$names,
 					{
-					fname => { ilike => '%' . $name . '%' },
-					lname => { ilike => '%' . $name . '%' },
-					}
-				});
+					-or =>
+						{
+						fname => { ilike => '%' . $name . '%' },
+						lname => { ilike => '%' . $name . '%' },
+						}
+					});
+				}
+			else
+				{
+				push (@$names,
+					{
+					-or =>
+						{
+						fname        => { ilike => '%' . $name . '%' },
+						lname        => { ilike => '%' . $name . '%' },
+						handle       => { ilike => '%' . $name . '%' },
+						email        => { ilike => '%' . $name . '%' },
+						paypal_email => { ilike => '%' . $name . '%' },
+						}
+					});
+				}
 			}
 		}
 
