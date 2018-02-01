@@ -138,7 +138,9 @@ sub login :Local
 		}) || die $!;
 	if ($user)
 		{
-		$c->response()->redirect($c->uri_for('/'));
+		my $return = $c->flash()->{return} || $c->uri_for('/');
+		$c->clear_flash();
+		$c->response()->redirect($return);
 		}
 	else
 		{
@@ -265,7 +267,15 @@ sub access_denied :Private
 	{
 	my ($self, $c) = @_;
 
-	$c->response()->redirect($c->uri_for('/login'))
+	if ($c->user_exists())
+		{
+		$c->response()->redirect($c->uri_for('/'));
+		}
+	else
+		{
+		$c->flash()->{return} = $c->uri_for($c->action());
+		$c->detach('/login');
+		}
 	}
 
 sub default :Path

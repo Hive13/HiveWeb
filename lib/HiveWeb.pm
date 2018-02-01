@@ -112,4 +112,5 @@ __PACKAGE__->config
 __PACKAGE__->setup();
 __PACKAGE__->deny_access_unless("/api/admin", ['board']);
 __PACKAGE__->deny_access_unless("/admin",     ['board']);
+__PACKAGE__->deny_access_unless('/storage',   sub { return shift->user_exists(); });
 1;
