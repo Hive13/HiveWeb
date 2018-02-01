@@ -37,7 +37,7 @@
 
 				$(e.target).parents().each(function ()
 					{
-					var my_z = $(this).css("z-index") || 0;
+					var my_z = parseInt($(this).css("z-index") || 0);
 
 					if (z < my_z)
 						z = my_z;
