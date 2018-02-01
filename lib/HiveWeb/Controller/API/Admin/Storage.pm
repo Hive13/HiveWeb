@@ -102,10 +102,7 @@ sub decide_request :Local :Args(0)
 					decided_at         => \'NOW()',
 					slot_id            => $slot->slot_id(),
 					}) || die $!;
-				$slot->update(
-					{
-					member_id => $request->member_id(),
-					}) || die $!;
+				$slot->assign($request->member_id(), $c);
 				});
 			}
 		catch
@@ -303,7 +300,7 @@ sub assign_slot :Local :Args(0)
 				notes              => 'Assigned slot ' . $slot_id,
 				changing_member_id => $c->user()->member_id(),
 				});
-			$slot->update({ member_id => $member_id }) || die $!;
+			$slot->assign($member_id, $c);
 			});
 		}
 	catch
