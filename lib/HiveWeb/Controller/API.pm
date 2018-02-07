@@ -3,6 +3,8 @@ use Moose;
 use namespace::autoclean;
 
 use JSON;
+use Bytes::Random::Secure;
+use MIME::Base64;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -42,16 +44,16 @@ sub has_access :Private
 	my $member   = find_member($c, $badge_no);
 	my $access   = 0;
 	my $member_id;
-	
+
 	return "Invalid item"
 		if (!defined($item));
-	
+
 	if ($member)
 		{
 		$member_id = $member->member_id();
 		$access    = $member->has_access($item);
 		}
-	
+
 	my $access_log = $c->model('DB::AccessLog')->create(
 		{
 		item_id   => $item->item_id(),
@@ -59,7 +61,7 @@ sub has_access :Private
 		member_id => $member_id,
 		badge_id  => $badge_no,
 		});
-	
+
 	return "Invalid badge"
 		if (!defined($member));
 	return $access ? undef : "Access denied";
@@ -92,18 +94,45 @@ sub end :Private
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
-	
+
 	$c->response->body('Matched HiveWeb::Controller::API in API.');
 	}
 
-sub access :Local
+sub get_nonce :Local
 	{
 	my ($self, $c) = @_;
 	my $in     = $c->stash()->{in};
 	my $out    = $c->stash()->{out};
 	my $device = $c->model('DB::Device')->find({ name => $in->{device} });
-	my $data   = $in->{data};
 	my $view   = $c->view('ChecksummedJSON');
+
+	if (!defined($device))
+		{
+		$out->{response} = \0;
+		$out->{error}    = 'Cannot find device.';
+		$c->response()->status(400)
+			if ($in->{http});
+		return;
+		}
+
+	my $nonce = $device->nonce();
+	if (!$nonce)
+		{
+		$nonce = random_bytes(16);
+		$device->update({ nonce => $nonce });
+		}
+	$out->{nonce} = encode_base64($nonce);
+	}
+
+sub access :Local
+	{
+	my ($self, $c) = @_;
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	my $device  = $c->model('DB::Device')->find({ name => $in->{device} });
+	my $data    = $in->{data};
+	my $version = $in->{version} || 1;
+	my $view    = $c->view('ChecksummedJSON');
 
 	if (!defined($device))
 		{
@@ -113,10 +142,10 @@ sub access :Local
 			if ($data->{http});
 		return;
 		}
-	
+
 	$c->stash()->{view}   = $view;
 	$c->stash()->{device} = $device;
-	
+
 	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))
 		{
@@ -126,7 +155,7 @@ sub access :Local
 			if ($data->{http});
 		return;
 		}
-	
+
 	$out->{response}        = \1;
 	$out->{random_response} = $data->{random_response};
 
@@ -136,11 +165,11 @@ sub access :Local
 		{
 		my $badge  = $data->{badge};
 		my $item   = $data->{location} // $data->{item};
-		my $access = has_access($c, $badge, $item);		
+		my $access = has_access($c, $badge, $item);
 		my $d_i    = $device
 			->search_related('device_items')
 			->search_related('item', { name => $item } );
-		
+
 		if ($d_i->count() < 1)
 			{
 			$out->{access} = \0;
@@ -233,7 +262,7 @@ sub access :Local
 		$c->response()->status(400)
 			if ($data->{http});
 		}
-	} 
+	}
 
 =encoding utf8
 
