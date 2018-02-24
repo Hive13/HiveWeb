@@ -98,41 +98,16 @@ sub index :Path :Args(0)
 	$c->response->body('Matched HiveWeb::Controller::API in API.');
 	}
 
-sub get_nonce :Local
-	{
-	my ($self, $c) = @_;
-	my $in     = $c->stash()->{in};
-	my $out    = $c->stash()->{out};
-	my $device = $c->model('DB::Device')->find({ name => $in->{device} });
-	my $view   = $c->view('ChecksummedJSON');
-
-	if (!defined($device))
-		{
-		$out->{response} = \0;
-		$out->{error}    = 'Cannot find device.';
-		$c->response()->status(400)
-			if ($in->{http});
-		return;
-		}
-
-	my $nonce = $device->nonce();
-	if (!$nonce)
-		{
-		$nonce = random_bytes(16);
-		$device->update({ nonce => $nonce });
-		}
-	$out->{nonce} = uc(unpack('H*', $nonce));
-	}
-
 sub access :Local
 	{
 	my ($self, $c) = @_;
-	my $in      = $c->stash()->{in};
-	my $out     = $c->stash()->{out};
-	my $device  = $c->model('DB::Device')->find({ name => $in->{device} });
-	my $data    = $in->{data};
-	my $version = int($data->{version} || 1);
-	my $view    = $c->view('ChecksummedJSON');
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $device    = $c->model('DB::Device')->find({ name => $in->{device} });
+	my $data      = $in->{data};
+	my $version   = int($data->{version} || 1);
+	my $view      = $c->view('ChecksummedJSON');
+	my $operation = lc($data->{operation} // 'access');
 
 	if (!defined($device))
 		{
@@ -159,7 +134,7 @@ sub access :Local
 		my $new_nonce = random_bytes(16);
 		$device->update({ nonce => $new_nonce });
 		$out->{new_nonce} = uc(unpack('H*', $new_nonce));
-		if ($nonce ne $exp_nonce)
+		if ($nonce ne $exp_nonce && $operation ne 'get_nonce')
 			{
 			$out->{response}    = \0;
 			$out->{nonce_valid} = \0;
@@ -186,8 +161,6 @@ sub access :Local
 
 	$out->{response}        = \1;
 	$out->{random_response} = $data->{random_response};
-
-	my $operation = lc($data->{operation} // 'access');
 
 	if ($operation eq 'access')
 		{
@@ -282,6 +255,10 @@ sub access :Local
 			$out->{response} = \0;
 			$out->{error}    = 'Could not log temperature.';
 			}
+		}
+	elsif ($operation eq 'get_nonce')
+		{
+		$out->{response} = \1;
 		}
 	else
 		{
