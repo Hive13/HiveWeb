@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use JSON;
-use Bytes::Random::Secure;
+use Bytes::Random::Secure qw(random_bytes);
 use MIME::Base64;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -121,7 +121,7 @@ sub get_nonce :Local
 		$nonce = random_bytes(16);
 		$device->update({ nonce => $nonce });
 		}
-	$out->{nonce} = encode_base64($nonce);
+	$out->{nonce} = uc(unpack('H*', $nonce));
 	}
 
 sub access :Local
@@ -131,7 +131,7 @@ sub access :Local
 	my $out     = $c->stash()->{out};
 	my $device  = $c->model('DB::Device')->find({ name => $in->{device} });
 	my $data    = $in->{data};
-	my $version = int($in->{version} || 1);
+	my $version = int($data->{version} || 1);
 	my $view    = $c->view('ChecksummedJSON');
 
 	if (!defined($device))
@@ -150,6 +150,25 @@ sub access :Local
 		$c->response()->status(403)
 			if ($data->{http});
 		return;
+		}
+
+	if ($version >= 2)
+		{
+		my $nonce     = $data->{nonce};
+		my $exp_nonce = uc(unpack('H*', $device->nonce()));
+		my $new_nonce = random_bytes(16);
+		$device->update({ nonce => $new_nonce });
+		$out->{new_nonce} = uc(unpack('H*', $new_nonce));
+		if ($nonce ne $exp_nonce)
+			{
+			$out->{response}    = \0;
+			$out->{nonce_valid} = \0;
+			$out->{error}       = 'Invalid nonce.';
+			$c->response()->status(403)
+				if ($data->{http});
+			return;
+			}
+		$out->{nonce_valid} = \1;
 		}
 
 	$c->stash()->{view}   = $view;
