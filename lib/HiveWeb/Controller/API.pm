@@ -3,6 +3,8 @@ use Moose;
 use namespace::autoclean;
 
 use JSON;
+use Bytes::Random::Secure qw(random_bytes);
+use MIME::Base64;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -31,7 +33,6 @@ sub find_member :Private
 
 	return $badge->member()
 		if (defined($badge));
-	return $c->model('DB::Member')->find( { accesscard => $badge_no } );
 	}
 
 sub has_access :Private
@@ -41,24 +42,28 @@ sub has_access :Private
 	my $iname    = shift;
 	my $item     = $c->model('DB::Item')->find( { name => $iname } );
 	my $member   = find_member($c, $badge_no);
-	
-	return "Invalid badge"
-		if (!defined($member));
+	my $access   = 0;
+	my $member_id;
+
 	return "Invalid item"
 		if (!defined($item));
-	return "Locked out"
-		if ($member->is_lockedout());
-	
-	my $access = $member->has_access($item);
-	
-	# Log the access
-	$c->model('DB::AccessLog')->create(
+
+	if ($member)
 		{
-		member_id => $member->member_id(),
+		$member_id = $member->member_id();
+		$access    = $member->has_access($item);
+		}
+
+	my $access_log = $c->model('DB::AccessLog')->create(
+		{
 		item_id   => $item->item_id(),
 		granted   => $access ? 1 : 0,
+		member_id => $member_id,
+		badge_id  => $badge_no,
 		});
-	
+
+	return "Invalid badge"
+		if (!defined($member));
 	return $access ? undef : "Access denied";
 	}
 
@@ -67,7 +72,14 @@ sub begin :Private
 	{
 	my ($self, $c) = @_;
 
-	$c->stash()->{in} = $c->req()->body_data();
+	if (lc($c->req()->content_type()) eq 'multipart/form-data')
+		{
+		$c->stash()->{in} = $c->req()->body_parameters();
+		}
+	else
+		{
+		$c->stash()->{in} = $c->req()->body_data();
+		}
 	$c->stash()->{out} = {};
 	$c->stash()->{view} = $c->view('JSON');
 	}
@@ -82,31 +94,61 @@ sub end :Private
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
-	
+
 	$c->response->body('Matched HiveWeb::Controller::API in API.');
 	}
 
 sub access :Local
 	{
 	my ($self, $c) = @_;
-	my $in     = $c->stash()->{in};
-	my $out    = $c->stash()->{out};
-	my $device = $c->model('DB::Device')->find({ name => $in->{device} });
-	my $data   = $in->{data};
-	my $view   = $c->view('ChecksummedJSON');
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $device    = $c->model('DB::Device')->find({ name => $in->{device} });
+	my $data      = $in->{data};
+	my $version   = int($data->{version} || 1);
+	my $view      = $c->view('ChecksummedJSON');
+	my $operation = lc($data->{operation} // 'access');
 
 	if (!defined($device))
 		{
-		$out->{response} = JSON->false();
-		$out->{error} = 'Cannot find device.';
+		$out->{response} = \0;
+		$out->{error}    = 'Cannot find device.';
 		$c->response()->status(400)
 			if ($data->{http});
 		return;
 		}
-	
+
+	if ($device->min_version() > $version || $version > $device->max_version())
+		{
+		$out->{response} = \0;
+		$out->{error}    = 'Invalid version for device.';
+		$c->response()->status(403)
+			if ($data->{http});
+		return;
+		}
+
+	if ($version >= 2)
+		{
+		my $nonce     = $data->{nonce};
+		my $exp_nonce = uc(unpack('H*', $device->nonce()));
+		my $new_nonce = random_bytes(16);
+		$device->update({ nonce => $new_nonce });
+		$out->{new_nonce} = uc(unpack('H*', $new_nonce));
+		if ($nonce ne $exp_nonce && $operation ne 'get_nonce')
+			{
+			$out->{response}    = \0;
+			$out->{nonce_valid} = \0;
+			$out->{error}       = 'Invalid nonce.';
+			$c->response()->status(403)
+				if ($data->{http});
+			return;
+			}
+		$out->{nonce_valid} = \1;
+		}
+
 	$c->stash()->{view}   = $view;
 	$c->stash()->{device} = $device;
-	
+
 	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))
 		{
@@ -116,58 +158,107 @@ sub access :Local
 			if ($data->{http});
 		return;
 		}
-	
-	$out->{response} = JSON->true();
+
+	$out->{response}        = \1;
 	$out->{random_response} = $data->{random_response};
-	my $operation = lc($data->{operation} // 'access');
+
 	if ($operation eq 'access')
 		{
 		my $badge  = $data->{badge};
 		my $item   = $data->{location} // $data->{item};
-		my $access = has_access($c, $badge, $item);		
+		my $access = has_access($c, $badge, $item);
 		my $d_i    = $device
 			->search_related('device_items')
 			->search_related('item', { name => $item } );
-		
+
 		if ($d_i->count() < 1)
 			{
-			$out->{access} = JSON->false();
-			$out->{error} = "Device not authorized for " . $item;
+			$out->{access} = \0;
+			$out->{error}  = "Device not authorized for " . $item;
 			$c->response()->status(401)
 				if ($data->{http});
+			return;
 			}
-		elsif (defined($access))
+		if (defined($access))
 			{
-			$out->{access} = JSON->false();
-			$out->{error} = $access;
+			$out->{access} = \0;
+			$out->{error}  = $access;
 			$c->response()->status(401)
 				if ($data->{http});
+			return;
 			}
-		else
-			{
-			$out->{access} = JSON->true();
-			}
+		$out->{access} = \1;
 		}
 	elsif ($operation eq 'vend')
 		{
 		my $member = find_member($c, $data->{badge});
+		my $vend   = 0;
+		my $member_id;
 
-		if (!$member)
+		$out->{error} = 'Cannot find member associated with this badge.';
+		if ($member)
 			{
-			$out->{vend} = JSON->false();
-			$out->{error} = "Cannot find member associated with this badge.";
+			$member_id    = $member->member_id();
+			$out->{error} = 'Have a soda!';
+
+			$vend = $member->do_vend();
+			$out->{error} = 'You have no soda credits.'
+				if (!$vend);
+			}
+
+		$device->create_related('vend_logs',
+			{
+			member_id => $member_id,
+			vended    => $vend ? 1 : 0,
+			badge_id  => $data->{badge},
+			});
+
+		$out->{vend} = $vend ? \1 : \0;
+		}
+	elsif ($operation eq 'log')
+		{
+		my $iname = $data->{log_data}->{item} // '';
+		my $item  = $c->model('DB::Item')->find( { name => $iname } );
+		if (!$item)
+			{
+			$out->{response} = \0;
+			$out->{error}    = "Unknown item " . $iname;
+			$c->response()->status(401)
+				if ($data->{http});
 			return;
 			}
 
-		if (!$member->do_vend())
+		my $d_i = $device
+			->search_related('device_items', { item_id => $item->item_id() });
+
+		if ($d_i->count() < 1)
 			{
-			$out->{vend} = JSON->false();
-			$out->{error} = "You have no soda credits.";
+			$out->{response} = \0;
+			$out->{error}    = "Device not authorized for " . $iname;
+			$c->response()->status(401)
+				if ($data->{http});
 			return;
 			}
 
-		$out->{vend} = JSON->true();
-		$out->{error} = "Have a soda!";
+		my $temp_log = $item->create_related('temp_logs',
+			{
+			temperature => $data->{log_data}->{temperature},
+			});
+		if ($temp_log)
+			{
+			$out->{response}    = \1;
+			$out->{error}       = 'Data logged.';
+			$out->{temp_log_id} = $temp_log->temp_log_id();
+			}
+		else
+			{
+			$out->{response} = \0;
+			$out->{error}    = 'Could not log temperature.';
+			}
+		}
+	elsif ($operation eq 'get_nonce')
+		{
+		$out->{response} = \1;
 		}
 	else
 		{
@@ -176,7 +267,7 @@ sub access :Local
 		$c->response()->status(400)
 			if ($data->{http});
 		}
-	} 
+	}
 
 =encoding utf8
 

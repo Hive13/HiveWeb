@@ -1,4 +1,4 @@
-.data_table
+.hive-edit-table
 	{
 	-moz-user-select: none;
 	-khtml-user-select: none;
@@ -7,34 +7,15 @@
 	width: 100%;
 	}
 
-.data_table tbody tr td.edit
+.hive-edit-table tbody tr td.edit
 	{
 	opacity: 0;
+	text-align: center;
 	}
 
-.data_table tbody tr:hover td.edit
+.hive-edit-table tbody tr:not(.loading):hover td.edit
 	{
 	opacity: 1;
-	}
-
-.data_table tbody tr:hover td:not(.edit)
-	{
-	background-color: #bbbbff;
-	}
-
-.data_table tbody tr.locked td:not(.edit)
-	{
-	background-color: #ffdddd;
-	}
-
-.data_table tbody tr.locked:hover td:not(.edit)
-	{
-	background-color: #ffbbff;
-	}
-
-.data_table tbody td
-	{
-	padding: 4px 8px !important;
 	}
 
 img.icon
@@ -48,4 +29,22 @@ img.icon.icon-disabled
 	{
 	cursor: default;
 	opacity: .5;
+	}
+
+div#photo div.panel-body .btn img
+	{
+	max-width: 75px;
+	max-height: 75px;
+	}
+
+div#photo div.panel-body img
+	{
+	max-width: 500px;
+	max-height: 190px;
+	}
+
+div#photo_dialogue div.modal-body img
+	{
+	max-width: 100%;
+	max-height: 500px;
 	}

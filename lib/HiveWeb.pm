@@ -23,8 +23,9 @@ use Catalyst qw/
 	
 	Authentication
 	Authorization::ACL
+	Authorization::Roles
 	Session
-	Session::Store::File
+	Session::Store::DBIC
 	Session::State::Cookie
 /;
 
@@ -50,11 +51,19 @@ __PACKAGE__->config
 	enable_catalyst_header => 1, # Send X-Catalyst header
 	'View::JSON' =>
 		{
-		expose_stash => 'out',
+		expose_stash      => 'out',
+		json_encoder_args =>
+			{
+			convert_blessed => 1,
+			},
 		},
 	'View::ChecksummedJSON' =>
 		{
-		expose_stash => 'out',
+		expose_stash      => 'out',
+		json_encoder_args =>
+			{
+			convert_blessed => 1,
+			},
 		},
 	'View::HTML' =>
 		{
@@ -62,6 +71,15 @@ __PACKAGE__->config
 			[
 			__PACKAGE__->path_to('root', 'src'),
 			],
+		EVAL_PERL => 1,
+		},
+	'View::TT' =>
+		{
+		INCLUDE_PATH =>
+			[
+			__PACKAGE__->path_to('root', 'src'),
+			],
+		EVAL_PERL => 1,
 		},
 	'Plugin::Authentication' =>
 		{
@@ -70,9 +88,11 @@ __PACKAGE__->config
 			{
 			store =>
 				{
-				class      => 'DBIx::Class',
-				user_model => 'DB::Member',
-				id_field   => 'member_id',
+				class         => 'DBIx::Class',
+				user_model    => 'DB::Member',
+				id_field      => 'member_id',
+				role_relation => 'mgroups',
+				role_field    => 'name',
 				},
 			credential =>
 				{
@@ -82,16 +102,15 @@ __PACKAGE__->config
 				},
 			},
 		},
+	'Plugin::Session' =>
+		{
+		expires    => (60 * 60 * 12),
+		dbic_class => 'DB::Session',
+		},
 	);
 
 __PACKAGE__->setup();
-__PACKAGE__->deny_access_unless("/api/admin", sub
-	{
-	return shift->user()->is_admin();
-	});
-__PACKAGE__->deny_access_unless("/admin", sub
-	{
-	return shift->user()->is_admin();
-	});
-
+__PACKAGE__->deny_access_unless("/api/admin", ['board']);
+__PACKAGE__->deny_access_unless("/admin",     ['board']);
+__PACKAGE__->deny_access_unless('/storage',   sub { return shift->user_exists(); });
 1;

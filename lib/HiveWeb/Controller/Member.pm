@@ -13,6 +13,33 @@ sub verify_user_data
 	my $message = {};
 	my $fail    = 0;
 
+	my $different_paypal = delete($form->{different_paypal});
+
+	if ($different_paypal)
+		{
+		if ($form->{paypal_email} && $form->{paypal_email} !~ /.+@.+\..+/)
+			{
+			$message->{paypal_email} = "You must specify a valid PayPal e-mail address or leave it blank if you do not use PayPal.";
+			$fail = 1;
+			}
+		}
+	else
+		{
+		$form->{paypal_email} = undef;
+		}
+	if ($form->{handle})
+		{
+		my $member = $c->model('DB::Member')->search({ handle => $form->{handle} });
+		if ($member->count())
+			{
+			$fail = 1;
+			$message->{handle} = 'That handle is already in use.';
+			}
+		}
+	else
+		{
+		$form->{handle} = undef;
+		}
 	if (!$form->{email} || $form->{email} eq '' || $form->{email} !~ /.+@.+\..+/)
 		{
 		$message->{email} = "You must specify a valid e-mail address.";
@@ -140,12 +167,36 @@ sub register :Local :Args(0)
 		{
 		my $member = $c->model('DB::Member')->create($form) || die $!;
 		$member->set_password($password);
-		my $user = $c->find_user({ member_id => $member->member_id() });
-		$c->set_authenticated($user);
+		$c->authenticate({ password => $password, 'dbix_class' => { result => $member } }) || die $!;
 		});
 
 	$c->response()->redirect($c->uri_for('/'));
 	}
+
+sub pay :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	$c->stash()->{template} = 'member/pay.tt';
+	}
+
+sub requests :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $user     = $c->user() || return;
+	my @slots    = $user->list_slots();
+	my @requests = $user->requests()->search({}, { order_by => { -desc => 'created_at' } })->all();
+
+	$c->stash(
+		{
+		template => 'member/requests.tt',
+		slots    => \@slots,
+		markdown => new Text::Markdown,
+		requests => \@requests,
+		});
+	}
+
 
 =head1 AUTHOR
 
