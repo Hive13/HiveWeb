@@ -21,4 +21,7 @@ requires 'DBIx::Class::UUIDColumns';
 requires 'DBD::Pg';
 requires 'DateTime::Format::Pg';
 
+requires 'Bytes::Random::Secure';
+requires 'Math::Random::ISAAC::XS';
+
 # vim:set filetype=perl:
