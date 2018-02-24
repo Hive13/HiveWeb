@@ -131,14 +131,23 @@ sub access :Local
 	my $out     = $c->stash()->{out};
 	my $device  = $c->model('DB::Device')->find({ name => $in->{device} });
 	my $data    = $in->{data};
-	my $version = $in->{version} || 1;
+	my $version = int($in->{version} || 1);
 	my $view    = $c->view('ChecksummedJSON');
 
 	if (!defined($device))
 		{
-		$out->{response} = JSON->false();
-		$out->{error} = 'Cannot find device.';
+		$out->{response} = \0;
+		$out->{error}    = 'Cannot find device.';
 		$c->response()->status(400)
+			if ($data->{http});
+		return;
+		}
+
+	if ($device->min_version() > $version || $version > $device->max_version())
+		{
+		$out->{response} = \0;
+		$out->{error}    = 'Invalid version for device.';
+		$c->response()->status(403)
 			if ($data->{http});
 		return;
 		}
