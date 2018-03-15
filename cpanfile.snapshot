@@ -9,6 +9,13 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::More 0.47
       perl 5.006
+  Algorithm-Diff-1.1903
+    pathname: T/TY/TYEMQ/Algorithm-Diff-1.1903.tar.gz
+    provides:
+      Algorithm::Diff 1.1903
+      Algorithm::Diff::_impl 1.1903
+    requirements:
+      ExtUtils::MakeMaker 0
   Apache-LogFormat-Compiler-0.35
     pathname: K/KA/KAZEBURO/Apache-LogFormat-Compiler-0.35.tar.gz
     provides:
@@ -145,6 +152,21 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Module::Metadata 1.000023
       base 0
+      perl 5.006
+      strict 0
+      warnings 0
+  Capture-Tiny-0.46
+    pathname: D/DA/DAGOLDEN/Capture-Tiny-0.46.tar.gz
+    provides:
+      Capture::Tiny 0.46
+    requirements:
+      Carp 0
+      Exporter 0
+      ExtUtils::MakeMaker 6.17
+      File::Spec 0
+      File::Temp 0
+      IO::Handle 0
+      Scalar::Util 0
       perl 5.006
       strict 0
       warnings 0
@@ -1104,6 +1126,45 @@ DISTRIBUTIONS
       Task::Weaken 0
       Tie::ToObject 0.01
       namespace::clean 0.19
+  DateTime-1.46
+    pathname: D/DR/DROLSKY/DateTime-1.46.tar.gz
+    provides:
+      DateTime 1.46
+      DateTime::Duration 1.46
+      DateTime::Helpers 1.46
+      DateTime::Infinite 1.46
+      DateTime::Infinite::Future 1.46
+      DateTime::Infinite::Past 1.46
+      DateTime::LeapSecond 1.46
+      DateTime::PP 1.46
+      DateTime::PPExtra 1.46
+      DateTime::Types 1.46
+    requirements:
+      Carp 0
+      DateTime::Locale 1.06
+      DateTime::TimeZone 2.02
+      Dist::CheckConflicts 0.02
+      ExtUtils::MakeMaker 0
+      POSIX 0
+      Params::ValidationCompiler 0.26
+      Scalar::Util 0
+      Specio 0.18
+      Specio::Declare 0
+      Specio::Exporter 0
+      Specio::Library::Builtins 0
+      Specio::Library::Numeric 0
+      Specio::Library::String 0
+      Try::Tiny 0
+      XSLoader 0
+      base 0
+      integer 0
+      namespace::autoclean 0.19
+      overload 0
+      parent 0
+      perl 5.008004
+      strict 0
+      warnings 0
+      warnings::register 0
   DateTime-Format-Builder-0.81
     pathname: D/DR/DROLSKY/DateTime-Format-Builder-0.81.tar.gz
     provides:
@@ -1139,6 +1200,30 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 6.36
       Module::Build::Tiny 0.035
       Test::More 0
+  DateTime-Locale-1.17
+    pathname: D/DR/DROLSKY/DateTime-Locale-1.17.tar.gz
+    provides:
+      DateTime::Locale 1.17
+      DateTime::Locale::Base 1.17
+      DateTime::Locale::Catalog 1.17
+      DateTime::Locale::Data 1.17
+      DateTime::Locale::FromData 1.17
+      DateTime::Locale::Util 1.17
+    requirements:
+      Carp 0
+      Dist::CheckConflicts 0.02
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      File::ShareDir 0
+      File::ShareDir::Install 0.06
+      List::Util 1.45
+      Params::ValidationCompiler 0.13
+      Specio::Declare 0
+      Specio::Library::String 0
+      namespace::autoclean 0.19
+      perl 5.008004
+      strict 0
+      warnings 0
   DateTime-TimeZone-2.13
     pathname: D/DR/DROLSKY/DateTime-TimeZone-2.13.tar.gz
     provides:
@@ -3044,12 +3129,12 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  Params-ValidationCompiler-0.24
-    pathname: D/DR/DROLSKY/Params-ValidationCompiler-0.24.tar.gz
+  Params-ValidationCompiler-0.27
+    pathname: D/DR/DROLSKY/Params-ValidationCompiler-0.27.tar.gz
     provides:
-      Params::ValidationCompiler 0.24
-      Params::ValidationCompiler::Compiler 0.24
-      Params::ValidationCompiler::Exceptions 0.24
+      Params::ValidationCompiler 0.27
+      Params::ValidationCompiler::Compiler 0.27
+      Params::ValidationCompiler::Exceptions 0.27
     requirements:
       B 0
       Carp 0
@@ -3562,6 +3647,15 @@ DISTRIBUTIONS
       List::Util 1.09
       Scalar::Util 1.09
       Test::Builder 0
+  Test-Differences-0.64
+    pathname: D/DC/DCANTRELL/Test-Differences-0.64.tar.gz
+    provides:
+      Test::Differences 0.64
+    requirements:
+      Capture::Tiny 0.24
+      Data::Dumper 2.126
+      Test::More 0.88
+      Text::Diff 0.35
   Test-Exception-0.43
     pathname: E/EX/EXODIST/Test-Exception-0.43.tar.gz
     provides:
@@ -3727,6 +3821,32 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
+  Text-Diff-1.45
+    pathname: N/NE/NEILB/Text-Diff-1.45.tar.gz
+    provides:
+      Text::Diff 1.45
+      Text::Diff::Base 1.45
+      Text::Diff::Config 1.44
+      Text::Diff::Table 1.44
+    requirements:
+      Algorithm::Diff 1.19
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      perl 5.006
+  Text-Markdown-1.000031
+    pathname: B/BO/BOBTFISH/Text-Markdown-1.000031.tar.gz
+    provides:
+      Text::Markdown 1.000031
+    requirements:
+      Digest::MD5 0
+      Encode 0
+      ExtUtils::MakeMaker 6.42
+      FindBin 0
+      List::MoreUtils 0
+      Test::Differences 0
+      Test::Exception 0
+      Test::More 0.42
+      Text::Balanced 0
   Text-SimpleTable-2.03
     pathname: M/MR/MRAMBERG/Text-SimpleTable-2.03.tar.gz
     provides:

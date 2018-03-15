@@ -24,4 +24,15 @@ requires 'DateTime::Format::Pg';
 requires 'Bytes::Random::Secure';
 requires 'Math::Random::ISAAC::XS';
 
+requires 'DateTime';
+requires 'Digest::SHA';
+requires 'HTTP::Request::Common';
+requires 'JSON';
+requires 'JSON::PP';
+requires 'LWP::UserAgent';
+requires 'MIME::Base64';
+requires 'Net::SMTP';
+requires 'Text::Markdown';
+requires 'Try::Tiny';
+
 # vim:set filetype=perl:
