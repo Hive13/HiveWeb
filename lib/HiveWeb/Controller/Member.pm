@@ -29,7 +29,10 @@ sub verify_user_data
 		}
 	if ($form->{handle})
 		{
-		my $member = $c->model('DB::Member')->search({ handle => $form->{handle} });
+		my $search = { handle => $form->{handle} };
+		$search->{member_id} = { '!=' => $c->user()->member_id() }
+			if ($c->user());
+		my $member = $c->model('DB::Member')->search($search);
 		if ($member->count())
 			{
 			$fail = 1;
