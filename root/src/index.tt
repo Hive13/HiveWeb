@@ -9,6 +9,7 @@
 var panel_urls =
 	{
 	temp: "[% Catalyst.uri_for('/api/temperature/current').dquote %]"
+	, soda: "[% Catalyst.uri_for('/api/soda/status').dquote %]"
 [%~ IF Catalyst.user_exists %]
 	, curse: "[% Catalyst.uri_for('/api/curse/list').dquote %]"
 	, storage: "[% Catalyst.uri_for('/api/storage/list').dquote %]"

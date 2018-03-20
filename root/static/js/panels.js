@@ -58,9 +58,21 @@ function display_temp_data(data, $temp_panel)
 	$temp_div.html(html);
 	}
 
+function display_soda_data(data, $temp_panel)
+	{
+	var $temp_div = $temp_panel.find("h3.soda + div"), html = "";
+
+	$temp_div.html(html);
+	}
+
 function temperature_loading($panel)
 	{
 	$panel.find("h3.temperature + div").html(loading_icon());
+	}
+
+function soda_loading($panel)
+	{
+	$panel.find("h3.soda + div").html(loading_icon());
 	}
 
 $(function()
@@ -78,6 +90,14 @@ $(function()
 			refresh: true,
 			panel_function: display_temp_data,
 			panel_class: "Temperatures"
+			},
+			{
+			$panel: $panel,
+			load_function: soda_loading,
+			load_url: panel_urls["soda"],
+			refresh: false,
+			panel_function: display_soda_data,
+			panel_class: "Soda Status"
 			}
 		]);
 	});
