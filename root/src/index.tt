@@ -34,7 +34,7 @@ IF Catalyst.user_exists;
 </div>
 [%~
 END;
-panels.push({ name => 'temp', title => 'Current Hive Temperatures', style => 'panel-info' });
+panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info' });
 IF Catalyst.user_exists;
 	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
 	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
