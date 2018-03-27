@@ -11,7 +11,7 @@
 			<input type="submit" value="Update my password" class="btn btn-block btn-primary" /><br />
 		</form>
 		[%~ ELSE %]
-		The token specified is invalid.
+		The token specified has expired, has already been used, or is invalid.
 		[%~ END %]
 	</div>
 </div>

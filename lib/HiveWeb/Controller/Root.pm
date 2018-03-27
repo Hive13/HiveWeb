@@ -239,6 +239,14 @@ sub forgot_password :Local
 	$token = undef
 		if ($token && !$token->valid());
 
+	if ($token)
+		{
+		my $date = $token->created_at();
+		$date->add({ hours => 24 });
+		$token = undef
+			if (DateTime->compare($date, DateTime->now() ) < 0);
+		}
+
 	$stash->{token}    = $token;
 	$stash->{template} = 'forgot_token.tt';
 
