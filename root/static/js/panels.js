@@ -79,7 +79,13 @@ $(function()
 	{
 	var $panel = $(".hive-panel-status");
 
-	$panel.find(".panel-body").html("<h3 class=\"temperature\">Temperatures</h3><div></div><br /><h3 class=\"soda\">Soda Status</h3><div></div>");
+	$panel.find(".panel-body").html(
+		  "<table><tr><td>"
+		+ "<h3 class=\"temperature\">Temperatures</h3><div></div>"
+		+ "</td><td>"
+		+ "<h3 class=\"soda\">Soda Status</h3><div></div>"
+		+ "</td></tr></table>"
+	);
 
 	init_panel("status",
 		[
