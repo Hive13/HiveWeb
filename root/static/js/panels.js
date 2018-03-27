@@ -60,7 +60,20 @@ function display_temp_data(data, $temp_panel)
 
 function display_soda_data(data, $temp_panel)
 	{
-	var $temp_div = $temp_panel.find("h3.soda + div"), html = "";
+	var $temp_div = $temp_panel.find("h3.soda + div"), html = "", i, soda;
+
+	for (i = 0; i < data.sodas.length; i++)
+		{
+		soda = data.sodas[i];
+		html += "<span class=\"label";
+		if (soda.sold_out)
+			html += " label-danger\" title=\"Sold Out";
+		else
+			html += " label-success\" title=\"In Stock";
+		html += "\">" + soda.name + "</span><br />";
+		}
+
+	html += "</table>";
 
 	$temp_div.html(html);
 	}
