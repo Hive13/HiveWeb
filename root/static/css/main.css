@@ -127,6 +127,11 @@ div.panel.hive-panel-access ol li.shown span.info
 	padding: 15px;
 	}
 
+.hive-panel-status table td h3
+	{
+	margin-top: 10px;
+	}
+
 .hive-panel-status table td:not(:last-child)
 	{
 	border-right: 1px solid #bce8f1;
