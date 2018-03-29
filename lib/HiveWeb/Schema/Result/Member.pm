@@ -176,6 +176,10 @@ sub TO_JSON
 		push(@groups, $mg->mgroup_id());
 		}
 
+	my $phone = $self->phone();
+	$phone =~ s/[^0-9]//g;
+	$phone = int($phone) || undef;
+
 	return
 		{
 		member_id       => $self->member_id(),
@@ -185,6 +189,7 @@ sub TO_JSON
 		created_at      => $self->created_at(),
 		groups          => \@groups,
 		handle          => $self->handle(),
+		phone           => $phone,
 		create_time     => $self->created_at(),
 		vend_credits    => $self->vend_credits(),
 		paypal_email    => $self->paypal_email(),

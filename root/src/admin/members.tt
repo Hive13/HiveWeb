@@ -1177,7 +1177,7 @@ function edit(member_id)
 		cache: false,
 		success: function (data)
 			{
-			var i, badge, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc;
+			var i, badge, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc, phone;
 			var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
 			var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
 			var $info         = $dialogue.find("div#info_div div.panel-body");
@@ -1191,8 +1191,16 @@ function edit(member_id)
 			date_obj = new Date(data.member.last_access_time);
 			dc = parseInt(data.member.door_count) || 0;
 			ac = parseInt(data.member.accesses)   || 0;
-			html = "E-mail Address: " + data.member.email + "<br />"
-				+ "Handle: " + data.member.handle + "<br />"
+			phone = data.member.phone;
+			if (phone)
+				{
+				phone = phone.toString();
+				phone = "(" + phone.substring(0, 3) + ") " + phone.substring(3, 6) + "-" + phone.substring(6);
+				}
+			html = "E-mail Address: " + data.member.email + "<br />";
+			if (phone)
+				html += "Phone Number: <a href=\"tel:" + data.member.phone + "\">" + phone + "</a><br />";
+			html += "Handle: " + data.member.handle + "<br />"
 				+ "Access Count: " + (ac + dc) + " (" + ac + " intweb + " + dc + " door)<br />"
 				+ "Last Access Time: " + date_obj.toLocaleDateString() + " " + date_obj.toLocaleTimeString() + "<br />";
 
