@@ -3,7 +3,7 @@ requires 'Catalyst';
 requires 'Catalyst::View::JSON';
 requires 'Catalyst::View::TT';
 requires 'Catalyst::Plugin::Session::State::Cookie';
-requires 'Catalyst::Plugin::Session::Store::File';
+requires 'Catalyst::Plugin::Session::Store::DBIC';
 requires 'Catalyst::Plugin::Authorization::ACL';
 requires 'Catalyst::Plugin::Authentication';
 requires 'Catalyst::Plugin::Static::Simple';
