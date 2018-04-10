@@ -41,7 +41,7 @@ nav ul.pagination
 			</div>
 			<div class="modal-body">
 				<div class="row row-eq-height">
-					<div class="col-sm-6 col-lg-3">
+					<div class="col-xs-12 col-sm-6 col-lg-3">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h5>Group Membership</h5>
@@ -50,7 +50,7 @@ nav ul.pagination
 							</div>
 						</div>
 					</div>
-					<div id="photo" class="col-sm-6 col-lg-9">
+					<div id="photo" class="col-xs-12 col-sm-6 col-lg-9">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h5>Member Photo</h5>
@@ -59,7 +59,7 @@ nav ul.pagination
 							</div>
 						</div>
 					</div>
-					<div id="badges" class="col-sm-6 col-lg-3">
+					<div id="badges" class="col-xs-12 col-sm-6 col-lg-3">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h5>Badges</h5>
@@ -78,7 +78,7 @@ nav ul.pagination
 							</div>
 						</div>
 					</div>
-					<div id="soda_credit_div" class="col-sm-12 col-lg-4">
+					<div id="soda_credit_div" class="col-xs-12 col-lg-4">
 						<div class="panel panel-info">
 							<div class="panel-heading">
 								<h5>Member Profile</h5>
@@ -100,7 +100,7 @@ nav ul.pagination
 							</div>
 						</div>
 					</div>
-					<div id="info_div" class="col-sm-12 col-lg-5">
+					<div id="info_div" class="col-xs-12 col-lg-5">
 						<div class="panel panel-info">
 							<div class="panel-heading">
 								<h5>Member Info</h5>
