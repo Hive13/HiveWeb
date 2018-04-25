@@ -5,11 +5,18 @@ div.search
 	min-width: 100px;
 	float: right;
 	height: 34px;
+	padding-left: 10px;
 	}
 
 nav ul.pagination
 	{
 	margin: 0;
+	}
+
+table th.options
+	{
+	text-align: right;
+	padding-right: 10px;
 	}
 </style>
 <div class="row">
@@ -18,8 +25,16 @@ nav ul.pagination
 			<h3>Members</h3>
 		</div>
 		<div class="panel-body">
-			<div class="search" style="float: right; width: 25%; min-width: 100px;">
+			<div class="search">
 				<input type="text" class="form-control" placeholder="Search for members" title="<span class='label label-info'>fname:</span>, <span class='label label-info'>lname:</span>, <span class='label label-info'>name:</span>, <span class='label label-info'>email:</span>, and <span class='label label-info'>paypal:</span> may be prepended to a search term only search that column.  Note that <span class='label label-info'>name:</span> searches both first and last name." data-placement="top" data-toggle="tooltip" />
+			</div>
+			<div style="float: right">
+				<select class="per-page">
+					<option value="25">25 per page</option>
+					<option value="50">50 per page</option>
+					<option value="75">75 per page</option>
+					<option value="100">100 per page</option>
+				</select>
 			</div>
 			<nav id="pagination_top" class="hive-member-pagination">
 			</nav>
@@ -539,8 +554,7 @@ $(function()
 		load_members();
 		});
 
-	$table
-		.on("change", "select.per-page", function ()
+	$("select.per-page").change(function ()
 			{
 			var new_per_page = $(this).val();
 
@@ -548,7 +562,8 @@ $(function()
 			per_page = new_per_page;
 
 			load_members();
-			})
+			});
+	$table
 		.on("dblclick", "tr", function ()
 			{
 			edit($(this).attr("id"));
@@ -787,21 +802,9 @@ function load_header($table)
 	{
 	var html, i;
 
-	html = "<tr><th>"
-		+ "<select class=\"per-page\">";
+	$("select.per-page").find("option[value=" + per_page + "]").attr("selected", true);
 
-	for (i = 1; i < 5; i++)
-		{
-		html += "<option value=\"" + (i * 25) + "\"";
-		if (per_page == (i * 25))
-			html += " selected=\"selected\"";
-		html += ">" + (i * 25) + " per page</option>";
-		}
-
-	html += "</select>"
-		+ "</th>";
-
-	html += "<th>"
+	html = "<th colspan=\"2\" class=\"options\">"
 		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
 		+ "</th>";
 
