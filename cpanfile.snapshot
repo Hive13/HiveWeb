@@ -1051,6 +1051,14 @@ DISTRIBUTIONS
       Try::Tiny 0.07
       namespace::clean 0.24
       perl 5.008001
+  DBIx-Class-InflateColumn-Object-Enum-0.06
+    pathname: J/JM/JMMILLS/DBIx-Class-InflateColumn-Object-Enum-0.06.tar.gz
+    provides:
+      DBIx::Class::InflateColumn::Object::Enum 0.06
+    requirements:
+      DBIx::Class::Schema 0
+      ExtUtils::MakeMaker 6.30
+      Object::Enum 0
   DBIx-Class-UUIDColumns-0.02006
     pathname: A/AB/ABRAXXA/DBIx-Class-UUIDColumns-0.02006.tar.gz
     provides:
@@ -3020,6 +3028,16 @@ DISTRIBUTIONS
       Net::LDAP::Server 0.3
       Test::More 0
       perl 5.008003
+  Object-Enum-0.075
+    pathname: J/JM/JMMILLS/Object-Enum-0.075.tar.gz
+    provides:
+      Object::Enum 0.075
+    requirements:
+      Class::Accessor::Fast 0
+      Class::Data::Inheritable 0
+      ExtUtils::MakeMaker 0
+      Sub::Exporter 0
+      Sub::Install 0
   Object-Signature-1.07
     pathname: A/AD/ADAMK/Object-Signature-1.07.tar.gz
     provides:
