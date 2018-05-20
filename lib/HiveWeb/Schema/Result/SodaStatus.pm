@@ -9,20 +9,24 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ UUIDColumns });
+__PACKAGE__->load_components(qw{ InflateColumn::Object::Enum UUIDColumns });
 __PACKAGE__->table('soda_status');
 
 __PACKAGE__->add_columns(
-  'soda_id',
-  { data_type => 'uuid', is_nullable => 0, size => 16 },
-  'name',
-  { data_type => 'character varying', is_nullable => 0, size => 32 },
-  'diet',
-  { data_type => 'boolean', is_nullable => 0, default_value => 'f' },
-  'sold_out',
-  { data_type => 'boolean', is_nullable => 0, default_value => 'f' },
+	'soda_id',
+	{ data_type => 'uuid', is_nullable => 0, size => 16 },
+	'name',
+	{ data_type => 'character varying', is_nullable => 0, size => 32 },
+	'sold_out',
+	{ data_type => 'boolean', is_nullable => 0, default_value => 'f' },
 	'slot_number',
-  { data_type => 'integer', is_nullable => 0 },
+	{ data_type => 'integer', is_nullable => 0 },
+	'type' =>
+		{
+		data_type => 'enum',
+		is_enum => 1,
+		extra => { list => ['regular', 'diet', 'water', 'beer'] },
+		},
 );
 
 __PACKAGE__->set_primary_key('soda_id');
@@ -39,7 +43,7 @@ sub TO_JSON
 		{
 		soda_id     => $self->soda_id(),
 		name        => $self->name(),
-		diet        => $self->diet() ? \1 : \0,
+		type        => $self->type(),
 		sold_out    => $self->sold_out() ? \1 : \0,
 		slot_number => $self->slot_number(),
 		};
