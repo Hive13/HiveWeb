@@ -9,6 +9,7 @@
 var panel_urls =
 	{
 	temp: "[% Catalyst.uri_for('/api/temperature/current').dquote %]"
+	, soda: "[% Catalyst.uri_for('/api/soda/status').dquote %]"
 [%~ IF Catalyst.user_exists %]
 	, curse: "[% Catalyst.uri_for('/api/curse/list').dquote %]"
 	, storage: "[% Catalyst.uri_for('/api/storage/list').dquote %]"
@@ -26,15 +27,10 @@ var panel_urls =
 </script>
 [%~ 
 SET panels = [];
+panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info', large => 1 });
 IF Catalyst.user_exists;
 	panels.push({ name => 'soda', title => 'Soda Credits', style => 'panel-default', credits => Catalyst.user.vend_credits || 0 });
-%]
-<div class="jumbotron">
-	<h3>Hi, [% Catalyst.user.fname %]</h3>
-</div>
-[%~
 END;
-panels.push({ name => 'temp', title => 'Current Hive Temperatures', style => 'panel-info' });
 IF Catalyst.user_exists;
 	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
 	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
@@ -45,19 +41,24 @@ IF Catalyst.user_exists;
 		END;
 	END;
 END;
-SET panel_style  = 'col-sm-10 col-lg-6 col-sm-offset-1 col-lg-offset-3';
+SET panel_style  = 'col-xs-12 col-sm-10 col-lg-6 col-sm-offset-1 col-lg-offset-3';
 IF panels.size > 2;
-	SET panel_style = 'col-lg-4 col-md-6';
+	SET panel_style = 'col-xs-12 col-lg-4 col-md-6';
 ELSIF panels.size > 1;
-	SET panel_style = 'col-md-6';
+	SET panel_style = 'col-xs-12 col-md-6';
 END;
 %]
 
 <div class="row">
 [%~
 	FOREACH panel IN panels;
+		IF panel.large;
+			SET pstyle = 'col-xs-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2';
+		ELSE;
+			SET pstyle = panel_style;
+		END;
 %]
-	<div class="[% panel_style %]">
+	<div class="[% pstyle %]">
 		<div class="panel [% panel.style %] hive-panel-[% panel.name %]">
 			<div class="panel-heading">
 				<h4>[% panel.title %]</h4>
@@ -88,7 +89,7 @@ END;
 				GET 'Loading accesses...';
 			CASE 'curse';
 				GET 'Loading notifications...';
-		END; #CASE
+		END;
 %]
 			</div>
 		</div>

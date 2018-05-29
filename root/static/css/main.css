@@ -115,3 +115,38 @@ div.panel.hive-panel-access ol li.shown span.info
 	{
 	display: inline;
 	}
+
+.hive-panel-status div.panel-body
+	{
+	padding: 0;
+	}
+
+.hive-panel-status table
+	{
+	table-layout: fixed;
+	width: 100%;
+	}
+
+.hive-panel-status table td
+	{
+	vertical-align: top;
+	padding: 15px;
+	width: 50%;
+	}
+
+.hive-panel-status table td h3
+	{
+	margin-top: 10px;
+	text-align: center;
+	text-decoration: underline;
+	}
+
+.hive-panel-status table td div.row > div
+	{
+	margin-top: 10px;
+	}
+
+.hive-panel-status table td:not(:last-child)
+	{
+	border-right: 1px solid #bce8f1;
+	}

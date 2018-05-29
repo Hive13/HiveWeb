@@ -5,6 +5,7 @@ use namespace::autoclean;
 use JSON;
 use Bytes::Random::Secure qw(random_bytes);
 use MIME::Base64;
+use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -255,6 +256,26 @@ sub access :Local
 			$out->{response} = \0;
 			$out->{error}    = 'Could not log temperature.';
 			}
+		}
+	elsif ($operation eq 'soda_status')
+		{
+		my $sodas = $data->{sodas};
+		$out->{response} = \1;
+		try
+			{
+			$c->model('DB')->txn_do(sub
+				{
+				foreach my $soda (@$sodas)
+					{
+					my $slot = $c->model('DB::SodaStatus')->find({ slot_number => $soda->{slot} }) || die;
+					$slot->update({ sold_out => ($soda->{sold_out} ? 't' : 'f') });
+					}
+				});
+			}
+		catch
+			{
+			$out->{response} = \0;
+			};
 		}
 	elsif ($operation eq 'get_nonce')
 		{
