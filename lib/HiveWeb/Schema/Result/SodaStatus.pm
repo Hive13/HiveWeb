@@ -9,7 +9,7 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ InflateColumn::Object::Enum UUIDColumns });
+__PACKAGE__->load_components(qw{ UUIDColumns });
 __PACKAGE__->table('soda_status');
 
 __PACKAGE__->add_columns(
