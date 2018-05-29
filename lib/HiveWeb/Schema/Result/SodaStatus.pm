@@ -21,17 +21,20 @@ __PACKAGE__->add_columns(
 	{ data_type => 'boolean', is_nullable => 0, default_value => 'f' },
 	'slot_number',
 	{ data_type => 'integer', is_nullable => 0 },
-	'type' =>
-		{
-		data_type => 'enum',
-		is_enum => 1,
-		extra => { list => ['regular', 'diet', 'water', 'beer'] },
-		},
+	'soda_type_id',
+	{ data_type => 'uuid', is_nullable => 0, size => 16 },
 );
 
 __PACKAGE__->set_primary_key('soda_id');
 __PACKAGE__->uuid_columns('soda_id');
 __PACKAGE__->resultset_attributes( { order_by => ['slot_number'] } );
+
+__PACKAGE__->belongs_to(
+  "soda_type",
+  "HiveWeb::Schema::Result::SodaType",
+  { "foreign.soda_type_id" => "self.soda_type_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 __PACKAGE__->meta->make_immutable;
 
@@ -43,7 +46,7 @@ sub TO_JSON
 		{
 		soda_id     => $self->soda_id(),
 		name        => $self->name(),
-		type        => $self->type(),
+		soda_type   => $self->soda_type(),
 		sold_out    => $self->sold_out() ? \1 : \0,
 		slot_number => $self->slot_number(),
 		};
