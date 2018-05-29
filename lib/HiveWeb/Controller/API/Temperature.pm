@@ -30,11 +30,15 @@ sub current :Local :Args(0)
 		{
 		next
 			if ($wanted && !$wanted->{ $item->name() });
-		my $temp = $item->search_related('temp_logs', {}, { order_by => { -desc => 'create_time' } })->first();
+		my $temp = $item->search_related('temp_logs', {},
+			{
+			order_by => { -desc => 'create_time' },
+			rows     => 1,
+			})->first();
 		push (@$temps, $temp)
 			if ($temp);
 		}
-	
+
 	if ($temps)
 		{
 		$c->stash()->{out}->{temps}    = $temps;
