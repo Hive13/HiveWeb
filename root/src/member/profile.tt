@@ -7,6 +7,11 @@
 		SET submit = 'Register!';
 		SET show_pass = 1;
 	END;
+	IF vals.phone;
+		SET phone = '(' _ vals.phone.substr(0, 3) _ ') ' _ vals.phone.substr(3, 3) _ '-' _ vals.phone.substr(6);
+	ELSE;
+		SET phone = '';
+	END;
 ~%]
 <style type="text/css">
 table.register th
@@ -122,7 +127,7 @@ $(function()
 				</tr>
 				<tr>
 					<th><label for="phone">Phone Number:</label></th>
-					<td><input type="text" name="phone" id="phone" maxlength="255" value="[% vals.phone %]" /></td>
+					<td><input type="text" name="phone" id="phone" maxlength="255" value="[% phone %]" /></td>
 					<td>
 						[%~
 							IF message.phone.defined && message.phone.length > 0;
