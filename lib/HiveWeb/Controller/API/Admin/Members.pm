@@ -643,6 +643,10 @@ sub index :Path :Args(0)
 				{
 				push(@$names, { lname => { ilike => '%' . $name . '%' } });
 				}
+			elsif ($name =~ s/^tel://i)
+				{
+				push(@$names, \[ 'CAST(phone AS TEXT) like ?', '%' . $name . '%' ]);
+				}
 			elsif ($name =~ s/^name://i)
 				{
 				push(@$names,

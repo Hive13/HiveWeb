@@ -27,7 +27,7 @@ __PACKAGE__->add_columns(
   'paypal_email',
   { data_type => 'varchar', is_nullable => 1, size => 255 },
   'phone',
-  { data_type => 'varchar', is_nullable => 1, size => 255 },
+  { data_type => 'bigint', is_nullable => 1 },
   'encrypted_password',
   { data_type => 'varchar', is_nullable => 1, size => 255, accessor => 'password' },
 	'vend_credits',
@@ -176,10 +176,6 @@ sub TO_JSON
 		push(@groups, $mg->mgroup_id());
 		}
 
-	my $phone = $self->phone();
-	$phone =~ s/[^0-9]//g;
-	$phone = int($phone) || undef;
-
 	return
 		{
 		member_id       => $self->member_id(),
@@ -189,7 +185,7 @@ sub TO_JSON
 		created_at      => $self->created_at(),
 		groups          => \@groups,
 		handle          => $self->handle(),
-		phone           => $phone,
+		phone           => $self->phone(),
 		create_time     => $self->created_at(),
 		vend_credits    => $self->vend_credits(),
 		paypal_email    => $self->paypal_email(),

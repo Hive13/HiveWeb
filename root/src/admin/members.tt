@@ -26,7 +26,7 @@ table th.options
 		</div>
 		<div class="panel-body">
 			<div class="search">
-				<input type="text" class="form-control" placeholder="Search for members" title="<span class='label label-info'>fname:</span>, <span class='label label-info'>lname:</span>, <span class='label label-info'>name:</span>, <span class='label label-info'>email:</span>, and <span class='label label-info'>paypal:</span> may be prepended to a search term only search that column.  Note that <span class='label label-info'>name:</span> searches both first and last name." data-placement="top" data-toggle="tooltip" />
+				<input type="text" class="form-control" placeholder="Search for members" title="<span class='label label-info'>fname:</span>, <span class='label label-info'>lname:</span>, <span class='label label-info'>name:</span>, <span class='label label-info'>email:</span>, <span class='label label-info'>paypal:</span>, and <span class='label label-info'>tel:</span> may be prepended to a search term only search that column.  Note that <span class='label label-info'>name:</span> searches both first and last name." data-placement="top" data-toggle="tooltip" />
 			</div>
 			<div style="float: right">
 				<select class="per-page">
