@@ -35,4 +35,6 @@ requires 'Net::SMTP';
 requires 'Text::Markdown';
 requires 'Try::Tiny';
 
+requires 'Image::Magick';
+
 # vim:set filetype=perl:
