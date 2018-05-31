@@ -18,7 +18,6 @@ requires 'Crypt::Eksblowfish::Bcrypt';
 
 requires 'DBIx::Class';
 requires 'DBIx::Class::UUIDColumns';
-requires 'DBIx::Class::InflateColumn::Object::Enum';
 requires 'DBD::Pg';
 requires 'DateTime::Format::Pg';
 
