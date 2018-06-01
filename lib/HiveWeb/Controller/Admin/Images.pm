@@ -12,9 +12,20 @@ sub index :Path :Args(1)
 
 	my $image = $c->model('DB::Image')->find($image_id) // die;
 
-	$c->response()->body($image->thumbnail());
+	$c->response()->body($image->image());
 	$c->response()->content_type($image->content_type());
+	}
 
+sub thumb :Local :Args(1)
+	{
+	my $self     = shift;
+	my $c        = shift;
+	my $image_id = shift;
+
+	my $image = $c->model('DB::Image')->find($image_id) // die;
+
+	$c->response()->body($image->image() || $image->thumbnail());
+	$c->response()->content_type($image->content_type());
 	}
 
 =encoding utf8
