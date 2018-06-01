@@ -786,7 +786,7 @@ function load_image($dialogue, image_id, member_id)
 			data:    { image_id: image_id, degrees: 90 },
 			success: function()
 				{
-				alert("d");
+				$image_div.find("img").attr("src", "[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime());
 				}
 			});
 		});
