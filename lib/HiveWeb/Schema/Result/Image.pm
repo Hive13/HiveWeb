@@ -72,8 +72,8 @@ sub update
 	if (ref($attrs) eq 'HASH' && exists($attrs->{image}))
 		{
 		my $im = Image::Magick->new() || die $!;
-		$im->BlobToImage($attrs->{image}) || die $!;
-		$im->Resize(geometry => '100x100') || die $!;
+		$im->BlobToImage($attrs->{image});
+		$im->Resize(geometry => '100x100');
 		$attrs->{thumbnail} = ($im->ImageToBlob())[0];
 		}
 
