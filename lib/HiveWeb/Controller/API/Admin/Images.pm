@@ -17,6 +17,7 @@ sub rotate :Local :Args(0)
 	my $out      = $c->stash()->{out};
 	my $image_id = $in->{image_id};
 	my $image    = $c->model('DB::Image')->find($image_id);
+	my $degrees  = int($in->{degrees} || 90);
 
 	if (!defined($image))
 		{
@@ -34,7 +35,7 @@ sub rotate :Local :Args(0)
 			{
 			my $im = Image::Magick->new() || die $!;
 			$im->BlobToImage($image->image());
-			$im->Rotate(degrees => 90);
+			$im->Rotate(degrees => $degrees);
 			my $data = ($im->ImageToBlob())[0];
 			$image->update({ image => $data }) || die $!;
 			});
