@@ -777,7 +777,7 @@ function load_image($dialogue, image_id, member_id)
 		}
 	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
 
-	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").click(function ()
+	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
 		{
 		api_json(
 			{
@@ -792,7 +792,7 @@ function load_image($dialogue, image_id, member_id)
 		});
 	$photo_header.prepend($rotateL);
 
-	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").click(function ()
+	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Clockwise").click(function ()
 		{
 		api_json(
 			{
@@ -807,7 +807,7 @@ function load_image($dialogue, image_id, member_id)
 		});
 	$photo_header.prepend($rotate);
 
-	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").click(function ()
+	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
 		{
 		if (!confirm("Are you sure you want to remove this photo?"))
 			return;
