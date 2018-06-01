@@ -1,3 +1,11 @@
+function display_heatmap_data(data, $panel)
+	{
+	var i, dt, request, html;
+
+	html = "<div class=\"u-w-100 text-center\"><a href=\"/member/requests\" class=\"btn btn-info\">View All Requests</a></div>";
+	$panel.find(".panel-body").html(html);
+	}
+
 function display_storage_data(data, $panel)
 	{
 	var i, dt, request, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
@@ -100,4 +108,5 @@ $(function()
 	{
 	init_panel("curse", display_curse_data);
 	init_panel("storage", display_storage_data, false);
+	init_panel("heatmap", display_heatmap_data, false);
 	});

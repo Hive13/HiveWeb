@@ -11,6 +11,7 @@ var panel_urls =
 	temp: "[% Catalyst.uri_for('/api/temperature/current').dquote %]"
 	, soda: "[% Catalyst.uri_for('/api/soda/status').dquote %]"
 [%~ IF Catalyst.user_exists %]
+	, heatmap: "[% Catalyst.uri_for('/api/heatmap').dquote %]"
 	, curse: "[% Catalyst.uri_for('/api/curse/list').dquote %]"
 	, storage: "[% Catalyst.uri_for('/api/storage/list').dquote %]"
 	, storage_relinquish: "[% Catalyst.uri_for('/api/storage/relinquish').dquote %]"
@@ -29,9 +30,8 @@ var panel_urls =
 SET panels = [];
 panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info', large => 1 });
 IF Catalyst.user_exists;
+	panels.push({ name => 'heatmap', title => 'Activity Heatmap', style => 'panel-default' });
 	panels.push({ name => 'soda', title => 'Soda Credits', style => 'panel-default', credits => Catalyst.user.vend_credits || 0 });
-END;
-IF Catalyst.user_exists;
 	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
 	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
 	IF Catalyst.check_user_roles('board');
@@ -83,12 +83,8 @@ END;
 					</form>
 				</div>
 [%~
-			CASE 'temp';
-				GET 'Loading temperatures...';
-			CASE 'access';
-				GET 'Loading accesses...';
-			CASE 'curse';
-				GET 'Loading notifications...';
+			CASE DEFAULT;
+				GET 'Loading ' _ panel.title _ '...';
 		END;
 %]
 			</div>
