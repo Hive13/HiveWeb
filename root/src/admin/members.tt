@@ -697,9 +697,10 @@ function upload_photo()
 	var $progress, $this = $(this),
 		$image_div = $this.parents("div.panel-body");
 		fd = new FormData(),
+		member_id = $dialogue.data("member_id"),
 		$dialogue = $this.parents("div.modal");
 	fd.append("photo", $this[0].files[0]);
-	fd.append("member_id", $dialogue.data("member_id"));
+	fd.append("member_id", member_id);
 	$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
 	$progress = $image_div.find("div.progress div.progress-bar");
 
@@ -742,9 +743,10 @@ function upload_photo()
 			},
 		success: function(data)
 			{
+			var image_id;
+
 			if (!data.response)
 				{
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 				$.toast(
 					{
 					heading: options.what + " failed",
@@ -755,9 +757,58 @@ function upload_photo()
 				return;
 				}
 			else
-				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.image_id + "\" />");
+				image_id = data.image_id;
+			load_image($dialogue, data.image_id, member_id);
 			}
 		});
+	}
+
+function load_image($dialogue, image_id, member_id)
+	{
+	var $remove, $rotate;
+	var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
+	var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
+
+	$photo_header.find("span").remove();
+	if (!image_id)
+		{
+		$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+		return;
+		}
+	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "\" />");
+
+	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").click(function ()
+		{
+		api_json(
+			{
+			what:    "Rotate Photo",
+			url:     "[% Catalyst.uri_for('/api/admin/images/rotate').dquote %]",
+			data:    { image_id: image_id, degrees: 90 },
+			success: function()
+				{
+				alert("d");
+				}
+			});
+		});
+	$photo_header.prepend($rotate);
+
+	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").click(function ()
+		{
+		if (!confirm("Are you sure you want to remove this photo?"))
+			return;
+		api_json(
+			{
+			what:    "Remove Photo",
+			url:     "[% Catalyst.uri_for('/api/admin/members/remove_photo').dquote %]",
+			data:    { member_id: member_id },
+			success: function()
+				{
+				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+				$("table#hive-member-table tr#" + member_id + " td.photo").empty();
+				}
+			});
+		});
+	$photo_header.prepend($remove);
 	}
 
 function paypal_checkbox()
@@ -1182,7 +1233,6 @@ function edit(member_id)
 			{
 			var i, badge, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc, phone;
 			var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
-			var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
 			var $info         = $dialogue.find("div#info_div div.panel-body");
 
 			title = "Edit " + data.member.fname + " " + data.member.lname;
@@ -1221,7 +1271,6 @@ function edit(member_id)
 			$info.html(html);
 
 			$soda_credits.val(data.member.vend_credits);
-			$photo_header.find("span").remove();
 
 			for (i = 0; i < data.member.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
@@ -1237,29 +1286,7 @@ function edit(member_id)
 				$("input#paypal_email").val(data.member.paypal_email);
 				}
 
-			if (data.member.member_image_id)
-				{
-				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.member.member_image_id + "\" />");
-				$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").click(function ()
-					{
-					if (!confirm("Are you sure you want to remove this photo?"))
-						return;
-					api_json(
-						{
-						what:    "Remove Photo",
-						url:     "[% Catalyst.uri_for('/api/admin/members/remove_photo').dquote %]",
-						data:    { member_id: member_id },
-						success: function()
-							{
-							$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-							$("table#hive-member-table tr#" + member_id + " td.photo").empty();
-							}
-						});
-					});
-				$photo_header.prepend($remove);
-				}
-			else
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+			load_image($dialogue, data.member.member_image_id, member_id);
 
 			for (i = 0; i < data.badges.length; i++)
 				{
