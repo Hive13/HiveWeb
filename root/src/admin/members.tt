@@ -765,7 +765,7 @@ function upload_photo()
 
 function load_image($dialogue, image_id, member_id)
 	{
-	var $remove, $rotate;
+	var $remove, $rotate, $rotateL;
 	var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
 	var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
 
@@ -776,6 +776,21 @@ function load_image($dialogue, image_id, member_id)
 		return;
 		}
 	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
+
+	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").click(function ()
+		{
+		api_json(
+			{
+			what:    "Rotate Photo",
+			url:     "[% Catalyst.uri_for('/api/admin/images/rotate').dquote %]",
+			data:    { image_id: image_id, degrees: 270 },
+			success: function()
+				{
+				$image_div.find("img").attr("src", "[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime());
+				}
+			});
+		});
+	$photo_header.prepend($rotateL);
 
 	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").click(function ()
 		{
