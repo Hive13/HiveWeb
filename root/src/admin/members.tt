@@ -574,7 +574,7 @@ $(function()
 			var image_id  = $(this).parents("td").attr("id");
 			var $dialogue = $("#photo_dialogue");
 
-			$dialogue.find("div.modal-body").html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + image_id + "\" />");
+			$dialogue.find("div.modal-body").html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
 
 			$dialogue.modal("show");
 			})
@@ -775,7 +775,7 @@ function load_image($dialogue, image_id, member_id)
 		$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 		return;
 		}
-	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "\" />");
+	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
 
 	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").click(function ()
 		{
