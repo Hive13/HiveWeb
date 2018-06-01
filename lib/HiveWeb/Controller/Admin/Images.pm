@@ -8,24 +8,28 @@ sub index :Path :Args(1)
 	{
 	my $self     = shift;
 	my $c        = shift;
+	my $response = $c->response();
 	my $image_id = shift;
 
 	my $image = $c->model('DB::Image')->find($image_id) // die;
 
-	$c->response()->body($image->image());
-	$c->response()->content_type($image->content_type());
+	$response->body($image->image());
+	$response->content_type($image->content_type());
+	$response->header('Cache-Control' => 'max-age=0, must-revalidate');
 	}
 
 sub thumb :Local :Args(1)
 	{
 	my $self     = shift;
 	my $c        = shift;
+	my $response = $c->response();
 	my $image_id = shift;
 
 	my $image = $c->model('DB::Image')->find($image_id) // die;
 
-	$c->response()->body($image->image() || $image->thumbnail());
-	$c->response()->content_type($image->content_type());
+	$response->body($image->image() || $image->thumbnail());
+	$response->content_type($image->content_type());
+	$response->header('Cache-Control' => 'max-age=0, must-revalidate');
 	}
 
 =encoding utf8
