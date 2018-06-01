@@ -5,6 +5,7 @@ use Try::Tiny;
 
 use JSON;
 use DateTime;
+use Image::Magick;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -327,13 +328,22 @@ sub photo :Local :Args(0)
 		return;
 		}
 
+	$out->{response} = \1;
+	$out->{data}     = 'Member picture updated.';
 	try
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			my $img_data = $image->slurp();
+			my $im = Image::Magick->new() || die $!;
+			$im->BlobToImage($img_data);
+			$im->Resize(geometry => '100x100');
+			my $thumb_data = ($im->ImageToBlob())[0];
+
 			my $db_image = $c->model('DB::Image')->create(
 				{
-				image        => $image->slurp(),
+				image        => $img_data,
+				thumbnail    => $thumb_data,
 				content_type => $image->type(),
 				}) || die $!;
 			my $image_id = $db_image->image_id();
@@ -353,8 +363,6 @@ sub photo :Local :Args(0)
 		$out->{response} = \0;
 		$out->{data}     = 'Could not update member profile: ' . $_;
 		};
-	$out->{response} = \1;
-	$out->{data}     = 'Member picture updated.';
 	}
 
 sub remove_photo :Local :Args(0)

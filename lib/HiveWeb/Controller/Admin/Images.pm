@@ -12,7 +12,7 @@ sub index :Path :Args(1)
 
 	my $image = $c->model('DB::Image')->find($image_id) // die;
 
-	$c->response()->body($image->image());
+	$c->response()->body($image->thumbnail());
 	$c->response()->content_type($image->content_type());
 
 	}

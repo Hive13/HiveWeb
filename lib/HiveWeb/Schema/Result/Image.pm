@@ -4,6 +4,8 @@ package HiveWeb::Schema::Result::Image;
 use strict;
 use warnings;
 
+use Image::Magick;
+
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
@@ -45,5 +47,39 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
+#Automatically generate thumbnails
+#sub new
+	#{
+	#my $self  = shift;
+	#my $attrs = shift;
+
+	#if (exists($attrs->{image}))
+	#	{
+	#	my $im = Image::Magick->new() || die $!;
+	#	$im->BlobToImage($attrs->{image}) || die $!;
+	#	$im->Resize(geometry => '100x100') || die $!;
+	#	$attrs->{thumbnail} = ($im->ImageToBlob())[0];
+	#	}
+
+	#return $self->next::method($attrs);
+	#}
+
+sub update
+	{
+	my $self  = shift;
+	my $attrs = shift;
+
+	if (ref($attrs) eq 'HASH' && exists($attrs->{image}))
+		{
+		my $im = Image::Magick->new() || die $!;
+		$im->BlobToImage($attrs->{image}) || die $!;
+		$im->Resize(geometry => '100x100') || die $!;
+		$attrs->{thumbnail} = ($im->ImageToBlob())[0];
+		}
+
+	return $self->next::method($attrs);
+	}
+
 __PACKAGE__->meta->make_immutable;
+
 1;
