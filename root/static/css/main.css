@@ -156,13 +156,13 @@ table.heatmap
 	width: 100%;
 	}
 
-table.heatmap thead tr th
+table.heatmap thead tr th:not(:first-child)
 	{
 	text-align: center;
 	border-bottom: 1px solid #000000;
 	}
 
-table.heatmap tbody tr:nth-child(4n)
+table.heatmap tbody tr:nth-child(4n) td:not(.time)
 	{
 	border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 	}
@@ -179,4 +179,14 @@ table.heatmap tbody tr td.point
 	{
 	height: .3em;
 	border-left: 1px solid rgba(0, 0, 0, 0.1);
+	}
+
+table.heatmap tbody tr td:last-child
+	{
+	border-right: 1px solid #000000;
+	}
+
+table.heatmap tbody tr:last-child td:not(.time)
+	{
+	border-bottom: 1px solid #000000;
 	}
