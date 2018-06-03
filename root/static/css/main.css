@@ -150,3 +150,33 @@ div.panel.hive-panel-access ol li.shown span.info
 	{
 	border-right: 1px solid #bce8f1;
 	}
+
+table.heatmap
+	{
+	width: 100%;
+	}
+
+table.heatmap thead tr th
+	{
+	text-align: center;
+	border-bottom: 1px solid #000000;
+	}
+
+table.heatmap tbody tr:nth-child(4n)
+	{
+	border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+	}
+
+table.heatmap tbody tr td.time
+	{
+	width: 5em;
+	border-right: 1px solid #000000;
+	text-align: right;
+	padding-right: 0.25em;
+	}
+
+table.heatmap tbody tr td.point
+	{
+	height: .3em;
+	border-left: 1px solid rgba(0, 0, 0, 0.1);
+	}

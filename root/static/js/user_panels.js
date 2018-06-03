@@ -1,8 +1,37 @@
 function display_heatmap_data(data, $panel)
 	{
-	var i, dt, request, html;
+	var i, j, d = data.accesses, html = "<table class=\"heatmap\"><thead><tr><th></th><th>S</th><th>M</th><th>T</th><th>W</th><th>R</th><th>F</th><th>S</th></tr></thead><tbody>", v;
 
-	html = "<div class=\"u-w-100 text-center\"><a href=\"/member/requests\" class=\"btn btn-info\">View All Requests</a></div>";
+	for (i = 0; i < 96; i++)
+		{
+		html += "<tr>";
+		if (!(i % 4))
+			html += "<td class=\"time\" rowspan=\"4\">" + (((i / 4) % 12) ? ((i / 4) % 12) : "12") + ":00</td>";
+		for (j = 0; j < 7; j++)
+			{
+			v = d[j][i];
+
+			html += "<td class=\"point\" style=\"background: ";
+			if (v < 10)
+				html += "none";
+			else if (v < 20)
+				html += "rgba(255, 255, 128, 0.6)";
+			else if (v < 40)
+				html += "rgba(255, 255, 64, 0.6)";
+			else if (v < 60)
+				html += "rgba(255, 255, 0, 0.6)";
+			else if (v < 80)
+				html += "rgba(255, 128, 0, 0.6)";
+			else if (v < 90)
+				html += "rgba(255, 0, 0, 0.6)";
+			else
+				html += "rgba(255, 0, 128, 0.6)";
+			html += ";\"></td>";
+			}
+		html += "</tr>";
+		}
+
+	html += "</tbody></table>";
 	$panel.find(".panel-body").html(html);
 	}
 
