@@ -2,6 +2,8 @@ package HiveWeb::Controller::API::Heatmap;
 use Moose;
 use namespace::autoclean;
 
+use Math::Round;
+
 BEGIN { extends 'Catalyst::Controller' }
 
 sub index :Path :Args(0)
@@ -29,7 +31,7 @@ sub accesses :Local :Args(0)
 			}
 		push(@$dow, $qhour);
 		}
-	
+
 	while (my $entry = $heatmap->next())
 		{
 		my $column = $entry->hour() * 4 + $entry->qhour();
@@ -39,8 +41,16 @@ sub accesses :Local :Args(0)
 		$dow->[$entry->dow()]->[$column] = $value;
 		}
 
+	for (my $i = 0; $i < 7; $i++)
+		{
+		for (my $j = 0; $j < (24 * 4); $j++)
+			{
+			my $v = ($dow->[$i]->[$j] * 100) / $max;
+			$dow->[$i]->[$j] = round($v);
+			}
+		}
+
 	$out->{accesses} = $dow;
-	$out->{max}      = $max;
 	$out->{response} = \1;
 	}
 
