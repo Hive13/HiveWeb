@@ -20,7 +20,7 @@ sub accesses :Local :Args(0)
 
 	my $dow = [];
 	my $max = 0;
-	my $heatmap = $c->model('DB::AccessHeatmap')->search({});
+	my $heatmap = $c->model('DB::AccessLog')->heatmap()->search({ granted => 't'});
 
 	for (my $i = 0; $i < 7; $i++)
 		{
@@ -34,11 +34,11 @@ sub accesses :Local :Args(0)
 
 	while (my $entry = $heatmap->next())
 		{
-		my $column = $entry->hour() * 4 + $entry->qhour();
-		my $value  = $entry->access_count();
+		my $column = $entry->get_column('hour') * 4 + $entry->get_column('qhour');
+		my $value  = $entry->get_column('count');
 		$max = $value
 			if ($max < $value);
-		$dow->[$entry->dow()]->[$column] = $value;
+		$dow->[$entry->get_column('dow')]->[$column] = $value;
 		}
 
 	for (my $i = 0; $i < 7; $i++)
