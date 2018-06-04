@@ -14,6 +14,7 @@ The new Hive internal Web
 * libcatalyst-view-tt-perl
 * libcrypt-eksblowfish-perl
 * libdatetime-format-dbi-perl
+* libdbd-pg-perl
 * libdbix-class-uuidcolumns-perl
 * libjson-perl
 * libmath-round-perl
