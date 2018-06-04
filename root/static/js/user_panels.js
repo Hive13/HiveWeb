@@ -1,31 +1,38 @@
 function display_heatmap_data(data, $panel)
 	{
-	var i, j, d = data.accesses, html = "<table class=\"heatmap\"><thead><tr><th></th><th>S</th><th>M</th><th>T</th><th>W</th><th>R</th><th>F</th><th>S</th></tr></thead><tbody>", v;
+	var i, j, v, color, hour;
+	var d = data.accesses, html = "<table class=\"heatmap\"><thead><tr><th></th><th>S</th><th>M</th><th>T</th><th>W</th><th>R</th><th>F</th><th>S</th></tr></thead><tbody>";
 
 	for (i = 0; i < 96; i++)
 		{
 		html += "<tr>";
 		if (!(i % 4))
-			html += "<td class=\"time\" rowspan=\"4\">" + (((i / 4) % 12) ? ((i / 4) % 12) : "12") + ":00</td>";
+			{
+			hour = (i / 4) % 12;
+			if (!hour)
+				hour = 12;
+			html += "<td class=\"time\" rowspan=\"4\">" + hour + ":00</td>";
+			}
 		for (j = 0; j < 7; j++)
 			{
 			v = d[j][i];
 
 			html += "<td class=\"point\" style=\"background: ";
-			if (v < 10)
-				html += "none";
-			else if (v < 20)
-				html += "rgba(255, 255, 128, 0.6)";
-			else if (v < 40)
-				html += "rgba(255, 255, 64, 0.6)";
-			else if (v < 60)
-				html += "rgba(255, 255, 0, 0.6)";
-			else if (v < 80)
-				html += "rgba(255, 128, 0, 0.6)";
-			else if (v < 90)
-				html += "rgba(255, 0, 0, 0.6)";
+			if (v <= 60)
+				{
+				color = (60 - v) * (255 / 60);
+				html += "rgb(255, 255, " + parseInt(color) + ")";
+				}
+			else if (v <= 90)
+				{
+				color = (90 - v) * (255 / 30);
+				html += "rgb(255, " + parseInt(color) + ", 0)";
+				}
 			else
-				html += "rgba(255, 0, 128, 0.6)";
+				{
+				color = (100 - v) * (128 / 10);
+				html += "rgb(255, 0, " + parseInt(color) + ")";
+				}
 			html += ";\"></td>";
 			}
 		html += "</tr>";
