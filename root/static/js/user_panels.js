@@ -1,6 +1,6 @@
 function display_heatmap_data(data, $panel)
 	{
-	var i, j, v, color, hour;
+	var i, j, v, color, hour, scheme="jet";
 	var d = data.accesses, html = "<table class=\"heatmap\"><thead><tr><th></th><th>S</th><th>M</th><th>T</th><th>W</th><th>R</th><th>F</th><th>S</th></tr></thead><tbody>";
 
 	for (i = 0; i < 96; i++)
@@ -18,20 +18,29 @@ function display_heatmap_data(data, $panel)
 			v = d[j][i];
 
 			html += "<td class=\"point\" style=\"background: ";
-			if (v <= 60)
+			switch (scheme)
 				{
-				color = (60 - v) * (255 / 60);
-				html += "rgb(255, 255, " + parseInt(color) + ")";
-				}
-			else if (v <= 90)
-				{
-				color = (90 - v) * (255 / 30);
-				html += "rgb(255, " + parseInt(color) + ", 0)";
-				}
-			else
-				{
-				color = (100 - v) * (128 / 10);
-				html += "rgb(255, 0, " + parseInt(color) + ")";
+				case "jet":
+					color = (100 - v) * 2.4;
+					html += "hsl(" + color + ", 100%, 50%)";
+					break;
+				default:
+					if (v <= 60)
+						{
+						color = (60 - v) * (255 / 60);
+						html += "rgb(255, 255, " + parseInt(color) + ")";
+						}
+					else if (v <= 90)
+						{
+						color = (90 - v) * (255 / 30);
+						html += "rgb(255, " + parseInt(color) + ", 0)";
+						}
+					else
+						{
+						color = (100 - v) * (128 / 10);
+						html += "rgb(255, 0, " + parseInt(color) + ")";
+						}
+					break;
 				}
 			html += ";\"></td>";
 			}
