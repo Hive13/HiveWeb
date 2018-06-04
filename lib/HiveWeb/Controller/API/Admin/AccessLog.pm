@@ -64,14 +64,26 @@ sub index :Path :Args(0)
 
 		foreach my $name (@names)
 			{
-			push (@$names,
+			if ($name =~ s/^fname://i)
 				{
-				-or =>
+				push(@$names, { fname => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^lname://i)
+				{
+				push(@$names, { lname => { ilike => '%' . $name . '%' } });
+				}
+			else
+				{
+				$name =~ s/^name://i;
+				push (@$names,
 					{
-					fname => { ilike => '%' . $name . '%' },
-					lname => { ilike => '%' . $name . '%' },
-					}
-				});
+					-or =>
+						{
+						fname => { ilike => '%' . $name . '%' },
+						lname => { ilike => '%' . $name . '%' },
+						}
+					});
+				}
 			}
 
 		my $member_id_query = $c->model('DB::Member')->search({ -and => $names })->get_column('me.member_id')->as_query();
