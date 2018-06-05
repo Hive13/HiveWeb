@@ -86,7 +86,7 @@ table th.options
 									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
 								</div>
 								<div id="badge_edit" style="display: none; max-width: 100%;">
-									<input type="text" id="badge_number" style="max-width: 100%" /><br />
+									<input type="number" id="badge_number" style="max-width: 100%" /><br />
 									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
 									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
 								</div>
@@ -100,7 +100,7 @@ table th.options
 							</div>
 							<div class="panel-body">
 								<label>Soda Credits:<br />
-									<input type=text id="soda_credits" size="3" />
+									<input type="number" id="soda_credits" size="3" />
 								</label>
 								<label>
 									<input type="checkbox" name="different_paypal" id="different_paypal" />
@@ -108,7 +108,7 @@ table th.options
 								</label><br />
 								<div style="display: none" id="paypal_div">
 									<label for="paypal_email">PayPal E-mail:</label>
-									<input type="text" name="paypal_email" id="paypal_email" maxlength="255" />
+									<input type="email" name="paypal_email" id="paypal_email" maxlength="255" />
 									<br />
 									Leave blank if member does not use PayPal.
 								</div>
@@ -261,7 +261,7 @@ table th.options
 											</label>
 										</td>
 										<td rowspan="5" valign="middle">
-											<input type="text" id="storage_value" size="4" />
+											<input type="number" min="0" id="storage_value" size="4" />
 										</td>
 									</tr>
 									<tr>

@@ -39,7 +39,7 @@ table.register span.error
 		</tr>
 		<tr>
 			<th><label for="email">E-mail Address:</label></th>
-			<td><input type="text" name="email" id="email" maxlength="255" value="[% vals.email %]" /></td>
+			<td><input type="email" name="email" id="email" maxlength="255" value="[% vals.email %]" /></td>
 			<td>
 				[%~
 					IF message.email.defined && message.email.length > 0;
@@ -50,7 +50,7 @@ table.register span.error
 		</tr>
 		<tr>
 			<th><label for="phone">Phone Number:</label></th>
-			<td><input type="text" name="phone" id="phone" maxlength="255" value="[% vals.phone %]" /></td>
+			<td><input type="tel" name="phone" id="phone" maxlength="255" value="[% vals.phone %]" /></td>
 			<td>
 				[%~
 					IF message.phone.defined && message.phone.length > 0;
