@@ -26,7 +26,7 @@ table th.options
 		</div>
 		<div class="panel-body">
 			<div class="search">
-				<input type="text" class="form-control" placeholder="Search for members" title="<span class='label label-info'>fname:</span>, <span class='label label-info'>lname:</span>, <span class='label label-info'>name:</span>, <span class='label label-info'>email:</span>, and <span class='label label-info'>paypal:</span> may be prepended to a search term only search that column.  Note that <span class='label label-info'>name:</span> searches both first and last name." data-placement="top" data-toggle="tooltip" />
+				<input type="text" class="form-control" placeholder="Search for members" title="<span class='label label-info'>fname:</span>, <span class='label label-info'>lname:</span>, <span class='label label-info'>name:</span>, <span class='label label-info'>email:</span>, <span class='label label-info'>paypal:</span>, and <span class='label label-info'>tel:</span> may be prepended to a search term only search that column.  Note that <span class='label label-info'>name:</span> searches both first and last name.  Badges may be searched by prepending <span class='label label-info'>badge:</span> to a term." data-placement="top" data-toggle="tooltip" />
 			</div>
 			<div style="float: right">
 				<select class="per-page">
@@ -86,7 +86,7 @@ table th.options
 									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
 								</div>
 								<div id="badge_edit" style="display: none; max-width: 100%;">
-									<input type="text" id="badge_number" style="max-width: 100%" /><br />
+									<input type="number" id="badge_number" style="max-width: 100%" /><br />
 									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
 									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
 								</div>
@@ -100,7 +100,7 @@ table th.options
 							</div>
 							<div class="panel-body">
 								<label>Soda Credits:<br />
-									<input type=text id="soda_credits" size="3" />
+									<input type="number" id="soda_credits" size="3" />
 								</label>
 								<label>
 									<input type="checkbox" name="different_paypal" id="different_paypal" />
@@ -108,7 +108,7 @@ table th.options
 								</label><br />
 								<div style="display: none" id="paypal_div">
 									<label for="paypal_email">PayPal E-mail:</label>
-									<input type="text" name="paypal_email" id="paypal_email" maxlength="255" />
+									<input type="email" name="paypal_email" id="paypal_email" maxlength="255" />
 									<br />
 									Leave blank if member does not use PayPal.
 								</div>
@@ -261,7 +261,7 @@ table th.options
 											</label>
 										</td>
 										<td rowspan="5" valign="middle">
-											<input type="text" id="storage_value" size="4" />
+											<input type="number" min="0" id="storage_value" size="4" />
 										</td>
 									</tr>
 									<tr>
@@ -574,7 +574,7 @@ $(function()
 			var image_id  = $(this).parents("td").attr("id");
 			var $dialogue = $("#photo_dialogue");
 
-			$dialogue.find("div.modal-body").html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + image_id + "\" />");
+			$dialogue.find("div.modal-body").html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
 
 			$dialogue.modal("show");
 			})
@@ -697,9 +697,10 @@ function upload_photo()
 	var $progress, $this = $(this),
 		$image_div = $this.parents("div.panel-body");
 		fd = new FormData(),
+		member_id = $dialogue.data("member_id"),
 		$dialogue = $this.parents("div.modal");
 	fd.append("photo", $this[0].files[0]);
-	fd.append("member_id", $dialogue.data("member_id"));
+	fd.append("member_id", member_id);
 	$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
 	$progress = $image_div.find("div.progress div.progress-bar");
 
@@ -742,9 +743,10 @@ function upload_photo()
 			},
 		success: function(data)
 			{
+			var image_id;
+
 			if (!data.response)
 				{
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 				$.toast(
 					{
 					heading: options.what + " failed",
@@ -755,9 +757,73 @@ function upload_photo()
 				return;
 				}
 			else
-				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.image_id + "\" />");
+				image_id = data.image_id;
+			load_image($dialogue, data.image_id, member_id);
 			}
 		});
+	}
+
+function load_image($dialogue, image_id, member_id)
+	{
+	var $remove, $rotate, $rotateL;
+	var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
+	var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
+
+	$photo_header.find("span").remove();
+	if (!image_id)
+		{
+		$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+		return;
+		}
+	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
+
+	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
+		{
+		api_json(
+			{
+			what:    "Rotate Photo",
+			url:     "[% Catalyst.uri_for('/api/admin/images/rotate').dquote %]",
+			data:    { image_id: image_id, degrees: 270 },
+			success: function()
+				{
+				$image_div.find("img").attr("src", "[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime());
+				}
+			});
+		});
+	$photo_header.prepend($rotateL);
+
+	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Clockwise").click(function ()
+		{
+		api_json(
+			{
+			what:    "Rotate Photo",
+			url:     "[% Catalyst.uri_for('/api/admin/images/rotate').dquote %]",
+			data:    { image_id: image_id, degrees: 90 },
+			success: function()
+				{
+				$image_div.find("img").attr("src", "[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime());
+				}
+			});
+		});
+	$photo_header.prepend($rotate);
+
+	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
+		{
+		if (!confirm("Are you sure you want to remove this photo?"))
+			return;
+		api_json(
+			{
+			what:    "Remove Photo",
+			url:     "[% Catalyst.uri_for('/api/admin/members/remove_photo').dquote %]",
+			data:    { member_id: member_id },
+			success: function()
+				{
+				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+				$("table#hive-member-table tr#" + member_id + " td.photo").empty();
+				}
+			});
+		});
+	$photo_header.prepend($remove);
 	}
 
 function paypal_checkbox()
@@ -1182,7 +1248,6 @@ function edit(member_id)
 			{
 			var i, badge, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc, phone;
 			var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
-			var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
 			var $info         = $dialogue.find("div#info_div div.panel-body");
 
 			title = "Edit " + data.member.fname + " " + data.member.lname;
@@ -1221,7 +1286,6 @@ function edit(member_id)
 			$info.html(html);
 
 			$soda_credits.val(data.member.vend_credits);
-			$photo_header.find("span").remove();
 
 			for (i = 0; i < data.member.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
@@ -1237,29 +1301,7 @@ function edit(member_id)
 				$("input#paypal_email").val(data.member.paypal_email);
 				}
 
-			if (data.member.member_image_id)
-				{
-				$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + data.member.member_image_id + "\" />");
-				$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").click(function ()
-					{
-					if (!confirm("Are you sure you want to remove this photo?"))
-						return;
-					api_json(
-						{
-						what:    "Remove Photo",
-						url:     "[% Catalyst.uri_for('/api/admin/members/remove_photo').dquote %]",
-						data:    { member_id: member_id },
-						success: function()
-							{
-							$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-							$("table#hive-member-table tr#" + member_id + " td.photo").empty();
-							}
-						});
-					});
-				$photo_header.prepend($remove);
-				}
-			else
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+			load_image($dialogue, data.member.member_image_id, member_id);
 
 			for (i = 0; i < data.badges.length; i++)
 				{

@@ -109,7 +109,12 @@ i.glyphicon
 			<div class="modal-body">
 				<label>
 					Name:
-					<input type="text" size="30" />
+					<input type="text" size="30" id="slot_name" />
+				</label>
+				<br />
+				<label>
+					Sort Order:
+					<input type="number" size="5" id="slot_sort_order" />
 				</label>
 			</div>
 			<div class="modal-footer">
@@ -359,7 +364,8 @@ actions.location_add_slot = function (location_id)
 	$dialogue.find("button.btn-primary").text("Add Slot");
 	$dialogue.find("div.modal-header h3").text("Add Slot");
 	$dialogue.modal("show");
-	$dialogue.find("input").val("");
+	$dialogue.find("input#slot_name").val("");
+	$dialogue.find("input#slot_sort_order").val("1000");
 	};
 actions.location_add_sub = function (location_id)
 	{
@@ -401,21 +407,26 @@ actions.slot_unassign = function (slot_id)
 	};
 actions.slot_edit = function (slot_id)
 	{
-	var $dialogue = $("#slot_edit"), val = $("div.tree li.selected span").text();
+	var $slot = $("div.tree li.selected");
+	var $dialogue = $("#slot_edit"),
+		val = $slot.find("span").text(),
+		sort_order = $slot.data("sort-order");
 	$dialogue.data("slot_id",     slot_id);
 	$dialogue.data("location_id", null);
 
 	$dialogue.find("button.btn-primary").text("Edit Slot");
 	$dialogue.find("div.modal-header h3").text("Edit Slot");
 	$dialogue.modal("show");
-	$dialogue.find("input").val(val).focus();
+	$dialogue.find("input#slot_sort_order").val(sort_order);
+	$dialogue.find("input#slot_name").val(val).focus();
 	};
 
 function finish_slot()
 	{
 	var api, $dialogue = $("#slot_edit");
 	var slot_id = $dialogue.data("slot_id"), location_id = $dialogue.data("location_id");
-	var name = $dialogue.find("input").val();
+	var name = $dialogue.find("input#slot_name").val();
+	var sort_order = $dialogue.find("input#slot_sort_order").val();
 
 	if (!slot_id && !location_id)
 		return;
@@ -428,7 +439,8 @@ function finish_slot()
 			{
 			location_id: location_id,
 			slot_id:     slot_id,
-			name:        name
+			name:        name,
+			sort_order:  sort_order,
 			},
 		success: function()
 			{
@@ -503,7 +515,7 @@ function handle_slot(slot, selected_id)
 	{
 	var html = "<li class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
 		+ (slot.slot_id == selected_id ? " selected" : "")
-		+ "\" style=\"display: none\" id=\"" + slot.slot_id + "\">"
+		+ "\" style=\"display: none\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\">"
 		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
 		+ slot.name;
 

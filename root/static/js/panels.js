@@ -1,43 +1,121 @@
-function load_panel_data($panel, panel_class, display_function, refresh)
+function load_panel_data(data)
 	{
-	$panel.find(".panel-body").html(loading_icon());
+	if ("load_function" in data)
+		data.load_function(data.$panel);
+	else
+		data.$panel.find(".panel-body").html(loading_icon());
 	api_json(
 		{
 		type:          "GET",
-		url:           panel_urls[panel_class],
-		what:          "Load " + panel_class,
+		url:           data.load_url,
+		what:          "Load " + data.panel_class,
 		success_toast: false,
-		success:       function(data)
+		success:       function(rdata)
 			{
-			display_function(data, $panel);
-			if (refresh)
-				setTimeout(function() { load_panel_data($panel, panel_class, display_function); }, 60000);
+			data.panel_function(rdata, data.$panel);
+			if (data.refresh)
+				setTimeout(function() { load_panel_data(data); }, 60000);
 			}
 		});
 	}
 function init_panel(panel_class, panel_function, refresh)
 	{
-	var $panel = $(".hive-panel-" + panel_class);
+	var $panel = $(".hive-panel-" + panel_class), i;
 
 	if (refresh !== false)
 		refresh = true;
 
-	if (!$panel.length || !panel_function || !(panel_class in panel_urls))
-		return;
+	if (typeof(panel_function) === "object")
+		{
+		for (i = 0; i < panel_function.length; i++)
+			load_panel_data(panel_function[i]);
+		}
+	else
+		{
+		if (!$panel.length || !panel_function || !(panel_class in panel_urls))
+			return;
 
-	load_panel_data($panel, panel_class, panel_function, refresh);
+		load_panel_data(
+			{
+			$panel:         $panel,
+			panel_class:    panel_class,
+			panel_function: panel_function,
+			refresh:        refresh,
+			load_url:       panel_urls[panel_class]
+			});
+		}
 	}
 
 function display_temp_data(data, $temp_panel)
 	{
-	var temp, i, html = "";
+	var $temp_div = $temp_panel.find("h3.temperature + div"), html = "";
 
 	for (i = 0; i < data.temps.length; i++)
 		{
 		temp = data.temps[i];
 		html += temp.display_name + ": " + temp.value.toFixed(1) + "&deg;F<br />";
 		}
-	$temp_panel.find(".panel-body").html(html);
+	$temp_div.html(html);
 	}
 
-$(function() { init_panel("temp", display_temp_data); });
+function display_soda_data(data, $temp_panel)
+	{
+	var $temp_div = $temp_panel.find("h3.soda + div"), html = "<div class=\"row\">", i, soda;
+
+	for (i = 0; i < data.sodas.length; i++)
+		{
+		soda = data.sodas[i];
+		html += "<div class=\"col-xs-12 col-md-6 col-lg-4\"><span class=\"label";
+		if (soda.sold_out)
+			html += " label-danger\" title=\"Sold Out";
+		else
+			html += " label-success\" title=\"In Stock";
+		html += "\">" + soda.name + "</span></div>";
+		}
+
+	html += "</div>";
+	$temp_div.html(html);
+	}
+
+function temperature_loading($panel)
+	{
+	$panel.find("h3.temperature + div").html(loading_icon());
+	}
+
+function soda_loading($panel)
+	{
+	$panel.find("h3.soda + div").html(loading_icon());
+	}
+
+$(function()
+	{
+	var $panel = $(".hive-panel-status");
+
+	$panel.find(".panel-body").html(
+		  "<table><tr><td>"
+		+ "<h3 class=\"temperature\">Temperatures</h3><div></div>"
+		+ "</td><td>"
+		+ "<h3 class=\"soda\">Soda Status</h3><div></div>"
+		+ "</td></tr></table>"
+	);
+
+	init_panel("status",
+		[
+			{
+			$panel: $panel,
+			load_function: temperature_loading,
+			load_url: panel_urls["temp"],
+			refresh: true,
+			panel_function: display_temp_data,
+			panel_class: "Temperatures"
+			},
+			{
+			$panel: $panel,
+			load_function: soda_loading,
+			load_url: panel_urls["soda"],
+			refresh: false,
+			panel_function: display_soda_data,
+			panel_class: "Soda Status"
+			}
+		]);
+	});

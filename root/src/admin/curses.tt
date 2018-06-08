@@ -49,7 +49,7 @@
 								</label><br />
 								<label>
 									Priority:
-									<input type="text" id="priority" />
+									<input type="number" id="priority" />
 								</label>
 							</div>
 						</div>

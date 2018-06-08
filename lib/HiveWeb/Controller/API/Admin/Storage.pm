@@ -151,20 +151,20 @@ sub edit_slot :Local :Args(0)
 	my $name        = $in->{name};
 	my $location_id = $in->{location_id};
 	my $slot_id     = $in->{slot_id};
-	my $location;
+	my $data        = {};
 	my $slot;
 
 	$out->{response} = \0;
-	$out->{data}     = $slot_id ? 'Could not add slot.' : 'Could not add slot.';
+	$out->{data}     = $slot_id ? 'Could not edit slot.' : 'Could not add slot.';
 
 	if (!$location_id && !$slot_id)
 		{
 		$out->{data} = 'You must provide either a slot or a location.';
 		return;
 		}
-	if (!$name)
+	if (!$slot_id && !$name)
 		{
-		$out->{data} = 'You must provide a name.';
+		$out->{data} = 'You must provide a name for a new slot.';
 		return;
 		}
 	if ($slot_id && !($slot = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id })))
@@ -172,23 +172,27 @@ sub edit_slot :Local :Args(0)
 		$out->{data} = 'Invalid slot specified.';
 		return;
 		}
-	if ($location_id && !($location = $c->model('DB::StorageLocation')->find({ location_id => $location_id })))
+	if ($location_id && !($c->model('DB::StorageLocation')->find({ location_id => $location_id })))
 		{
 		$out->{data} = 'Invalid parent specified.';
 		return;
 		}
 
+	$data->{name}        = $name
+		if ($name);
+	$data->{sort_order}  = int($in->{sort_order})
+		if (exists($in->{sort_order}) && defined($in->{sort_order}));
+	$data->{location_id} = $location_id
+		if ($location_id);
+
 	if ($slot)
 		{
-		my $data = { name => $name };
-		$data->{location_id} = $location_id
-			if ($location);
 		$slot->update($data) || die $!;
 		$out->{data} = 'Slot updated.';
 		}
 	else
 		{
-		$slot        = $c->model('DB::StorageSlot')->create({ name => $name, location_id => $location_id }) || die $!;
+		$slot        = $c->model('DB::StorageSlot')->create($data) || die $!;
 		$out->{data} = 'Slot added.';
 		}
 	$out->{response} = \1;
