@@ -154,6 +154,13 @@ div.panel.hive-panel-access ol li.shown span.info
 table.heatmap
 	{
 	width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+	}
+
+table.heatmap thead tr th:first-child
+	{
+	width: 5em;
 	}
 
 table.heatmap thead tr th:not(:first-child)
@@ -169,7 +176,6 @@ table.heatmap tbody tr:nth-child(4n) td:not(.time)
 
 table.heatmap tbody tr td.time
 	{
-	width: 5em;
 	border-right: 1px solid #000000;
 	text-align: right;
 	padding-right: 0.25em;
