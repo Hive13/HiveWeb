@@ -655,6 +655,12 @@ sub index :Path :Args(0)
 				{
 				push(@$names, \[ 'CAST(phone AS TEXT) like ?', '%' . $name . '%' ]);
 				}
+			elsif ($name =~ s/^badge://i)
+				{
+				my $search = \[ 'CAST(badge_number AS TEXT) like ?', '%' . $name . '%' ];
+				my $badge = $c->model('DB::Badge')->search($search, { alias => 'badges' })->get_column('badges.member_id')->as_query();
+				push(@$names, { member_id => { -in => $badge } });
+				}
 			elsif ($name =~ s/^name://i)
 				{
 				push(@$names,

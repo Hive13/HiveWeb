@@ -79,7 +79,7 @@ $(function()
 				</tr>
 				<tr>
 					<th><label for="email">E-mail Address:</label></th>
-					<td><input type="text" name="email" id="email" maxlength="255" value="[% vals.email %]" /></td>
+					<td><input type="email" name="email" id="email" maxlength="255" value="[% vals.email %]" /></td>
 					<td>
 						[%~
 							IF message.email.defined && message.email.length > 0;
@@ -111,8 +111,8 @@ $(function()
 					<td></td>
 				</tr>
 				<tr class="paypal_tr">
-					<th><label for="email">Paypal E-mail Address:</label></th>
-					<td><input type="text" name="paypal_email" id="email" maxlength="255" value="[% vals.paypal_email.dquote %]" /></td>
+					<th><label for="paypal_email">Paypal E-mail Address:</label></th>
+					<td><input type="email" name="paypal_email" id="paypal_email" maxlength="255" value="[% vals.paypal_email.dquote %]" /></td>
 					<td>
 						[%~
 							IF message.paypal_email.defined && message.paypal_email.length > 0;
@@ -127,7 +127,7 @@ $(function()
 				</tr>
 				<tr>
 					<th><label for="phone">Phone Number:</label></th>
-					<td><input type="text" name="phone" id="phone" maxlength="255" value="[% phone %]" /></td>
+					<td><input type="tel" name="phone" id="phone" maxlength="255" value="[% phone %]" /></td>
 					<td>
 						[%~
 							IF message.phone.defined && message.phone.length > 0;
