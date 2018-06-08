@@ -23,8 +23,9 @@ use Catalyst qw/
 	
 	Authentication
 	Authorization::ACL
+	Authorization::Roles
 	Session
-	Session::Store::File
+	Session::Store::DBIC
 	Session::State::Cookie
 /;
 
@@ -87,9 +88,11 @@ __PACKAGE__->config
 			{
 			store =>
 				{
-				class      => 'DBIx::Class',
-				user_model => 'DB::Member',
-				id_field   => 'member_id',
+				class         => 'DBIx::Class',
+				user_model    => 'DB::Member',
+				id_field      => 'member_id',
+				role_relation => 'mgroups',
+				role_field    => 'name',
 				},
 			credential =>
 				{
@@ -99,16 +102,15 @@ __PACKAGE__->config
 				},
 			},
 		},
+	'Plugin::Session' =>
+		{
+		expires    => (60 * 60 * 12),
+		dbic_class => 'DB::Session',
+		},
 	);
 
 __PACKAGE__->setup();
-__PACKAGE__->deny_access_unless("/api/admin", sub
-	{
-	return shift->user()->is_admin();
-	});
-__PACKAGE__->deny_access_unless("/admin", sub
-	{
-	return shift->user()->is_admin();
-	});
-
+__PACKAGE__->deny_access_unless("/api/admin", ['board']);
+__PACKAGE__->deny_access_unless("/admin",     ['board']);
+__PACKAGE__->deny_access_unless('/storage',   sub { return shift->user_exists(); });
 1;

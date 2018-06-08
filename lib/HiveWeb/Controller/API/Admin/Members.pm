@@ -4,76 +4,68 @@ use namespace::autoclean;
 use Try::Tiny;
 
 use JSON;
+use DateTime;
+use Image::Magick;
 
 BEGIN { extends 'Catalyst::Controller'; }
-
-sub lock :Local :Args(0)
-	{
-	my ($self, $c) = @_;
-
-	my $out       = $c->stash()->{out};
-	my $member_id = $c->stash()->{in}->{member_id};
-	my $lock      = $c->stash()->{in}->{lock} // 1;
-	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
-	if (!defined($member))
-		{
-		$out->{response} = \0;
-		$out->{data}     = "Cannot find member " . $member_id;
-		return;
-		}
-	
-	$out->{response} = \1;
-	$out->{data}     = 'Member ' . ($lock ? 'locked out' : 'unlocked');
-	try
-		{
-		$c->model('DB')->txn_do(sub
-			{
-			$member->create_related('changed_audits',
-				{
-				change_type        => $lock ? 'lock' : 'unlock',
-				changing_member_id => $c->user()->member_id(),
-				});
-			$member->is_lockedout($lock);
-			$member->update();
-			});
-		}
-	catch
-		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not update member.';
-		};
-	}
 
 sub info :Local :Args(1)
 	{
 	my ($self, $c, $member_id) = @_;
 
-	my $member = $c->model('DB::Member')->find({ member_id => $member_id });
+	my $out = $c->stash()->{out};
+
+	my $count_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		alias => 'al_count',
+		})->count_rs()->as_query();
+	my $last_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		select => { max => 'access_time' },
+		as     => [ 'last_access_time' ],
+		alias  => 'al_time',
+		}
+	)->get_column('last_access_time')->as_query();
+
+	my $member = $c->model('DB::Member')->find(
+		{
+		member_id => $member_id,
+		},
+		{
+		'+select' => [ $count_query, $last_query ],
+		'+as'     => [ 'accesses', 'last_access_time' ],
+		});
 	if (!defined($member))
 		{
-		$c->stash()->{out}->{response} = JSON->false();
-		$c->stash()->{out}->{data}     = "Cannot find member";
+		$out->{response} = \0;
+		$out->{data}     = "Cannot find member";
 		return;
 		}
-	
-	my @groups = $member->member_mgroups()->all();
-	my @ogroups;
-	foreach my $group (@groups)
-		{
-		my $g = $group->mgroup();
-		push(@ogroups, { $g->get_inflated_columns() });
-		}
-	
+
 	my @badges = $member->badges();
 	my @obadges;
 	foreach my $badge (@badges)
 		{
-		push(@obadges, { $badge->get_inflated_columns() });
+		push(@obadges,
+			{
+			badge_id     => $badge->badge_id(),
+			badge_number => $badge->badge_number()
+			});
 		}
-	$c->stash()->{out}->{badges}   = \@obadges;
-	$c->stash()->{out}->{groups}   = \@ogroups;
-	$c->stash()->{out}->{member}   = { $member->get_inflated_columns() };
-	$c->stash()->{out}->{response} = JSON->true();
+	my @slots = $member->list_slots();
+
+	$out->{slots}    = \@slots;
+	$out->{badges}   = \@obadges;
+	$out->{member}   = $member;
+	$out->{response} = \1;
 	}
 
 sub add_badge :Local :Args(0)
@@ -97,7 +89,7 @@ sub add_badge :Local :Args(0)
 		$out->{data}     = 'No badge specified';
 		return;
 		}
-	
+
 	try
 		{
 		$c->model('DB')->txn_do(sub
@@ -143,10 +135,10 @@ sub delete_badge :Local :Args(0)
 		$out->{data}     = 'No badge specified';
 		return;
 		}
-	
+
 	$badge_ids = [ $badge_ids ]
 		if (ref($badge_ids) ne 'ARRAY');
-	
+
 	$out->{response} = \1;
 	$out->{data}     = "Badges deleted";
 	try
@@ -240,6 +232,20 @@ sub edit :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			if (exists($in->{paypal_email}))
+				{
+				my $paypal = $in->{paypal_email};
+				if (defined($member->paypal_email()) != defined($paypal) || $member->paypal_email() ne $paypal)
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'change_paypal_email',
+						changing_member_id => $c->user()->member_id(),
+						notes              => 'Set paypal e-mail to ' . ($paypal // '(null)'),
+						});
+					$member->update({ paypal_email => $paypal });
+					}
+				}
 			if (exists($in->{vend_credits}))
 				{
 				my $vend_credits = int($in->{vend_credits});
@@ -291,11 +297,460 @@ sub edit :Local :Args(0)
 		};
 	}
 
+sub photo :Local :Args(0)
+	{
+	my ( $self, $c ) = @_;
+
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $member_id = $in->{member_id};
+	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
+
+	if (!defined($member))
+		{
+		$out->{response} = \0;
+		$out->{data}     = "Cannot find member";
+		return;
+		}
+
+	if ($member->member_image_id())
+		{
+		$out->{response} = \0;
+		$out->{data}     = "This member already has an image.  Please remove the old one.";
+		return;
+		}
+
+	my $image = $c->request()->upload('photo');
+	if (!$image)
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Cannot find image data.';
+		return;
+		}
+
+	$out->{response} = \1;
+	$out->{data}     = 'Member picture updated.';
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			my $img_data = $image->slurp();
+			my $im = Image::Magick->new() || die $!;
+			$im->BlobToImage($img_data);
+			$im->Resize(geometry => '100x100');
+			my $thumb_data = ($im->ImageToBlob())[0];
+
+			my $db_image = $c->model('DB::Image')->create(
+				{
+				image        => $img_data,
+				thumbnail    => $thumb_data,
+				content_type => $image->type(),
+				}) || die $!;
+			my $image_id = $db_image->image_id();
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'image',
+				changing_member_id => $c->user()->member_id(),
+				notes              => 'Attached image ' . $image_id,
+				}) || die $!;
+			$member->update({ member_image_id => $image_id }) || die $!;
+			$out->{image_id} = $image_id;
+			});
+		}
+	catch
+		{
+		delete($out->{image_id});
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update member profile: ' . $_;
+		};
+	}
+
+sub remove_photo :Local :Args(0)
+	{
+	my ( $self, $c ) = @_;
+
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $member_id = $in->{member_id};
+	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
+
+	if (!defined($member))
+		{
+		$out->{response} = \0;
+		$out->{data}     = "Cannot find member";
+		return;
+		}
+
+	if (!$member->member_image_id())
+		{
+		$out->{response} = \0;
+		$out->{data}     = "This member does not have an image.";
+		return;
+		}
+
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'image',
+				changing_member_id => $c->user()->member_id(),
+				notes              => 'Detached image ' . $member->member_image_id(),
+				}) || die $!;
+			$member->update({ member_image_id => undef }) || die $!;
+			});
+		}
+	catch
+		{
+		delete($out->{image_id});
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update member profile: ' . $_;
+		};
+	$out->{response} = \1;
+	$out->{data}     = 'Member picture removed.';
+	}
+
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
-	
-	$c->response->body('Matched HiveWeb::Controller::API in API.');
+
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	my $order   = lc($in->{order} || 'lname');
+	my $dir     = lc($in->{dir} || 'asc');
+	my $dtp     = $c->model('DB')->storage()->datetime_parser();
+	my $filters = {};
+
+	$c->session()->{member_table} //= {};
+	my $member_table = $c->session()->{member_table};
+	$member_table->{page}     = int($in->{page}) || 1;
+	$member_table->{per_page} = int($in->{per_page}) || 10;
+
+	$dir = 'asc'
+		if ($dir ne 'asc' && $dir ne 'desc');
+
+	my $count_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		alias => 'al_count',
+		})->count_rs()->as_query();
+	$$count_query->[0] .= ' AS accesses';
+
+	my $sum_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		alias  => 'access_total',
+		select => \'count(access_total.*) + coalesce(me.door_count, 0)',
+		as     => 'atot'
+		})->get_column('atot')->as_query();
+	$$sum_query->[0] .= ' AS access_total';
+
+	my $last_query = $c->model('DB::AccessLog')->search(
+		{
+		granted   => 't',
+		member_id => \'= me.member_id',
+		},
+		{
+		select => { max => 'access_time' },
+		as     => [ 'last_access_time' ],
+		alias  => 'al_time',
+		}
+	)->get_column('last_access_time')->as_query();
+	$$last_query->[0] .= ' AS last_access_time';
+
+	# Cannot prefetch 'member_mgroups' as it conflicts with the 'AS X' hack on the subqueries.
+	my $member_attrs =
+		{
+		'+select' => [ $count_query, $last_query, $sum_query ],
+		'+as'     => [ 'accesses', 'last_access_time', 'access_total' ],
+		};
+
+	if ($order eq 'last_access_time')
+		{
+		if ($dir eq 'desc')
+			{
+			$member_attrs->{order_by} = \'last_access_time DESC NULLS LAST';
+			}
+		else
+			{
+			$member_attrs->{order_by} = \'last_access_time ASC NULLS FIRST';
+			}
+		}
+	elsif ($order eq 'accesses')
+		{
+		$member_attrs->{order_by} = { "-$dir" => 'access_total' };
+		}
+	else
+		{
+		$member_attrs->{order_by} = { "-$dir" => $order };
+		}
+
+	$filters->{member_image_id} = ($in->{filters}->{photo} ? { '!=' => undef } : undef)
+		if (defined($in->{filters}->{photo}));
+
+	if (defined(my $pp = $in->{filters}->{paypal}))
+		{
+		$pp = [ $pp ]
+			if (ref($pp) ne 'ARRAY');
+
+		my @pp_filters;
+		foreach my $type (@$pp)
+			{
+			$type = lc($type);
+			if ($type eq 'same')
+				{
+				push (@pp_filters, undef);
+				}
+			elsif ($type eq 'no')
+				{
+				push (@pp_filters, '');
+				}
+			elsif ($type eq 'diff')
+				{
+				push (@pp_filters,
+					[ -and =>
+						{ '!=' => undef },
+						{ '!=' => '' },
+					]);
+				}
+			else
+				{
+				$out->{error}    = 'Unknown PayPal filter type ' . $type;
+				$out->{response} = \0;
+				return;
+				}
+			}
+		$filters->{paypal_email} = \@pp_filters;
+		}
+
+	if (defined(my $list = $in->{filters}->{group_list}) && defined(my $type = $in->{filters}->{group_type}))
+		{
+		$list = [ $list ]
+			if (ref($list) ne 'ARRAY');
+		$type = lc($type);
+
+		if ($type eq 'all')
+			{
+			my $i;
+			$member_attrs->{join} = [];
+			my $g_where = [];
+			for (my $i = 0; $i < scalar(@$list); $i++)
+				{
+				my $join_name = 'member_mgroups_' . ($i + 1);
+				$join_name = 'member_mgroups'
+					if (!$i);
+
+				push(@{ $member_attrs->{join} }, 'member_mgroups');
+				push(@$g_where, { ($join_name . '.mgroup_id') => $list->[$i] });
+				}
+			$filters->{'-and'} = $g_where;
+			}
+		elsif ($type eq 'any')
+			{
+			$member_attrs->{join} = 'member_mgroups';
+			$filters->{'member_mgroups.mgroup_id'} = $list;
+			}
+		elsif ($type eq 'not_any')
+			{
+			my $i = 0;
+			my $g_where = [];
+			foreach my $group_id (@$list)
+				{
+				my $group_query = $c->model('DB::MemberMGroup')->search(
+					{
+					mgroup_id => $group_id,
+					},
+					{
+					alias => 'mgroup' . $i++,
+					})->get_column('member_id')->as_query();
+				push(@$g_where, { 'me.member_id' => { -not_in => $group_query } });
+				}
+			$filters->{'-and'} = $g_where;
+			}
+		elsif ($type eq 'not_all')
+			{
+			# TODO: Insert brain.  Develop answer.
+			}
+		else
+			{
+			$out->{error}    = 'Unknown group filter type ' . $type;
+			$out->{response} = \0;
+			return;
+			}
+		}
+	if (defined(my $value = $in->{filters}->{storage_value}) && defined(my $type = $in->{filters}->{storage_type}))
+		{
+		$value = int($value) || 0;
+		$type  = lc($type);
+		my $query;
+
+		if ($type eq 'l')
+			{
+			$query = { '<' => $value};
+			}
+		elsif ($type eq 'le')
+			{
+			$query = { '<=' => $value};
+			}
+		elsif ($type eq 'e')
+			{
+			$query = $value;
+			}
+		elsif ($type eq 'ge')
+			{
+			$query = { '>=' => $value};
+			}
+		elsif ($type eq 'g')
+			{
+			$query = { '>' => $value};
+			}
+		else
+			{
+			$out->{error}    = "Unknown storage filter type '$type'.";
+			$out->{response} = \0;
+			return;
+			}
+		my $ss = $c->model('DB::StorageSlot')->search({ member_id => { '-ident' => 'me.member_id' } }, { alias => 'slots' })->count_rs()->as_query();
+		$filters->{$$ss->[0]} = $query;
+		}
+
+	if (my $search = $in->{search})
+		{
+		my @names = split(/\s+/, $search);
+
+		$filters->{'-and'} = []
+			if (!exists($filters->{'-and'}));
+		my $names = $filters->{'-and'};
+
+		foreach my $name (@names)
+			{
+			if ($name =~ s/^email://i)
+				{
+				push(@$names, { email => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^handle://i)
+				{
+				push(@$names, { handle => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^paypal://i)
+				{
+				push(@$names, { paypal_email => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^fname://i)
+				{
+				push(@$names, { fname => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^lname://i)
+				{
+				push(@$names, { lname => { ilike => '%' . $name . '%' } });
+				}
+			elsif ($name =~ s/^tel://i)
+				{
+				push(@$names, \[ 'CAST(phone AS TEXT) like ?', '%' . $name . '%' ]);
+				}
+			elsif ($name =~ s/^badge://i)
+				{
+				my $search = \[ 'CAST(badge_number AS TEXT) like ?', '%' . $name . '%' ];
+				my $badge = $c->model('DB::Badge')->search($search, { alias => 'badges' })->get_column('badges.member_id')->as_query();
+				push(@$names, { member_id => { -in => $badge } });
+				}
+			elsif ($name =~ s/^name://i)
+				{
+				push(@$names,
+					{
+					-or =>
+						{
+						fname => { ilike => '%' . $name . '%' },
+						lname => { ilike => '%' . $name . '%' },
+						}
+					});
+				}
+			else
+				{
+				push (@$names,
+					{
+					-or =>
+						{
+						fname        => { ilike => '%' . $name . '%' },
+						lname        => { ilike => '%' . $name . '%' },
+						handle       => { ilike => '%' . $name . '%' },
+						email        => { ilike => '%' . $name . '%' },
+						paypal_email => { ilike => '%' . $name . '%' },
+						}
+					});
+				}
+			}
+		}
+
+	my $tot_count = $c->model('DB::Member')->search({})->count();
+	my $count     = $c->model('DB::Member')->search($filters, $member_attrs)->count();
+
+	$member_table->{page} = int(($count + $member_table->{per_page} - 1) / $member_table->{per_page})
+		if (($member_table->{per_page} * $member_table->{page}) > $count);
+
+	$member_attrs->{rows} = $member_table->{per_page};
+	$member_attrs->{page} = $member_table->{page};
+	my @members           = $c->model('DB::Member')->search($filters, $member_attrs);
+	my @groups            = $c->model('DB::MGroup')->search({});
+
+	$out->{groups}   = \@groups;
+	$out->{members}  = \@members;
+	$out->{count}    = $count;
+	$out->{total}    = $tot_count;
+	$out->{page}     = $member_table->{page};
+	$out->{per_page} = $member_table->{per_page};
+	$out->{response} = \1;
+	}
+
+sub search :Local :Args(0)
+	{
+	my ( $self, $c ) = @_;
+
+	my $in    = $c->stash()->{in};
+	my $out   = $c->stash()->{out};
+	my $order = [ 'lname', 'fname' ];
+	my $page  = $in->{page} || 1;
+	my @names = split(/\s+/, $in->{name});
+	my $names = [];
+
+	foreach my $name (@names)
+		{
+		push (@$names,
+			{
+			-or =>
+				{
+				fname => { ilike => '%' . $name . '%' },
+				lname => { ilike => '%' . $name . '%' },
+				}
+			});
+		}
+
+	my $members_rs = $c->model('DB::Member')->search(
+		{
+		-and => $names,
+		},
+		{
+		order_by => $order
+		});
+	my $count      = $members_rs->count();
+	my @members    = $members_rs->search({},
+		{
+		rows => 10,
+		page => $page,
+		});
+
+	$out->{members}  = \@members;
+	$out->{count}    = $count;
+	$out->{page}     = $page;
+	$out->{per_page} = 10;
+	$out->{response} = \1;
 	}
 
 =encoding utf8

@@ -27,6 +27,28 @@ sub verify_user_data
 		{
 		$form->{paypal_email} = undef;
 		}
+	if ($form->{handle})
+		{
+		my $search = { handle => $form->{handle} };
+		$search->{member_id} = { '!=' => $c->user()->member_id() }
+			if ($c->user());
+		my $member = $c->model('DB::Member')->search($search);
+		if ($member->count())
+			{
+			$fail = 1;
+			$message->{handle} = 'That handle is already in use.';
+			}
+		}
+	else
+		{
+		$form->{handle} = undef;
+		}
+	if ($form->{phone})
+		{
+		my $phone = $form->{phone};
+		$phone =~ s/[^0-9]//g;
+		$form->{phone} = $phone;
+		}
 	if (!$form->{email} || $form->{email} eq '' || $form->{email} !~ /.+@.+\..+/)
 		{
 		$message->{email} = "You must specify a valid e-mail address.";
@@ -154,23 +176,35 @@ sub register :Local :Args(0)
 		{
 		my $member = $c->model('DB::Member')->create($form) || die $!;
 		$member->set_password($password);
-		my $user = $c->find_user({ member_id => $member->member_id() });
-		$c->set_authenticated($user);
+		$c->authenticate({ password => $password, 'dbix_class' => { result => $member } }) || die $!;
 		});
 
 	$c->response()->redirect($c->uri_for('/'));
 	}
 
-=head1 AUTHOR
+sub pay :Local :Args(0)
+	{
+	my ($self, $c) = @_;
 
-Greg Arnold
+	$c->stash()->{template} = 'member/pay.tt';
+	}
 
-=head1 LICENSE
+sub requests :Local :Args(0)
+	{
+	my ($self, $c) = @_;
 
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+	my $user     = $c->user() || return;
+	my @slots    = $user->list_slots();
+	my @requests = $user->requests()->search({}, { order_by => { -desc => 'created_at' } })->all();
 
-=cut
+	$c->stash(
+		{
+		template => 'member/requests.tt',
+		slots    => \@slots,
+		markdown => new Text::Markdown,
+		requests => \@requests,
+		});
+	}
 
 __PACKAGE__->meta->make_immutable;
 

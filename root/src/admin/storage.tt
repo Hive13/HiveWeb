@@ -1,0 +1,808 @@
+<script type="text/javascript" src="[% Catalyst.uri_for('/static/js/jquery.contextmenu.js').dquote %]"></script>
+<style>
+div.tree
+	{
+	min-height:20px;
+	padding:19px;
+	margin-bottom:20px;
+	background-color:#fbfbfb;
+	border:1px solid #999;
+	-webkit-border-radius:4px;
+	-moz-border-radius:4px;
+	border-radius:4px;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	-moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05)
+	}
+div.tree li
+	{
+	list-style-type:none;
+	margin:0;
+	padding:10px 5px 0 5px;
+	position:relative;
+	}
+div.tree li::before,
+div.tree li::after
+	{
+	content:'';
+	left:-20px;
+	position:absolute;
+	right:auto;
+	}
+div.tree li::before
+	{
+	border-left:1px solid #999;
+	bottom:50px;
+	height:100%;
+	top:0;
+	width:1px;
+	}
+div.tree li::after
+	{
+	border-top:1px solid #999;
+	height:20px;
+	top:25px;
+	width:25px;
+	}
+div.tree li span
+	{
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border:1px solid #999;
+	border-radius:5px;
+	display:inline-block;
+	padding:3px 8px;
+	text-decoration:none;
+	}
+div.tree li.selected > span
+	{
+	background-color: #9999ff;
+	}
+div.tree li > span
+	{
+	cursor:pointer;
+	}
+div.tree > ul > li::before,
+div.tree > ul > li::after
+	{
+	border:0;
+	}
+div.tree li:last-child::before
+	{
+	height:30px;
+	}
+div.tree li.parent_li > span:hover
+	{
+	background:#eee;
+	border:1px solid #94a0b4;
+	color:#000;
+	}
+div.tree li.parent_li.selected > span:hover
+	{
+	background-color: #8F8FEE;
+	}
+i.glyphicon
+	{
+	margin-right: 0.4em;
+	}
+</style>
+<div class="row" id="hive-storage">
+	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+		<div class="panel-heading">
+			<h3>Storage Slots</h3>
+			Right-click on a slot or location to open an action menu.<br />
+			<span><i class="glyphicon glyphicon-check"></i> = Assigned Slot</span><br />
+			<span><i class="glyphicon glyphicon-unchecked"></i> = Unassigned Slot</span><br />
+		</div>
+		<div class="panel-body">
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="slot_edit" tabIndex="-1" role="dialog" aria-labelledby="slot_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="slot_label">Edit Slot</h3>
+			</div>
+			<div class="modal-body">
+				<label>
+					Name:
+					<input type="text" size="30" id="slot_name" />
+				</label>
+				<br />
+				<label>
+					Sort Order:
+					<input type="number" size="5" id="slot_sort_order" />
+				</label>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_slot">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="request_view" tabIndex="-1" role="dialog" aria-labelledby="request_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="request_label">Outstanding Requests</h3>
+			</div>
+			<div class="modal-body">
+				<div class="requests">
+				</div>
+				<div class="notes u-w-100" style="display: none">
+					<span class="info"></span><br />
+					<textarea rows="5" class="u-w-100"></textarea><br />
+					<button type="button" class="btn btn-success">Action</button>
+					<button type="button" class="btn btn-danger">Cancel</button>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="loc_edit" tabIndex="-1" role="dialog" aria-labelledby="loc_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="slot_label">Edit Location</h3>
+			</div>
+			<div class="modal-body">
+				<label>
+					Name:
+					<input type="text" size="30" />
+				</label>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_loc">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="slot_assign" tabIndex="-1" role="dialog" aria-labelledby="slot_assign_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="slot_assign_label">Assign Slot</h3>
+			</div>
+			<div class="modal-body">
+				<select name="member" data-placeholder="Start typing the member's name" style="width: 100%"></select>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="finish_slot_assign">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<ul id="location_menu" class="dropdown-menu" role="menu" style="display:none">
+	<li><a tabindex="-1" href="#" value="location_add_sub">Add Sub-Location</a></li>
+	<li><a tabindex="-1" href="#" value="location_add_slot">Add Slot</a></li>
+	<li><a tabindex="-1" href="#" value="location_delete">Delete this Location</a></li>
+</ul>
+<ul id="slot_menu" class="dropdown-menu" role="menu" style="display:none">
+	<li class="assign"><a tabindex="-1" href="#" value="slot_assign">Assign this Slot</a></li>
+	<li class="fulfil"><a tabindex="-1" href="#" value="slot_fulfil">Fulfil a Request with this Slot</a></li>
+	<li><a tabindex="-1" href="#" value="slot_delete">Delete this Slot</a></li>
+	<li><a tabindex="-1" href="#" value="slot_edit">Edit this Slot</a></li>
+</ul>
+<ul id="request_menu" class="dropdown-menu" role="menu" style="display:none">
+	<li><a tabindex="-1" href="#" value="request_reject">Reject this Request</a></li>
+	<li class="accept" style="display: none"><a tabindex="-1" href="#" value="request_accept">Accept this Request</a></li>
+</ul>
+
+<script type="text/javascript">
+var load_url           = "[% Catalyst.uri_for('/api/admin/storage/list').dquote %]";
+var info_url           = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
+var edit_slot_url      = "[% Catalyst.uri_for('/api/admin/storage/edit_slot').dquote %]";
+var new_loc_url        = "[% Catalyst.uri_for('/api/admin/storage/new_location').dquote %]";
+var slot_assign_url    = "[% Catalyst.uri_for('/api/admin/storage/assign_slot').dquote %]";
+var requests_url       = "[% Catalyst.uri_for('/api/admin/storage/requests').dquote %]";
+var request_decide_url = "[% Catalyst.uri_for('/api/admin/storage/decide_request').dquote %]";
+var member_search_url  = "[% Catalyst.uri_for('/api/admin/members/search').dquote %]";
+var actions            = {};
+
+function cancel_request_action()
+	{
+	var $dialogue = $("div#request_view");
+
+	$dialogue.find("div.modal-body div.notes").css("display", "none");
+	$dialogue.find("div.modal-body div.notes button.btn-success").off("click");
+	$dialogue.find("div.modal-body div.requests div.panel").removeClass("selected").removeClass("panel-info").addClass("panel-default");
+	}
+function decide_request()
+	{
+	var $dialogue = $("#request_view"), data =
+		{
+		action:     $dialogue.data("action"),
+		slot_id:    $dialogue.data("slot_id"),
+		request_id: $dialogue.data("request_id"),
+		notes:      $dialogue.find("textarea").val()
+		}
+
+	if ((data.action !== "accept" && data.action !== "reject") || !data.request_id)
+		return;
+	if (data.action === "accept")
+		{
+		if (!data.slot_id)
+			return;
+		}
+	else
+		delete(data.slot_id);
+
+	api_json(
+		{
+		what: "Decide request",
+		url: request_decide_url,
+		data: data,
+		success: function ()
+			{
+			$dialogue.modal("hide");
+			load_storage();
+			}
+		});
+	}
+function view_requests(slot_id)
+	{
+	var $dialogue = $("#request_view");
+
+	$("#request_menu .accept").css("display", (slot_id ? "" : "none"));
+	$dialogue.data("slot_id", (slot_id || null));
+	$dialogue.find("div.modal-body div.notes").css("display", "none");
+
+	api_json(
+		{
+		what: "Load requests",
+		success_toast: false,
+		url: requests_url,
+		type: "GET",
+		success: function (data)
+			{
+			var i, j, slot, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"false\" id=\"request_list\">";
+
+			for (i = 0; i < data.requests.length; i++)
+				{
+				request = data.requests[i];
+				rdate = new Date(request.created_at);
+
+				html += "<div class=\"panel panel-default\" id=\"" + request.request_id + "\">"
+					+ "<div class=\"panel-heading\" role=\"tab\" id=\"heading_" + request.request_id + "\">"
+					+ "<h4 class=\"panel-title\">"
+					+ "<a role=\"button\" data-toggle=\"collapse\" data-parent=\"#request_list\" href=\"#body_" + request.request_id + "\" aria-expanded=\"false\" aria-controls=\"body_" + request.request_id + "\">"
+					+ request.member.fname + " " + request.member.lname + " - " + rdate.toLocaleDateString() + " " + rdate.toLocaleTimeString() + " - " + request.other_slots.length + " other " + (request.other_slots.length == 1 ? "slot" : "slots") + " assigned"
+					+ "</a></h4></div>"
+					+ "<div id=\"body_" + request.request_id + "\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"heading_" + request.request_id + "\">"
+					+ "<div class=\"panel-body\">"
+					+ request.notes
+					+ "</div><div class=\"panel-footer\">Other Slots:<br /><ul>";
+
+				for (j = 0; j < request.other_slots.length; j++)
+					{
+					slot = request.other_slots[j];
+					html += "<li>" + slot.name + " (" + slot.hierarchy.join(" &rarr; ") + ")</li>";
+					}
+				html += "</ul></div></div></div>";
+				}
+
+			html += "</div>";
+			$dialogue.find("div.modal-body div.requests").html(html);
+
+			$dialogue.find("div.modal-body div.requests div.panel").contextMenu(
+				{
+				menuSelector: "#request_menu",
+				menuSelected: function ($invokedOn, $selectedMenu)
+					{
+					var $panel = $invokedOn.closest("div.panel"),
+						action   = $selectedMenu.attr("value"),
+						$opanels;
+
+					$("div#request_view div.modal-body div.requests").off("show.bs.collapse");
+					$("div#request_view div.modal-body div.requests").off("hide.bs.collapse");
+					cancel_request_action();
+					$panel.removeClass("panel-default").addClass("panel-info").addClass("selected");
+					$opanels = $panel.parent().find("div.panel:not(.selected)");
+					$opanels.find(".collapse").collapse("hide");
+					$panel.find(".collapse").collapse("show");
+					$("div#request_view div.modal-body div.requests").on("show.bs.collapse", cancel_request_action);
+					$("div#request_view div.modal-body div.requests").on("hide.bs.collapse", cancel_request_action);
+					if (action in actions)
+						actions[action]($panel.attr("id"));
+					else
+						alert("Commence action " + action + " on UUID " + id);
+					}
+				});
+
+			$dialogue.modal("show");
+			}
+		});
+	}
+
+actions.slot_fulfil = view_requests;
+actions.request_reject = function (request_id)
+	{
+	var $dialogue = $("div#request_view"),
+		$body = $dialogue.find("div.modal-body");
+
+	$dialogue.data("request_id", request_id).data("action", "reject");
+
+	$body.find("button.btn-success").text("Reject").click(decide_request);
+	$body.find("span.info").text("Enter any notes about why this request is being rejected.  Members may view these notes.");
+	$body.find("div.notes").css("display", "");
+	$body.find("textarea").val("");
+	};
+actions.request_accept = function (request_id)
+	{
+	var $dialogue = $("div#request_view"),
+		$body = $dialogue.find("div.modal-body");
+
+	$dialogue.data("request_id", request_id).data("action", "accept");
+
+	$body.find("button.btn-success").text("Accept").click(decide_request);
+	$body.find("span.info").text("Enter any notes about why this request is being accepted.  Members may view these notes.");
+	$body.find("div.notes").css("display", "");
+	$body.find("textarea").val("");
+	};
+actions.location_add_slot = function (location_id)
+	{
+	var $dialogue = $("#slot_edit");
+	$dialogue.data("slot_id",     null);
+	$dialogue.data("location_id", location_id);
+
+	$dialogue.find("button.btn-primary").text("Add Slot");
+	$dialogue.find("div.modal-header h3").text("Add Slot");
+	$dialogue.modal("show");
+	$dialogue.find("input#slot_name").val("");
+	$dialogue.find("input#slot_sort_order").val("1000");
+	};
+actions.location_add_sub = function (location_id)
+	{
+	var $dialogue = $("#loc_edit");
+	$dialogue.data("location_id", null);
+	$dialogue.data("parent_id",   location_id);
+
+	$dialogue.find("button.btn-primary").text("Add Location");
+	$dialogue.find("div.modal-header h3").text("Add Location");
+	$dialogue.modal("show");
+	$dialogue.find("input").val("");
+	};
+actions.slot_assign = function (slot_id)
+	{
+	var $dialogue = $("#slot_assign");
+	$dialogue.data("slot_id", slot_id);
+	$dialogue.modal("show");
+	};
+actions.slot_unassign = function (slot_id)
+	{
+	var api;
+
+	if (!confirm("Are you sure?"))
+		return;
+
+	api =
+		{
+		url: slot_assign_url,
+		what: "Unassign Slot",
+		data:
+			{
+			slot_id:   slot_id,
+			member_id: null
+			},
+		success: load_storage
+		};
+
+	api_json(api);
+	};
+actions.slot_edit = function (slot_id)
+	{
+	var $slot = $("div.tree li.selected");
+	var $dialogue = $("#slot_edit"),
+		val = $slot.find("span").text(),
+		sort_order = $slot.data("sort-order");
+	$dialogue.data("slot_id",     slot_id);
+	$dialogue.data("location_id", null);
+
+	$dialogue.find("button.btn-primary").text("Edit Slot");
+	$dialogue.find("div.modal-header h3").text("Edit Slot");
+	$dialogue.modal("show");
+	$dialogue.find("input#slot_sort_order").val(sort_order);
+	$dialogue.find("input#slot_name").val(val).focus();
+	};
+
+function finish_slot()
+	{
+	var api, $dialogue = $("#slot_edit");
+	var slot_id = $dialogue.data("slot_id"), location_id = $dialogue.data("location_id");
+	var name = $dialogue.find("input#slot_name").val();
+	var sort_order = $dialogue.find("input#slot_sort_order").val();
+
+	if (!slot_id && !location_id)
+		return;
+
+	api =
+		{
+		url: edit_slot_url,
+		what: slot_id ? "Edit Slot" : "Add Slot",
+		data:
+			{
+			location_id: location_id,
+			slot_id:     slot_id,
+			name:        name,
+			sort_order:  sort_order,
+			},
+		success: function()
+			{
+			$dialogue.modal("hide");
+			load_storage();
+			}
+		};
+
+	api_json(api);
+	}
+
+function finish_slot_assign()
+	{
+	var api,
+		$dialogue = $("#slot_assign"),
+		slot_id   = $dialogue.data("slot_id"),
+		member_id = $dialogue.find("select").val();
+
+	if (!slot_id && !member_id)
+		return;
+
+	api =
+		{
+		url: slot_assign_url,
+		what: "Assign Slot",
+		data:
+			{
+			slot_id:   slot_id,
+			member_id: member_id
+			},
+		success: function()
+			{
+			$dialogue.modal("hide");
+			load_storage();
+			}
+		};
+
+	api_json(api);
+	}
+
+function finish_loc()
+	{
+	var api,
+		$dialogue   = $("#loc_edit"),
+		parent_id   = $dialogue.data("parent_id"),
+		location_id = $dialogue.data("location_id"),
+		name        = $dialogue.find("input").val();
+
+	if (!parent_id && !location_id)
+		return;
+
+	api =
+		{
+		url: new_loc_url,
+		what: "Add Location",
+		data:
+			{
+			parent_id: parent_id,
+			name:      name
+			},
+		success: function()
+			{
+			$dialogue.modal("hide");
+			load_storage();
+			}
+		};
+
+	api_json(api);
+	}
+
+function handle_slot(slot, selected_id)
+	{
+	var html = "<li class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
+		+ (slot.slot_id == selected_id ? " selected" : "")
+		+ "\" style=\"display: none\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\">"
+		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
+		+ slot.name;
+
+	if (slot.member)
+		html += " - " + slot.member.fname + " " + slot.member.lname;
+
+	html += "</span></li>";
+	return html;
+	}
+
+function handle_location(loc, show_depth, selected_id)
+	{
+	var i, ret = "<li class=\"storage-location"
+		+ (loc.location_id == selected_id ? " selected" : "")
+		+ "\"" + (((show_depth) > 0) ? "" : "style=\"display: none\"")
+		+ "id=\"" + loc.location_id + "\"><span><i class=\"glyphicon"
+		+ (((show_depth - 1) > 0) ? " glyphicon-minus" : " glyphicon-plus")
+		+ "\"></i>" + loc.name + "</span><ul>";
+
+	if ("children" in loc && loc.children.length > 0)
+		for (i = 0; i < loc.children.length; i++)
+			ret += handle_location(loc.children[i], show_depth - 1, selected_id);
+
+	if ("slots" in loc && loc.slots.length > 0)
+		for (i = 0; i < loc.slots.length; i++)
+			ret += handle_slot(loc.slots[i], selected_id);
+
+	return ret + "</ul></li>";
+	}
+
+function load_storage()
+	{
+	var selected_id = null;
+	var $div = $("div#hive-storage div.panel-body"),
+		api =
+			{
+			type: "GET",
+			what: "Storage Load",
+			success_toast: false,
+			url: load_url
+			},
+		$tree = $("<div class=\"tree well\" />"),
+		$reqs = $("<div class=\"requests\" />");
+
+	selected_id = $div.find("li.selected").attr("id");
+
+	$div.html(loading_icon());
+
+	api.success = function (data)
+		{
+		var tree = "<ul>" + handle_location(data.locations, 2, selected_id) + "</ul>";
+
+		$div.empty().append($tree).append($reqs);
+		$tree.html(tree);
+		$('div.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this location');
+		$('div.tree li:not(:has(ul))').find(' > span').attr('title', "Double-click for information about this slot.");
+		$reqs.html("<a class=\"anchor-style\">There " + (data.requests === 1 ? "is 1 request" : "are " + data.requests + " requests") + " outstanding.</a>");
+		$reqs.find("a").click(function() { view_requests(); });
+
+		$tree.find("li.selected").each(function()
+			{
+			var $this = $(this), $parents = $this.parents("li.parent_li");
+			$this.show();
+
+			if ($this.hasClass("parent_li"))
+				{
+				$this.children("ul").children("li").show();
+				$this.children("span").attr("title", "Collapse this location")
+					.children("i").removeClass("glyphicon-plus").addClass("glyphicon-minus");
+				}
+
+			$parents
+				.show()
+				.children("span").attr("title", "Collapse this location")
+					.children("i").removeClass("glyphicon-plus").addClass("glyphicon-minus");
+			$parents.children("ul").children("li").show();
+			});
+		$tree.find("li.storage-location").contextMenu(
+			{
+			menuSelector: "#location_menu",
+			menuSelected: function ($invokedOn, $selectedMenu)
+				{
+				var id = $invokedOn.closest("li.storage-location").attr("id");
+				var action = $selectedMenu.attr("value");
+				if (action in actions)
+					actions[action](id);
+				else
+					alert("Commence action " + action + " on UUID " + id);
+				},
+			onMenuShow: function($invokedOn)
+				{
+				var $loc = $invokedOn.closest("li.storage-location");
+				$invokedOn.closest("div.tree").find("li").removeClass("selected");
+				$loc.addClass("selected");
+				}
+			});
+
+		$tree.find("li.storage-slot").contextMenu(
+			{
+			menuSelector: "#slot_menu",
+			menuSelected: function ($invokedOn, $selectedMenu)
+				{
+				var id = $invokedOn.closest("li.storage-slot").attr("id");
+				var action = $selectedMenu.attr("value");
+				if (action in actions)
+					actions[action](id);
+				else
+					alert("Commence action " + action + " on UUID " + id);
+				},
+			onMenuShow: function($invokedOn)
+				{
+				var $assign_a = $("#slot_menu li.assign a"),
+					$slot   = $invokedOn.closest("li.storage-slot"),
+					$fulfil = $("#slot_menu li.fulfil");
+
+				if ($slot.hasClass("storage-slot-assigned"))
+					{
+					$assign_a.attr("value", "slot_unassign").text("Unassign This Slot");
+					$fulfil.hide();
+					}
+				else
+					{
+					$assign_a.attr("value", "slot_assign").text("Assign This Slot");
+					$fulfil.show();
+					}
+				$invokedOn.closest("div.tree").find("li").removeClass("selected");
+				$slot.addClass("selected");
+				}
+			});
+		};
+
+	api_json(api);
+	}
+
+function edit_storage_slot(slot_id)
+	{
+	var $dialogue = $("div#edit_location"),
+		api =
+			{
+			what: "Storage Info",
+			success_toast: false,
+			url: info_url,
+			data: { slot_id: slot_id }
+			};
+
+	api.success = function (data)
+		{
+		alert(JSON.stringify(data));
+		};
+
+	api_json(api);
+	}
+
+$(function ()
+	{
+	var $panel = $("div#hive-storage div.panel-body")
+		.on("click", "div.tree li.parent_li > span > i", function (e)
+			{
+			var
+				$expander = $(this),
+				$span     = $expander.closest("span"),
+				$children = $expander.closest("li.parent_li").children("ul").children("li");
+			if ($children.is(":visible"))
+				{
+				$children.hide("fast");
+				$span.attr("title", "Expand this location");
+				$expander.addClass("glyphicon-plus").removeClass("glyphicon-minus");
+				}
+			else
+				{
+				$children.show("fast");
+				$span.attr("title", "Collapse this location");
+				$expander.addClass("glyphicon-minus").removeClass("glyphicon-plus");
+				}
+			e.stopPropagation();
+			})
+		.on("dblclick", "div.tree li.parent_li.storage-location", function (e)
+			{
+			var
+				$this     = $(this),
+				$span     = $this.children("span"),
+				$children = $this.children("ul").children("li");
+				$expander = $this.children("span").children("i");
+			if ($children.is(":visible"))
+				{
+				$children.hide("fast");
+				$span.attr("title", "Expand this location");
+				$expander.addClass("glyphicon-plus").removeClass("glyphicon-minus");
+				}
+			else
+				{
+				$children.show("fast");
+				$span.attr("title", "Collapse this location");
+				$expander.addClass("glyphicon-minus").removeClass("glyphicon-plus");
+				}
+			e.stopPropagation();
+			})
+		.on("dblclick", "div.tree li.storage-slot", function (e)
+			{
+			var $this = $(this);
+
+			edit_storage_slot($this.attr("id"));
+			return false;
+			})
+		.on("click", "div.tree li > span", function (e)
+			{
+			$this = $(this).closest("li");
+			$panel.find("div.tree li").removeClass("selected");
+			$this.addClass("selected");
+			return false;
+			})
+		;
+
+	$("div#slot_edit").on("shown.bs.modal", function() { $(this).find("input").focus();	});
+	$("div#loc_edit").on("shown.bs.modal", function() { $(this).find("input").focus();	});
+
+	$("div#slot_edit button#finish_slot").click(finish_slot);
+	$("div#loc_edit button#finish_loc").click(finish_loc);
+	$("div#slot_assign button#finish_slot_assign").click(finish_slot_assign);
+	$("div#slot_assign select").select2(
+		{
+		ajax:
+			{
+			url: member_search_url,
+			dataType: "json",
+			delay: 250,
+			method: "POST",
+			processData: false,
+			contentType: "application/json",
+			data: function (params)
+				{
+				var query =
+					{
+					name: params.term,
+					page: params.page
+					};
+
+				return JSON.stringify(query);
+				},
+			processResults: function (data, params)
+				{
+				var r, i, items = [];
+				params.page = params.page || 1;
+
+				for (i = 0; i < data.members.length; i++)
+					items.push(
+						{
+						id:   data.members[i].member_id,
+						text: data.members[i].fname + " " + data.members[i].lname
+						});
+				r =
+					{
+					results: items,
+					pagination: { more: ((params.page * 10) < data.count) }
+					};
+
+				return r;
+				}
+			},
+		minimumInputLength: 1,
+		placeholder: "Type a member's name",
+		});
+	$("div#slot_edit div.modal-body input").keydown(function (e)
+		{
+		if (e.keyCode == 13)
+			finish_slot();
+		else if (e.keyCode == 27)
+			$("div#slot_edit").modal("hide");
+		else
+			return;
+		return false;
+		});
+	$("div#loc_edit div.modal-body input").keydown(function (e)
+		{
+		if (e.keyCode == 13)
+			finish_loc();
+		else if (e.keyCode == 27)
+			$("div#loc_edit").modal("hide");
+		else
+			return;
+		return false;
+		});
+
+	$("div#request_view div.modal-body div.notes button.btn-danger").click(cancel_request_action);
+
+	load_storage();
+	});
+
+</script>
+[%~ # vim:set filetype=tt2html: ~%]

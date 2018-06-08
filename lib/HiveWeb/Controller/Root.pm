@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use Net::SMTP;
+use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -12,6 +13,72 @@ sub auto :Private
 	{
 	my ($self, $c) = @_;
 
+	my $toast = $c->stash()->{auto_toast} = [];
+
+	if (my $user = $c->user())
+		{
+		my $path  = '/';
+		my $paths = ['/'];
+		my @parts = split(/\//, $c->request()->path());
+		for (my $i = 0; $i < scalar(@parts); $i++)
+			{
+			$path .= $parts[$i];
+			$path .= '/'
+				if ($i < (scalar(@parts) - 1));
+			push(@$paths, $path);
+			}
+
+		my $actions = $c->model('DB::CurseAction')->search(
+			{
+			issued_at => { '<=' => \'now()'},
+			lifted_at => [ undef, { '>=' => \'now()' } ],
+			path      => $paths,
+			member_id => $c->user()->member_id(),
+			},
+			{
+			prefetch => { curse => 'member_curses' },
+			});
+
+		my $msg = [];
+
+		try
+			{
+			$c->model('DB')->txn_do(sub
+				{
+				while (my $action = $actions->next())
+					{
+					my $op    = $action->action();
+					my $curse = $action->curse();
+					my $mcs   = $curse->member_curses();
+
+					while (my $mc = $mcs->next())
+						{
+						if ($op eq 'lift')
+							{
+							$mc->update(
+								{
+								lifting_member_id => $c->user()->member_id(),
+								lifted_at         => \'now()',
+								lifting_notes     => "Auto-lifted by visiting $path.",
+								});
+							push(@$toast, { title => 'Cleared notification "' . $curse->display_name() . '"', text => $action->message() });
+							}
+						elsif ($op eq 'block')
+							{
+							push (@$msg, { title => $curse->display_name(), message => $action->message() });
+							die;
+							}
+						}
+					}
+				});
+			}
+		catch
+			{
+			$c->stash()->{messages} = $msg;
+			$c->detach('blocked_by_curse', $msg);
+			}
+		}
+
 	$c->stash()->{extra_css} = [];
 	}
 
@@ -19,13 +86,14 @@ sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	if ($c->user() && $c->user()->is_admin())
-		{
-		my @accesses = $c->model('DB::AccessLog')->search({}, { order_by => { -desc => 'me.access_time' }, rows => 10 });
-		$c->stash()->{accesses} = \@accesses;
-		}
+	$c->stash()->{template} = 'index.tt';
+	}
 
-	#$c->stash()->{template} = 'index.tt';
+sub blocked_by_curse :Local :Args(0)
+	{
+	my ($self, $c, $msg) = @_;
+
+	$c->stash()->{template} = 'blocked_by_curse.tt';
 	}
 
 sub login :Local
@@ -34,16 +102,33 @@ sub login :Local
 
 	if ($c->request()->method() eq 'GET')
 		{
+		$c->response()->redirect($c->uri_for('/'))
+			if ($c->user());
 		$c->stash()->{template} = 'login.tt';
 		return;
 		}
-	
+
 	my $params = $c->request()->params();
 
-	my $auth          = {};
-	$auth->{email}    = $params->{email};
-	$auth->{password} = $params->{password};
-	my $user = $c->authenticate($auth);
+	my $user = $c->authenticate(
+		{
+		password     => $params->{password},
+		'dbix_class' =>
+			{
+			searchargs =>
+				[
+					{
+						'-or' =>
+							[
+							{ handle => $params->{email} },
+							{ email  => $params->{email} },
+							],
+					},
+					{
+					}
+				]
+			},
+		});
 	my $log  = $c->model('DB::SignInLog')->create(
 		{
 		email     => $params->{email},
@@ -53,7 +138,9 @@ sub login :Local
 		}) || die $!;
 	if ($user)
 		{
-		$c->response()->redirect($c->uri_for('/'));
+		my $return = $c->flash()->{return} || $c->uri_for('/');
+		$c->clear_flash();
+		$c->response()->redirect($return);
 		}
 	else
 		{
@@ -152,6 +239,14 @@ sub forgot_password :Local
 	$token = undef
 		if ($token && !$token->valid());
 
+	if ($token)
+		{
+		my $date = $token->created_at();
+		$date->add({ hours => 24 });
+		$token = undef
+			if (DateTime->compare($date, DateTime->now() ) < 0);
+		}
+
 	$stash->{token}    = $token;
 	$stash->{template} = 'forgot_token.tt';
 
@@ -176,10 +271,25 @@ sub forgot_password :Local
 	$stash->{template} = 'forgot_updated.tt';
 	}
 
+sub access_denied :Private
+	{
+	my ($self, $c) = @_;
+
+	if ($c->user_exists())
+		{
+		$c->response()->redirect($c->uri_for('/'));
+		}
+	else
+		{
+		$c->flash()->{return} = $c->uri_for($c->action());
+		$c->detach('/login');
+		}
+	}
+
 sub default :Path
 	{
 	my ( $self, $c ) = @_;
-	
+
 	$c->stash()->{template} = '404.tt';
 	$c->response->status(404);
 	}

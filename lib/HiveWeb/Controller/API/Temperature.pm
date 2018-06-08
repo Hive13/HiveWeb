@@ -46,7 +46,11 @@ sub retrieve :Local :Args(0)
 			if ($wanted && !$wanted->{ $item->name() });
 		if ($period eq 'current')
 			{
-			my $temp = $item->search_related('temp_logs', {}, { order_by => { -desc => 'create_time' } })->first();
+			my $temp = $item->search_related('temp_logs', {},
+				{
+				order_by => { -desc => 'create_time' },
+				rows     => 1,
+				})->first();
 			push (@$temps,
 				{
 				name         => $item->display_name(),
@@ -67,7 +71,7 @@ sub retrieve :Local :Args(0)
 				if (@item_temps);
 			}
 		}
-	
+
 	if ($temps)
 		{
 		$out->{temps}    = $temps;

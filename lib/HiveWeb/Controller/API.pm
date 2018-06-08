@@ -3,6 +3,9 @@ use Moose;
 use namespace::autoclean;
 
 use JSON;
+use Bytes::Random::Secure qw(random_bytes);
+use MIME::Base64;
+use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -31,7 +34,6 @@ sub find_member :Private
 
 	return $badge->member()
 		if (defined($badge));
-	return $c->model('DB::Member')->find( { accesscard => $badge_no } );
 	}
 
 sub has_access :Private
@@ -43,16 +45,16 @@ sub has_access :Private
 	my $member   = find_member($c, $badge_no);
 	my $access   = 0;
 	my $member_id;
-	
+
 	return "Invalid item"
 		if (!defined($item));
-	
+
 	if ($member)
 		{
 		$member_id = $member->member_id();
 		$access    = $member->has_access($item);
 		}
-	
+
 	my $access_log = $c->model('DB::AccessLog')->create(
 		{
 		item_id   => $item->item_id(),
@@ -60,11 +62,9 @@ sub has_access :Private
 		member_id => $member_id,
 		badge_id  => $badge_no,
 		});
-	
+
 	return "Invalid badge"
 		if (!defined($member));
-	return "Locked out"
-		if ($member->is_lockedout());
 	return $access ? undef : "Access denied";
 	}
 
@@ -73,7 +73,14 @@ sub begin :Private
 	{
 	my ($self, $c) = @_;
 
-	$c->stash()->{in} = $c->req()->body_data();
+	if (lc($c->req()->content_type()) eq 'multipart/form-data')
+		{
+		$c->stash()->{in} = $c->req()->body_parameters();
+		}
+	else
+		{
+		$c->stash()->{in} = $c->req()->body_data();
+		}
 	$c->stash()->{out} = {};
 	$c->stash()->{view} = $c->view('JSON');
 	}
@@ -88,31 +95,61 @@ sub end :Private
 sub index :Path :Args(0)
 	{
 	my ( $self, $c ) = @_;
-	
+
 	$c->response->body('Matched HiveWeb::Controller::API in API.');
 	}
 
 sub access :Local
 	{
 	my ($self, $c) = @_;
-	my $in     = $c->stash()->{in};
-	my $out    = $c->stash()->{out};
-	my $device = $c->model('DB::Device')->find({ name => $in->{device} });
-	my $data   = $in->{data};
-	my $view   = $c->view('ChecksummedJSON');
+	my $in        = $c->stash()->{in};
+	my $out       = $c->stash()->{out};
+	my $device    = $c->model('DB::Device')->find({ name => $in->{device} });
+	my $data      = $in->{data};
+	my $version   = int($data->{version} || 1);
+	my $view      = $c->view('ChecksummedJSON');
+	my $operation = lc($data->{operation} // 'access');
 
 	if (!defined($device))
 		{
-		$out->{response} = JSON->false();
-		$out->{error} = 'Cannot find device.';
+		$out->{response} = \0;
+		$out->{error}    = 'Cannot find device.';
 		$c->response()->status(400)
 			if ($data->{http});
 		return;
 		}
-	
+
+	if ($device->min_version() > $version || $version > $device->max_version())
+		{
+		$out->{response} = \0;
+		$out->{error}    = 'Invalid version for device.';
+		$c->response()->status(403)
+			if ($data->{http});
+		return;
+		}
+
+	if ($version >= 2)
+		{
+		my $nonce     = $data->{nonce};
+		my $exp_nonce = uc(unpack('H*', $device->nonce()));
+		my $new_nonce = random_bytes(16);
+		$device->update({ nonce => $new_nonce });
+		$out->{new_nonce} = uc(unpack('H*', $new_nonce));
+		if ($nonce ne $exp_nonce && $operation ne 'get_nonce')
+			{
+			$out->{response}    = \0;
+			$out->{nonce_valid} = \0;
+			$out->{error}       = 'Invalid nonce.';
+			$c->response()->status(403)
+				if ($data->{http});
+			return;
+			}
+		$out->{nonce_valid} = \1;
+		}
+
 	$c->stash()->{view}   = $view;
 	$c->stash()->{device} = $device;
-	
+
 	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))
 		{
@@ -122,21 +159,19 @@ sub access :Local
 			if ($data->{http});
 		return;
 		}
-	
+
 	$out->{response}        = \1;
 	$out->{random_response} = $data->{random_response};
-
-	my $operation = lc($data->{operation} // 'access');
 
 	if ($operation eq 'access')
 		{
 		my $badge  = $data->{badge};
 		my $item   = $data->{location} // $data->{item};
-		my $access = has_access($c, $badge, $item);		
+		my $access = has_access($c, $badge, $item);
 		my $d_i    = $device
 			->search_related('device_items')
 			->search_related('item', { name => $item } );
-		
+
 		if ($d_i->count() < 1)
 			{
 			$out->{access} = \0;
@@ -222,6 +257,30 @@ sub access :Local
 			$out->{error}    = 'Could not log temperature.';
 			}
 		}
+	elsif ($operation eq 'soda_status')
+		{
+		my $sodas = $data->{sodas};
+		$out->{response} = \1;
+		try
+			{
+			$c->model('DB')->txn_do(sub
+				{
+				foreach my $soda (@$sodas)
+					{
+					my $slot = $c->model('DB::SodaStatus')->find({ slot_number => $soda->{slot} }) || die;
+					$slot->update({ sold_out => ($soda->{sold_out} ? 't' : 'f') });
+					}
+				});
+			}
+		catch
+			{
+			$out->{response} = \0;
+			};
+		}
+	elsif ($operation eq 'get_nonce')
+		{
+		$out->{response} = \1;
+		}
 	else
 		{
 		$out->{response} = JSON->false();
@@ -229,7 +288,7 @@ sub access :Local
 		$c->response()->status(400)
 			if ($data->{http});
 		}
-	} 
+	}
 
 =encoding utf8
 

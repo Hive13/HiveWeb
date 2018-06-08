@@ -52,4 +52,16 @@ __PACKAGE__->many_to_many("devices", "device_items", "device");
 __PACKAGE__->many_to_many("mgroups", "item_mgroups", "mgroup");
 
 __PACKAGE__->meta->make_immutable;
+
+sub TO_JSON
+	{
+	my $self = shift;
+
+	return
+		{
+		item_id      => $self->item_id(),
+		name         => $self->name(),
+		display_name => $self->display_name(),
+		};
+	}
 1;
