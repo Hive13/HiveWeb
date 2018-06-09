@@ -29,7 +29,7 @@ sub accesses :Local :Args(0)
 
 	my $dow   = [];
 	my $max   = 0;
-	my $scale = sub { return shift };
+	my $scale = sub { return shift; };
 	my $item  = $in->{item} // 'main_door';
 	my $i     = $c->model('DB::Item')->find({ name => $item });
 
@@ -69,11 +69,11 @@ sub accesses :Local :Args(0)
 		{
 		for (my $j = 0; $j < (24 * 4); $j++)
 			{
-			my $v = int($dow->[$i]->[$j]);
+			my $v = $dow->[$i]->[$j];
 			if ($v)
 				{
-				$v = ($scale->($v) * 100) / $max;
-				$dow->[$i]->[$j] = round($v);
+				$v = ($scale->($v) * 1000) / $max;
+				$dow->[$i]->[$j] = round($v) / 10;
 				}
 			}
 		}

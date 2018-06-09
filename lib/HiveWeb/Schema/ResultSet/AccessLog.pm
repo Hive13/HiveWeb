@@ -15,7 +15,7 @@ sub heatmap
 		{
 		'select' =>
 			[
-			\'COUNT(DISTINCT me.member_id)',
+			\ q{COUNT(DISTINCT CONCAT(member_id, '-', EXTRACT(year FROM access_time), '-', EXTRACT(month FROM access_time), '-', EXTRACT(day FROM access_time), '-', EXTRACT(hour FROM access_time), '-', (EXTRACT(minute FROM access_time)::integer / 15)))},
 			\'EXTRACT(dow FROM me.access_time)',
 			\'EXTRACT(hour FROM me.access_time)',
 			\'(EXTRACT(minute FROM me.access_time)::integer / 15)',
