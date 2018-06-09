@@ -69,11 +69,11 @@ sub accesses :Local :Args(0)
 		{
 		for (my $j = 0; $j < (24 * 4); $j++)
 			{
-			my $v = $dow->[$i]->[$j];
+			my $v = int($dow->[$i]->[$j]);
 			if ($v)
 				{
-				$v = ($scale->($v) * 1000) / $max;
-				$dow->[$i]->[$j] = round($v) / 10;
+				$v = ($scale->($v) * 100) / $max;
+				$dow->[$i]->[$j] = round($v);
 				}
 			}
 		}
