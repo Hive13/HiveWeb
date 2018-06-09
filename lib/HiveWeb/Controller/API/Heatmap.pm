@@ -20,6 +20,7 @@ sub accesses :Local :Args(0)
 
 	my $dow = [];
 	my $max = 0;
+
 	my $heatmap = $c->model('DB::AccessLog')->heatmap()->search({ granted => 't'});
 
 	for (my $i = 0; $i < 7; $i++)

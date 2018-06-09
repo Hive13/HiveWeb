@@ -15,7 +15,7 @@ sub heatmap
 		{
 		'select' =>
 			[
-			\'COUNT(me.*)',
+			\'COUNT(DISTINCT me.member_id)',
 			\'EXTRACT(dow FROM me.access_time)',
 			\'EXTRACT(hour FROM me.access_time)',
 			\'(EXTRACT(minute FROM me.access_time)::integer / 15)',
