@@ -6,6 +6,13 @@ use Math::Round;
 
 BEGIN { extends 'Catalyst::Controller' }
 
+sub log10 :Private
+	{
+	my $n = shift;
+
+	return log($n);
+	}
+
 sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -15,13 +22,27 @@ sub index :Path :Args(0)
 
 sub accesses :Local :Args(0)
 	{
-	my ($self, $c) = @_;
-	my $out = $c->stash()->{out};
+	my ($self, $c)   = @_;
+	my $out          = $c->stash()->{out};
+	my $in           = $c->stash()->{in};
+	$out->{response} = \0;
 
-	my $dow = [];
-	my $max = 0;
+	my $dow   = [];
+	my $max   = 0;
+	my $scale = sub { return shift };
+	my $item  = $in->{item} // 'main_door';
+	my $i     = $c->model('DB::Item')->find({ name => $item });
 
-	my $heatmap = $c->model('DB::AccessLog')->heatmap()->search({ granted => 't'});
+	if (!$i)
+		{
+		$out->{response} = 'Invalid item name.';
+		return;
+		}
+
+	$scale = log10
+		if (lc($in->{scale}) eq 'log');
+
+	my $heatmap = $c->model('DB::AccessLog')->heatmap()->search({ granted => 't', item_id => $i->item_id() });
 
 	for (my $i = 0; $i < 7; $i++)
 		{
@@ -42,12 +63,18 @@ sub accesses :Local :Args(0)
 		$dow->[$entry->get_column('dow')]->[$column] = $value;
 		}
 
+	$max = $scale->($max);
+
 	for (my $i = 0; $i < 7; $i++)
 		{
 		for (my $j = 0; $j < (24 * 4); $j++)
 			{
-			my $v = ($dow->[$i]->[$j] * 100) / $max;
-			$dow->[$i]->[$j] = round($v);
+			my $v = $dow->[$i]->[$j];
+			if ($v)
+				{
+				$v = ($scale->($v) * 100) / $max;
+				$dow->[$i]->[$j] = round($v);
+				}
 			}
 		}
 
