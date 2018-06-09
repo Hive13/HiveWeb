@@ -39,7 +39,7 @@ sub accesses :Local :Args(0)
 		return;
 		}
 
-	$scale = log10
+	$scale = \&log10
 		if (lc($in->{scale}) eq 'log');
 
 	my $heatmap = $c->model('DB::AccessLog')->heatmap()->search({ granted => 't', item_id => $i->item_id() });
@@ -69,7 +69,7 @@ sub accesses :Local :Args(0)
 		{
 		for (my $j = 0; $j < (24 * 4); $j++)
 			{
-			my $v = $dow->[$i]->[$j];
+			my $v = int($dow->[$i]->[$j]);
 			if ($v)
 				{
 				$v = ($scale->($v) * 100) / $max;
