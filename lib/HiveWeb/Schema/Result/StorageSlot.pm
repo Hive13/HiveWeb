@@ -23,11 +23,13 @@ __PACKAGE__->add_columns(
   { data_type => "uuid", is_nullable => 1 },
   "location_id",
   { data_type => "uuid", is_nullable => 0 },
+  "sort_order",
+  { data_type => "integer", is_nullable => 0, default_value => 1000 },
 );
 
 __PACKAGE__->set_primary_key("slot_id");
 __PACKAGE__->uuid_columns("slot_id");
-__PACKAGE__->resultset_attributes( { order_by => ['name'] } );
+__PACKAGE__->resultset_attributes( { order_by => ['sort_order', 'name'] } );
 
 __PACKAGE__->belongs_to(
   "member",
@@ -102,6 +104,7 @@ sub TO_JSON
 		name        => $self->name(),
 		member_id   => $self->member_id(),
 		location_id => $self->location_id(),
+		sort_order  => $self->sort_order(),
 		};
 	}
 
@@ -117,6 +120,7 @@ sub TO_FULL_JSON
 		member      => $self->member(),
 		location_id => $self->location_id(),
 		location    => $self->location(),
+		sort_order  => $self->sort_order(),
 		};
 	}
 

@@ -68,14 +68,9 @@ sub TO_FULL_JSON
 	my @children = $self->children();
 	my @slots    = $self->slots();
 	my @ochildren;
-	my @oslots;
 	foreach my $child (@children)
 		{
 		push(@ochildren, $child->TO_FULL_JSON());
-		}
-	foreach my $slot (@slots)
-		{
-		push(@oslots, $slot->TO_FULL_JSON());
 		}
 
 	return
@@ -84,7 +79,7 @@ sub TO_FULL_JSON
 		parent_id   => $self->parent_id(),
 		name        => $self->name(),
 		children    => \@ochildren,
-		slots       => \@oslots,
+		slots       => \@slots,
 		};
 	}
 
