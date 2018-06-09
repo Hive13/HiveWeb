@@ -1,4 +1,4 @@
-function display_access_data(data, $access_panel)
+function display_access_data(data)
 	{
 	var access, i, html = "<ol class=\"accesses\">", date;
 
@@ -19,12 +19,12 @@ function display_access_data(data, $access_panel)
 		html += "Access Time: " + date.toLocaleDateString() + " " + date.toLocaleTimeString();
 		html += "</span></li>";
 		}
-	
+
 	html += "</ol><div class=\"u-w-100 text-center\"><a href=\"/admin/access_log\" class=\"btn btn-primary\">View All Access Logs</a></div>";
-	$access_panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 	}
 
-function display_storage_status_data(data, $panel)
+function display_storage_status_data(data)
 	{
 	var html = "";
 
@@ -35,13 +35,23 @@ function display_storage_status_data(data, $panel)
 
 	html += "<div class=\"u-w-100 text-center\"><a href=\"/admin/storage\" class=\"btn btn-primary\">Visit the Storage Admin Area</a></div>";
 
-	$panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 	}
 
 $(function()
 	{
-	init_panel("access", display_access_data);
-	init_panel("storage_status", display_storage_status_data, 0);
+	var access_panel = new Panel(
+		{
+		panel_class:    "access",
+		panel_function: display_access_data
+		});
+
+	var storage_admin_panel = new Panel(
+		{
+		panel_class:    "storage_status",
+		panel_function: display_storage_status_data,
+		refresh:        false
+		});
 
 	$("div.panel.hive-panel-access").on("click", "ol li", function()
 		{
