@@ -189,6 +189,13 @@ sub pay :Local :Args(0)
 	$c->stash()->{template} = 'member/pay.tt';
 	}
 
+sub apply :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	$c->stash()->{template} = 'member/apply.tt';
+	}
+
 sub requests :Local :Args(0)
 	{
 	my ($self, $c) = @_;
