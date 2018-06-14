@@ -6,7 +6,10 @@
 			SET contact_phone = '(' _ application.contact_phone.substr(0, 3) _ ') ' _ application.contact_phone.substr(3, 3) _ '-' _ application.contact_phone.substr(6);
 		END;
 		IF application.zip;
-			SET zip = application.zip.substr(0, 5) _ '-' _ applcation.zip.substr(5);
+			SET zip = application.zip.substr(0, 5);
+			IF application.zip.length > 5;
+				SET zip = zip _ '-' _ applcation.zip.substr(5);
+			END;
 		END;
 	END;
 ~%]
@@ -163,7 +166,7 @@ $(function ()
 	});
 </script>
 
-[%~ BLOCK column; DEFAULT type='text' value=application.$column maxlength=255 %]
+[%~ BLOCK column; DEFAULT type='text' value=application.$column maxlength=255 required=0 %]
 <tr
 [%~ IF class; =%]
 	class="[% class %]"
@@ -176,7 +179,16 @@ $(function ()
 			GET value;
 		ELSE;
 		~%]
-		<input type="[% type %]" name="[% column %]" id="[% column %]" maxlength="[% maxlength %]" size="[% (maxlength < 30) ? maxlength : 30 %]" value="[% value %]" />
+		<input type="[% type %]" name="[% column %]" id="[% column %]" maxlength="[% maxlength %]" size="[% (maxlength < 30) ? maxlength : 30 %]" value="[% value %]"
+			[%~
+			IF required;
+				GET ' required';
+			END;
+			IF pattern;
+				GET ' pattern="' _ pattern _ '"';
+			END;
+			=%]
+		/>
 		[%~
 		END;
 		~%]
@@ -195,11 +207,11 @@ $(function ()
 	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info" style="text-align: center; padding: 20px">
 		<form method="post">
 			<table class="apply">
-				[% INCLUDE column column='address1' title='Address Line 1' %]
+				[% INCLUDE column column='address1' title='Address Line 1' required=1 %]
 				[% INCLUDE column column='address2' title='Address Line 2' %]
-				[% INCLUDE column column='city' title='City' %]
-				[% INCLUDE column column='state' title='State' maxlength=2 %]
-				[% INCLUDE column column='zip' title='Zip Code' maxlength=10 value=zip %]
+				[% INCLUDE column column='city' title='City' required=1 %]
+				[% INCLUDE column column='state' title='State' maxlength=2 required=1 pattern='[a-zA-Z]{2}' %]
+				[% INCLUDE column column='zip' title='Zip Code' maxlength=10 value=zip required=1 pattern='\d{5}(?=-?\d{4})?' %]
 				[% INCLUDE column column='contact_name' title='Emergency Contact Name' %]
 				[% INCLUDE column column='contact_phone' title='Emergency Contact Phone' value=contact_phone %]
 				<tr>
@@ -212,6 +224,11 @@ $(function ()
 				</tr>
 				<tr>
 					<td colspan="2" class="center">
+						[%~
+						IF message.error.defined && message.error.length > 0;
+							GET '<span class="error">' _ message.error _ '</span><br />';
+						END;
+						%]
 						<input type="submit" value="Register!" />
 					</td>
 				</tr>
