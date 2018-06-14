@@ -160,9 +160,18 @@ function load_image($div, image_id)
 $(function ()
 	{
 	var $t = $("table.apply");
+	var image_id =
+		[%~
+		IF application.picture_id;
+			GET '"' _ application.picture_id.dquote _ '"';
+		ELSE;
+			GET 'undefined';
+		END;
+		~%]
+	;
 
 	$t.on("change", "input[type=file]", upload_photo);
-	load_image($t.find("div.photo"), undefined);
+	load_image($t.find("div.photo"), image_id);
 	});
 </script>
 
