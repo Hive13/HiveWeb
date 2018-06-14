@@ -69,12 +69,20 @@ sub update
 	my $self  = shift;
 	my $attrs = shift;
 
-	if (ref($attrs) eq 'HASH' && exists($attrs->{image}))
+	if (ref($attrs) eq 'HASH')
 		{
-		my $im = Image::Magick->new() || die $!;
-		$im->BlobToImage($attrs->{image});
-		$im->Resize(geometry => '100x100');
-		$attrs->{thumbnail} = ($im->ImageToBlob())[0];
+		if (exists($attrs->{image}))
+			{
+			my $im = Image::Magick->new() || die $!;
+			$im->BlobToImage($attrs->{image});
+			$im->Resize(geometry => '100x100');
+			$attrs->{thumbnail} = ($im->ImageToBlob())[0];
+			}
+		$attrs->{updated_at} = \'current_timestamp';
+		}
+	else
+		{
+		die;
 		}
 
 	return $self->next::method($attrs);
