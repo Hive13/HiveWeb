@@ -90,4 +90,21 @@ sub update
 
 __PACKAGE__->meta->make_immutable;
 
+sub attached_to
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	my $attachments =
+		{
+		member_id      => undef,
+		application_id => undef,
+		};
+
+	my @member_ids = $schema->resultset('Member')->search({ member_image_id => $self->image_id() })->get_column('me.member_id')->all();
+	$attachments->{member_id} = \@member_ids
+		if (scalar(@member_ids) > 0);
+
+	return $attachments;
+	}
+
 1;
