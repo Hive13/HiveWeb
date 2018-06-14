@@ -98,20 +98,20 @@ sub profile :Local :Args(0)
 	my ($self, $c) = @_;
 
 	$c->stash()->{template} = 'member/profile.tt';
-	
+
 	return
 		if ($c->request()->method() eq 'GET');
 
 	my $form = $c->request()->params();
 	my $fail;
 	($fail, $c->stash()->{message}) = $self->verify_user_data($c, $form, 0);
-	
+
 	if ($fail)
 		{
 		$c->stash()->{vals} = $form;
 		return;
 		}
-		
+
 	$c->user()->update($form) || die $!;
 	$c->response()->redirect($c->uri_for('/'));
 	}
@@ -153,7 +153,7 @@ sub register :Local :Args(0)
 	my ($self, $c) = @_;
 
 	$c->stash()->{template} = 'member/profile.tt';
-	
+
 	return
 		if ($c->request()->method() eq 'GET');
 
