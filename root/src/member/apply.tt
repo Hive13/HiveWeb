@@ -42,6 +42,82 @@ label.btn img
 	}
 </style>
 
+<script type="text/javascript">
+function upload_photo()
+	{
+	var $progress, $this = $(this),
+		$image_div = $this.parents("div.photo");
+		fd = new FormData();
+	fd.append("photo", $this[0].files[0]);
+	$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
+	$progress = $image_div.find("div.progress div.progress-bar");
+
+	$.ajax(
+		{
+		url: "[% Catalyst.uri_for('/api/photo').dquote %]",
+		type: "POST",
+		data: fd,
+		cache: false,
+		contentType: false,
+		processData: false,
+		xhr: function()
+			{
+			var myXhr = $.ajaxSettings.xhr();
+			if (myXhr.upload)
+				{
+				myXhr.upload.addEventListener('progress', function(e)
+					{
+					var pct;
+
+					if (e.lengthComputable)
+						{
+						pct = e.loaded * 100 / e.total;
+						$progress.attr("aria-valuenow", pct).css("width", pct + "%");
+						}
+					} , false);
+				}
+			return myXhr;
+			},
+		error: function(jqXHR, status, error_thrown)
+			{
+			$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" accept=\"image/*\" capture=\"camera\" hidden style=\"display: none\" /></label>");
+			$.toast(
+				{
+				icon: "error",
+				heading: "Image upload failed",
+				position: "top-right",
+				text: error_thrown
+				});
+			},
+		success: function(data)
+			{
+			var image_id;
+
+			if (!data.response)
+				{
+				$.toast(
+					{
+					heading: options.what + " failed",
+					text: data.data,
+					icon: "error",
+					position: "top-right"
+					});
+				return;
+				}
+			else
+				image_id = data.image_id;
+			alert("Do the thing");
+			// do the thing
+			}
+		});
+	}
+
+$(function ()
+	{
+	$("table.apply").on("change", "input[type=file]", upload_photo);
+	});
+</script>
+
 [%~ BLOCK column; DEFAULT type='text' value=application.$column maxlength=255 %]
 <tr
 [%~ IF class; =%]
@@ -83,10 +159,12 @@ label.btn img
 				[% INCLUDE column column='contact_phone' title='Emergency Contact Phone' value=contact_phone %]
 				<tr>
 					<td colspan="2" class="center">
-						<label class="btn btn-primary btn-lg">
-							<img src="[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]" /><br />
-							Upload Photo<input type="file" accept="image/*" capture="camera" hidden style="display: none;" />
-						</label><br />
+						<div class="photo">
+							<label class="btn btn-primary btn-lg">
+								<img src="[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]" /><br />
+								Upload Photo<input type="file" accept="image/*" capture="camera" hidden style="display: none;" />
+							</label>
+						</div>
 						Attach a photo of yourself for our records.
 						If you do not have a photo, you may submit this application anyways, but you'll have to have a Hive Officer take your picture before your application can be fully processed.
 					</td>
