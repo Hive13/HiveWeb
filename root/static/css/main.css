@@ -85,6 +85,11 @@ ol.accesses li.denied
 	width: 100% !important;
 	}
 
+.u-text-center
+	{
+	text-align: center !important;
+	}
+
 .anchor-style
 	{
 	cursor: pointer;
