@@ -157,6 +157,14 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'applications',
+	'HiveWeb::Schema::Result::Application',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 __PACKAGE__->many_to_many('curses', 'member_curses', 'curse');
 
