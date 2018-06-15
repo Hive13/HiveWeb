@@ -57,7 +57,7 @@ function upload_photo()
 
 	$.ajax(
 		{
-		url: "[% Catalyst.uri_for('/api/photo').dquote %]",
+		url: "[% Catalyst.uri_for('/api/image/upload').dquote %]",
 		type: "POST",
 		data: fd,
 		cache: false,
