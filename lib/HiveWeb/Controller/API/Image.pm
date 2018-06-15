@@ -23,7 +23,7 @@ sub auto :Private
 			if (   ref($attachments->{member_id}) eq 'ARRAY'
 			    && !(grep { $_ eq $c->user()->member_id() } @{ $attachments->{member_id} }));
 		}
-	
+
 	$c->stash({ image => $image });
 	}
 
