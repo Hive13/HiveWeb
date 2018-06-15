@@ -96,12 +96,130 @@ function display_curse_data(data, $curse_panel)
 	$curse_panel.find(".panel-body").html(html);
 	}
 
+function app_upload_photo($div, file)
+	{
+	var $progress, fd = new FormData();
+	fd.append("photo", file);
+	$div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
+	$progress = $div.find("div.progress div.progress-bar");
+
+	$.ajax(
+		{
+		url: "/api/image",
+		type: "POST",
+		data: fd,
+		cache: false,
+		contentType: false,
+		processData: false,
+		xhr: function()
+			{
+			var myXhr = $.ajaxSettings.xhr();
+			if (myXhr.upload)
+				{
+				myXhr.upload.addEventListener('progress', function(e)
+					{
+					var pct;
+
+					if (e.lengthComputable)
+						{
+						pct = e.loaded * 100 / e.total;
+						$progress.attr("aria-valuenow", pct).css("width", pct + "%");
+						}
+					} , false);
+				}
+			return myXhr;
+			},
+		error: function(jqXHR, status, error_thrown)
+			{
+			app_load_image($div, undefined);
+			$.toast(
+				{
+				icon: "error",
+				heading: "Image upload failed",
+				position: "top-right",
+				text: error_thrown
+				});
+			},
+		success: function(data)
+			{
+			var image_id;
+
+			if (!data.response)
+				{
+				$.toast(
+					{
+					heading: options.what + " failed",
+					text: data.data,
+					icon: "error",
+					position: "top-right"
+					});
+				return;
+				}
+			app_load_image($div, data.image_id);
+			}
+		});
+	}
+
+function app_load_image($div, image_id)
+	{
+	var $rotate, $rotateL;
+
+	if (!image_id)
+		{
+		$div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"/static/icons/add_photo.png\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+		return;
+		}
+	$div.html("<img src=\"[% Catalyst.uri_for('/image/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
+
+	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
+		{
+		api_json(
+			{
+			what:    "Rotate Photo",
+			url:     "/api/image/rotate",
+			data:    { image_id: image_id, degrees: 270 },
+			success: function() { app_load_image($div, image_id); }
+			});
+		});
+	$div.prepend($rotateL);
+
+	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Clockwise").click(function ()
+		{
+		api_json(
+			{
+			what:    "Rotate Photo",
+			url:     "/api/image/rotate",
+			data:    { image_id: image_id, degrees: 90 },
+			success: function() { app_load_image($div, image_id); }
+			});
+		});
+	$div.prepend($rotate);
+	}
+
 function display_application_status(data, $panel, odata)
 	{
-	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date;
+	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date, $div;
+	var dialogue = ["<div class=\"modal fade\" id=\"picture_dialogue\" tabIndex=\"-1\" role=\"dialog\" aria-labelledby=\"picture_label\">",
+		"<div class=\"modal-dialog\" role=\"document\">",
+			"<div class=\"modal-content\">",
+				"<div class=\"modal-header\">",
+					"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+					"<h3 class=\"modal-title\" id=\"picture_label\">Upload Photo</h3>",
+				"</div>",
+				"<div class=\"modal-body u-text-center\">",
+				"</div>",
+				"<div class=\"modal-footer\">",
+					"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+					"<button type=\"button\" class=\"btn btn-primary\" id=\"finish_curse\" disabled>Submit</button>",
+				"</div>",
+			"</div>",
+		"</div>",
+	"</div>"].join('');
+
+	html += dialogue;
 
 	if (!data.has_picture)
-		steps.push("<a href=\"#\">Attach your picture</a> to the application or get a Hive Officer to do it for you.");
+		steps.push("<a class=\"anchor-style\" data-toggle=\"modal\" data-target=\"#picture_dialogue\">Attach your picture</a> to the application or get a Hive Officer to do it for you.");
 
 	if (data.has_form)
 		steps.push("Your signed form has been received.");
@@ -129,6 +247,9 @@ function display_application_status(data, $panel, odata)
 			success_toast: false
 			});
 		});
+	$div = $panel.find("div#picture_dialogue div.modal-body");
+	app_load_image($div, undefined);
+	$panel.find("input[type=file]").change(function() { app_upload_photo($div, $(this)[0].files[0]); });
 	}
 
 $(function()
