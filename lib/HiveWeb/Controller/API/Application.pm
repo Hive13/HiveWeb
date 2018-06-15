@@ -34,6 +34,26 @@ sub status :Local :Args(0)
 	$out->{response}          = \1;
 	}
 
+sub submit :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $out          = $c->stash()->{out};
+	my $in           = $c->stash()->{in};
+	$out->{response} = \0;
+	my $user         = $c->user() || return;
+
+	my $application = $c->model('DB::Application')->find($in->{application_id});
+	if (!$application || $application->member_id() ne $user->member_id())
+		{
+		$out->{response} = 'Cannot find that application.';
+		return;
+		}
+
+	$application->update({ app_turned_in_at => \'current_timestamp' });
+	$out->{response} = \1;
+	}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
