@@ -1,0 +1,248 @@
+[%~
+	SET contact_phone = '';
+	SET zip           = '';
+	IF application;
+		IF application.contact_phone;
+			SET contact_phone = '(' _ application.contact_phone.substr(0, 3) _ ') ' _ application.contact_phone.substr(3, 3) _ '-' _ application.contact_phone.substr(6);
+		END;
+		IF application.zip;
+			SET zip = application.zip.substr(0, 5);
+			IF application.zip.length > 5;
+				SET zip = zip _ '-' _ applcation.zip.substr(5);
+			END;
+		END;
+	END;
+~%]
+<style type="text/css">
+table.apply th
+	{
+	text-align: right;
+	}
+table.apply td
+	{
+	text-align: left;
+	}
+table.apply label
+	{
+	cursor: pointer;
+	}
+table.apply span.error
+	{
+	color: #ff0000;
+	background-color: #EEEEEE;
+	}
+
+table.apply td.center
+	{
+	text-align: center;
+	padding-top: 20px;
+	}
+
+label.btn img
+	{
+	max-width: 60px;
+	max-height: 60px;
+	}
+</style>
+
+<script type="text/javascript">
+function upload_photo()
+	{
+	var $progress, $this = $(this),
+		$image_div = $this.parents("div.photo");
+		fd = new FormData();
+	fd.append("photo", $this[0].files[0]);
+	$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
+	$progress = $image_div.find("div.progress div.progress-bar");
+
+	$.ajax(
+		{
+		url: "[% Catalyst.uri_for('/api/image/upload').dquote %]",
+		type: "POST",
+		data: fd,
+		cache: false,
+		contentType: false,
+		processData: false,
+		xhr: function()
+			{
+			var myXhr = $.ajaxSettings.xhr();
+			if (myXhr.upload)
+				{
+				myXhr.upload.addEventListener('progress', function(e)
+					{
+					var pct;
+
+					if (e.lengthComputable)
+						{
+						pct = e.loaded * 100 / e.total;
+						$progress.attr("aria-valuenow", pct).css("width", pct + "%");
+						}
+					} , false);
+				}
+			return myXhr;
+			},
+		error: function(jqXHR, status, error_thrown)
+			{
+			load_image($image_div, undefined);
+			$.toast(
+				{
+				icon: "error",
+				heading: "Image upload failed",
+				position: "top-right",
+				text: error_thrown
+				});
+			},
+		success: function(data)
+			{
+			var image_id;
+
+			if (!data.response)
+				{
+				$.toast(
+					{
+					heading: "Image upload failed",
+					text: data.data,
+					icon: "error",
+					position: "top-right"
+					});
+				return;
+				}
+			load_image($image_div, data.image_id);
+			}
+		});
+	}
+
+function load_image($div, image_id)
+	{
+	var $remove, $rotate, $rotateL;
+
+	if (!image_id)
+		{
+		$div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" accept=\"image/*\" capture=\"camera\" hidden style=\"display: none\" /></label>");
+		return;
+		}
+	$div.html("<img src=\"[% Catalyst.uri_for('/image/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" /><input type=\"hidden\" name=\"picture_id\" id=\"picture_id\" />");
+	$div.find("input#picture_id").val(image_id);
+
+	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
+		{
+		api_json(
+			{
+			what:    "Rotate Photo",
+			url:     "[% Catalyst.uri_for('/api/image/rotate').dquote %]",
+			data:    { image_id: image_id, degrees: 270 },
+			success: function() { load_image($div, image_id); }
+			});
+		});
+	$div.prepend($rotateL);
+
+	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Clockwise").click(function ()
+		{
+		api_json(
+			{
+			what:    "Rotate Photo",
+			url:     "[% Catalyst.uri_for('/api/image/rotate').dquote %]",
+			data:    { image_id: image_id, degrees: 90 },
+			success: function() { load_image($div, image_id); }
+			});
+		});
+	$div.prepend($rotate);
+
+	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
+		{
+		if (!confirm("Are you sure you want to remove this photo?"))
+			return;
+		load_image($div, undefined);
+		});
+	$div.prepend($remove);
+	}
+
+$(function ()
+	{
+	var $t = $("table.apply");
+	var image_id =
+		[%~
+		IF application.picture_id;
+			GET '"' _ application.picture_id.dquote _ '"';
+		ELSE;
+			GET 'undefined';
+		END;
+		~%]
+	;
+
+	$t.on("change", "input[type=file]", upload_photo);
+	load_image($t.find("div.photo"), image_id);
+	});
+</script>
+
+[%~ BLOCK column; DEFAULT type='text' value=application.$column maxlength=255 required=0 %]
+<tr
+[%~ IF class; =%]
+	class="[% class %]"
+[%~ END ~%]
+>
+	<th><label for="[% column %]">[% title %]:</label></th>
+	<td>
+		[%~
+		IF other;
+			GET value;
+		ELSE;
+		~%]
+		<input type="[% type %]" name="[% column %]" id="[% column %]" maxlength="[% maxlength %]" size="[% (maxlength < 30) ? maxlength : 30 %]" value="[% value %]"
+			[%~
+			IF required;
+				GET ' required';
+			END;
+			IF pattern;
+				GET ' pattern="' _ pattern _ '"';
+			END;
+			=%]
+		/>
+		[%~
+		END;
+		~%]
+	</td>
+	<td>
+		[%~
+		IF message.$column.defined && message.$column.length > 0;
+			GET '<span class="error">' _ message.$column _ '</span>';
+		END;
+		~%]
+	</td>
+</tr>
+[%~ END %]
+
+<div class="row">
+	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info" style="text-align: center; padding: 20px">
+		<form method="post">
+			<table class="apply">
+				[% INCLUDE column column='address1' title='Address Line 1' required=1 %]
+				[% INCLUDE column column='address2' title='Address Line 2' %]
+				[% INCLUDE column column='city' title='City' required=1 %]
+				[% INCLUDE column column='state' title='State' maxlength=2 required=1 pattern='[a-zA-Z]{2}' %]
+				[% INCLUDE column column='zip' title='Zip Code' maxlength=10 value=zip required=1 pattern='\d{5}(?=-?\d{4})?' %]
+				[% INCLUDE column column='contact_name' title='Emergency Contact Name' %]
+				[% INCLUDE column column='contact_phone' title='Emergency Contact Phone' value=contact_phone %]
+				<tr>
+					<td colspan="2" class="center">
+						<div class="photo">
+						</div>
+						Attach a photo of yourself for our records.
+						If you do not have a photo, you may submit this application anyways, but you'll have to have a Hive Officer take your picture before your application can be fully processed.
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" class="center">
+						[%~
+						IF message.error.defined && message.error.length > 0;
+							GET '<span class="error">' _ message.error _ '</span><br />';
+						END;
+						%]
+						<input type="submit" value="Register!" />
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+[%~ # vim:set filetype=tt2html: ~%]

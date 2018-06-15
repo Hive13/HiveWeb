@@ -69,17 +69,42 @@ sub update
 	my $self  = shift;
 	my $attrs = shift;
 
-	if (ref($attrs) eq 'HASH' && exists($attrs->{image}))
+	if (ref($attrs) eq 'HASH')
 		{
-		my $im = Image::Magick->new() || die $!;
-		$im->BlobToImage($attrs->{image});
-		$im->Resize(geometry => '100x100');
-		$attrs->{thumbnail} = ($im->ImageToBlob())[0];
+		if (exists($attrs->{image}))
+			{
+			my $im = Image::Magick->new() || die $!;
+			$im->BlobToImage($attrs->{image});
+			$im->Resize(geometry => '100x100');
+			$attrs->{thumbnail} = ($im->ImageToBlob())[0];
+			}
+		$attrs->{updated_at} = \'current_timestamp';
+		}
+	else
+		{
+		die;
 		}
 
 	return $self->next::method($attrs);
 	}
 
 __PACKAGE__->meta->make_immutable;
+
+sub attached_to
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	my $attachments =
+		{
+		member_id      => undef,
+		application_id => undef,
+		};
+
+	my @member_ids = $schema->resultset('Member')->search({ member_image_id => $self->image_id() })->get_column('me.member_id')->all();
+	$attachments->{member_id} = \@member_ids
+		if (scalar(@member_ids) > 0);
+
+	return $attachments;
+	}
 
 1;
