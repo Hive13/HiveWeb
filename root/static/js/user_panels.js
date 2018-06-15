@@ -262,7 +262,12 @@ function display_application_status(data, $panel, odata)
 			url: panel_urls.application_attach_picture,
 			what: "Attach Picture to Application",
 			data: { application_id: app_id, image_id: image_id },
-			success: function () { load_panel_data(odata); },
+			success: function ()
+				{
+				$panel.find("div#picture_dialogue")
+					.on("hidden.bs.modal", function() { load_panel_data(odata); })
+					.modal("hide");
+				},
 			success_toast: false
 			});
 		});
