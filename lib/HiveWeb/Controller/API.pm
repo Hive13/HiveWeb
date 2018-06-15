@@ -9,23 +9,6 @@ use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-=head1 NAME
-
-HiveWeb::Controller::API - Catalyst Controller
-
-=head1 DESCRIPTION
-
-Catalyst Controller.
-
-=head1 METHODS
-
-=cut
-
-
-=head2 index
-
-=cut
-
 sub find_member :Private
 	{
 	my $c        = shift;
@@ -289,63 +272,6 @@ sub access :Local
 			if ($data->{http});
 		}
 	}
-
-sub photo :Local :Args(0)
-	{
-	my ( $self, $c ) = @_;
-
-	my $in        = $c->stash()->{in};
-	my $out       = $c->stash()->{out};
-
-	my $image = $c->request()->upload('photo');
-	if (!$image)
-		{
-		$out->{response} = \0;
-		$out->{data}     = 'Cannot find image data.';
-		return;
-		}
-
-	$out->{response} = \1;
-	$out->{data}     = 'Picture uploaded.';
-	try
-		{
-		$c->model('DB')->txn_do(sub
-			{
-			my $img_data = $image->slurp();
-			my $im = Image::Magick->new() || die $!;
-			$im->BlobToImage($img_data);
-			$im->Resize(geometry => '100x100');
-			my $thumb_data = ($im->ImageToBlob())[0];
-
-			my $db_image = $c->model('DB::Image')->create(
-				{
-				image        => $img_data,
-				thumbnail    => $thumb_data,
-				content_type => $image->type(),
-				}) || die $!;
-			$out->{image_id} = $db_image->image_id();
-			});
-		}
-	catch
-		{
-		delete($out->{image_id});
-		$out->{response} = \0;
-		$out->{data}     = 'Could not upload image: ' . $_;
-		};
-	}
-
-=encoding utf8
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

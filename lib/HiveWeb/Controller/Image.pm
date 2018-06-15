@@ -20,7 +20,7 @@ sub get_image :Private
 			if (   ref($attachments->{member_id}) eq 'ARRAY'
 			    && !(grep { $_ eq $c->user()->member_id() } @{ $attachments->{member_id} }));
 		}
-	
+
 	$response->body($want_thumb ? ($image->image() || $image->thumbnail()) : $image->image());
 	$response->content_type($image->content_type());
 	$response->header('Cache-Control' => 'max-age=0, must-revalidate');

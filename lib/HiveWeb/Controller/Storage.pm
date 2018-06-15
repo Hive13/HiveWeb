@@ -15,10 +15,10 @@ sub request :Local :Args(0)
 	my ($self, $c) = @_;
 
 	$c->stash()->{template} = 'storage/request.tt';
-	
+
 	return
 		if ($c->request()->method() eq 'GET');
-	
+
 	my $form    = $c->request()->params();
 	my $request = $c->user->create_related('requests',
 		{
