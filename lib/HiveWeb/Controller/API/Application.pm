@@ -54,6 +54,33 @@ sub submit :Local :Args(0)
 	$out->{response} = \1;
 	}
 
+sub attach_picture :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $out          = $c->stash()->{out};
+	my $in           = $c->stash()->{in};
+	$out->{response} = \0;
+	my $user         = $c->user() || return;
+
+	my $application = $c->model('DB::Application')->find($in->{application_id});
+	if (!$application || $application->member_id() ne $user->member_id())
+		{
+		$out->{response} = 'Cannot find that application.';
+		return;
+		}
+
+	my $image = $c->model('DB::Image')->find($in->{image_id});
+	if (!$image || !$image->can_view($user))
+		{
+		$out->{response} = 'Cannot find that image.';
+		return;
+		}
+
+	$application->update({ picture_id => $image->image_id() });
+	$out->{response} = \1;
+	}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
