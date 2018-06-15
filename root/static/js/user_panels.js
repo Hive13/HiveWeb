@@ -96,7 +96,7 @@ function display_curse_data(data, $curse_panel)
 	$curse_panel.find(".panel-body").html(html);
 	}
 
-function display_application_status(data, $panel)
+function display_application_status(data, $panel, odata)
 	{
 	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date;
 
@@ -125,7 +125,7 @@ function display_application_status(data, $panel)
 			url: panel_urls.mark_application_submitted,
 			what: "Mark Application as Submitted",
 			data: { application_id: app_id },
-			success: function () { },
+			success: function () { load_panel_data(odata); },
 			success_toast: false
 			});
 		});

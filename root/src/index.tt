@@ -24,6 +24,7 @@ var panel_urls =
 [%~ END %]
 [%~ IF Catalyst.check_user_roles('pending_applications') %]
 	, application: "[% Catalyst.uri_for('/api/application/status').dquote %]"
+	, mark_application_submitted: "[% Catalyst.uri_for('/api/application/submit').dquote %]"
 [%~ END %]
 [%~ END %]
 	};
