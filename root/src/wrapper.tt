@@ -21,7 +21,7 @@
 		IF Catalyst.check_user_roles('testers') || !Catalyst.check_any_user_role('members', 'pending_applications');
 			links.push(
 				{
-				uri  => Catalyst.uri_for('/member/apply'),
+				uri  => Catalyst.uri_for('/application'),
 				text => 'Apply For Membership',
 				});
 		END;
