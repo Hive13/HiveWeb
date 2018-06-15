@@ -110,7 +110,7 @@ function display_application_status(data, $panel, odata)
 	else
 		{
 		date = new Date(data.submitted_form_at);
-		steps.push("You submitted your form on " + date.toLocaleDateString() + ".");
+		steps.push("You submitted your form on " + date.toLocaleDateString() + ".  <a href=\"#\">Print it out again.</a>");
 		}
 
 	steps.push("Keep attending meetings and get to know the membership.");
