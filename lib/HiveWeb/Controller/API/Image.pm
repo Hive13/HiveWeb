@@ -11,7 +11,7 @@ sub auto :Private
 	{
 	my ($self, $c) = @_;
 
-	my $image_id    = $c->stash()->{in}->{image_id} || return;
+	my $image_id    = $c->stash()->{in}->{image_id} || return 1;
 	my $image       = $c->model('DB::Image')->find($image_id) || die 'Invalid image ID';
 	my $attachments = $image->attached_to();
 
@@ -23,7 +23,6 @@ sub auto :Private
 			if (   ref($attachments->{member_id}) eq 'ARRAY'
 			    && !(grep { $_ eq $c->user()->member_id() } @{ $attachments->{member_id} }));
 		}
-
 	$c->stash({ image => $image });
 	}
 
