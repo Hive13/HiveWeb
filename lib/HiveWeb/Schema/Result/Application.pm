@@ -51,6 +51,13 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		original      => { default_value => \'now()' },
 	},
+	'app_turned_in_at',
+	{
+		data_type     => 'timestamp with time zone',
+		default_value => \'current_timestamp',
+		is_nullable   => 1,
+		original      => { default_value => \'now()' },
+	},
 );
 
 __PACKAGE__->set_primary_key('application_id');
