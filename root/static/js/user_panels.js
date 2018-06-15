@@ -91,13 +91,32 @@ function display_curse_data(data, $curse_panel)
 			+ curse.issuing_member.fname + " " + curse.issuing_member.lname + "\">";
 		html += "<h5>" + curse.curse.display_name + "</h5>" + curse.curse.notification + "</li>";
 		}
-	
+
 	html += "</ol>";
 	$curse_panel.find(".panel-body").html(html);
+	}
+
+function display_application_status(data, $panel)
+	{
+	var html = "Your form<h4>What do I do next?</h4>", steps = [];
+
+	if (!data.has_picture)
+		steps.push("<a href=\"#\">Attach your picture</a> to the application or get a Hive Officer to do it for you.");
+
+	if (data.has_form)
+		steps.push("Your signed form has been received.");
+	else if (!data.submitted_form)
+		steps.push("<a href\"#\">Print out your application</a>, sign it, and turn it into the Completed Paperwork tray near the main entrance to the Hive.  <a href=\"#\">Click here if you have already turned it in.</a>");
+
+	steps.push("Keep attending meetings and get to know the membership.");
+
+	html += "<ul><li>" + steps.join("</li><li>") + "</li></ul>";
+	$panel.find(".panel-body").html(html);
 	}
 
 $(function()
 	{
 	init_panel("curse", display_curse_data);
 	init_panel("storage", display_storage_data, false);
+	init_panel("application", display_application_status, false);
 	});
