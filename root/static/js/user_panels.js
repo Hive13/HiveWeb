@@ -98,20 +98,37 @@ function display_curse_data(data, $curse_panel)
 
 function display_application_status(data, $panel)
 	{
-	var html = "Your form<h4>What do I do next?</h4>", steps = [];
+	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date;
 
 	if (!data.has_picture)
 		steps.push("<a href=\"#\">Attach your picture</a> to the application or get a Hive Officer to do it for you.");
 
 	if (data.has_form)
 		steps.push("Your signed form has been received.");
-	else if (!data.submitted_form)
-		steps.push("<a href\"#\">Print out your application</a>, sign it, and turn it into the Completed Paperwork tray near the main entrance to the Hive.  <a href=\"#\">Click here if you have already turned it in.</a>");
+	else if (!data.submitted_form_at)
+		steps.push("<a href\"#\">Print out your application</a>, sign it, and turn it into the Completed Paperwork tray near the main entrance to the Hive.  <a class=\"anchor-style submitted-form\">Click here if you have already turned it in.</a>");
+	else
+		{
+		date = new Date(data.submitted_form_at);
+		steps.push("You submitted your form on " + date.toLocaleDateString() + ".");
+		}
 
 	steps.push("Keep attending meetings and get to know the membership.");
 
 	html += "<ul><li>" + steps.join("</li><li>") + "</li></ul>";
 	$panel.find(".panel-body").html(html);
+
+	$panel.find("a.submitted-form").click(function()
+		{
+		api_json(
+			{
+			url: panel_urls.mark_application_submitted,
+			what: "Mark Application as Submitted",
+			data: { application_id: app_id },
+			success: function () { },
+			success_toast: false
+			});
+		});
 	}
 
 $(function()

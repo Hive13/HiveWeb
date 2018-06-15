@@ -27,10 +27,11 @@ sub status :Local :Args(0)
 		rows     => 1,
 		}) || return;
 
-	$out->{has_picture}    = $application->picture_id()       ? \1 : \0;
-	$out->{has_form}       = $application->form_id()          ? \1 : \0;
-	$out->{submitted_form} = $application->app_turned_in_at() ? \1 : \0;
-	$out->{response}       = \1;
+	$out->{has_picture}       = $application->picture_id()       ? \1 : \0;
+	$out->{has_form}          = $application->form_id()          ? \1 : \0;
+	$out->{submitted_form_at} = $application->app_turned_in_at() || \0;
+	$out->{application_id}    = $application->application_id();
+	$out->{response}          = \1;
 	}
 
 __PACKAGE__->meta->make_immutable;
