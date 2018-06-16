@@ -155,3 +155,9 @@ div.panel.hive-panel-access ol li.shown span.info
 	{
 	border-right: 1px solid #bce8f1;
 	}
+
+label.btn img
+	{
+	max-width: 60px;
+	max-height: 60px;
+	}
