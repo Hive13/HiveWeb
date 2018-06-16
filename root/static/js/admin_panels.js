@@ -40,9 +40,29 @@ function display_storage_status_data(data, $panel)
 
 function display_pending_applications(data, $panel)
 	{
-	var html = "";
+	var html = "", i, app, dt;
+
+	for (i = 0; i < data.app_info.length; i++)
+		{
+		app = data.app_info[i];
+		dt = new Date(app.created_at);
+		html += "<h4>Application from " + app.member.fname + " " + app.member.lname + "</h4>";
+		html += "<h6>Submitted " + dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</h6>";
+		html += "<ul>";
+		if (app.picture_id)
+			html += "<li><a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a></li>";
+		else
+			html += "<li>No picture hass been attached yet. <a class=\"anchor-style\">Attach one.</a></li>";
+		html += "</ul>";
+		}
 
 	$panel.find(".panel-body").html(html);
+	$panel.find("a.show-picture").click(function()
+		{
+		var picture_id = $(this).attr("id");
+
+		alert(picture_id);
+		});
 	}
 
 $(function()
