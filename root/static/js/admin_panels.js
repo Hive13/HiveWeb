@@ -38,10 +38,18 @@ function display_storage_status_data(data, $panel)
 	$panel.find(".panel-body").html(html);
 	}
 
+function display_pending_applications(data, $panel)
+	{
+	var html = "";
+
+	$panel.find(".panel-body").html(html);
+	}
+
 $(function()
 	{
 	init_panel("access", display_access_data);
 	init_panel("storage_status", display_storage_status_data, 0);
+	init_panel("applications", display_pending_applications, 0);
 
 	$("div.panel.hive-panel-access").on("click", "ol li", function()
 		{
