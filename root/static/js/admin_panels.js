@@ -72,7 +72,7 @@ function display_pending_applications(data, $panel, odata)
 		else
 			html += "<li><a class=\"anchor-style view-signed-form\" id=\"" + app.form_id + "\">View the signed form.</a></li>";
 		if (app.topic_id)
-			html += "<li>There's a discussion thread, but I don't know how to link to it, yet.</li>";
+			html += "<li><a href=\"https://groups.google.com/a/hive13.org/forum/#!topic/leadership/" + app.topic_id + "\" target=\"_blank\">View the discussion thread.</a></li>";
 		html += "</ul>";
 		}
 
