@@ -60,19 +60,18 @@ function display_pending_applications(data, $panel, odata)
 	$panel.find("a.show-picture").click(function()
 		{
 		var picture_id = $(this).attr("id");
-		var picture = new Picture(
+		new Picture(
 			{
 			image_id:        picture_id,
 			title:           "View Photo",
 			prevent_uploads: true,
 			prevent_deletes: true
-			});
-		picture.show();
+			}).show();
 		});
 	$panel.find("a.attach-picture").click(function ()
 		{
 		var application_id = $(this).closest("ul.application").attr("id");
-		var picture = new Picture(
+		new Picture(
 			{
 			accept: function(pic)
 				{
@@ -86,8 +85,7 @@ function display_pending_applications(data, $panel, odata)
 					success: function () { pic.hide(function () { load_panel_data(odata); }); }
 					});
 				}
-			});
-		picture.show();
+			}).show();
 		});
 	}
 
