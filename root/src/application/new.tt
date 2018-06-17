@@ -37,12 +37,6 @@ table.apply td.center
 	text-align: center;
 	padding-top: 20px;
 	}
-
-label.btn img
-	{
-	max-width: 60px;
-	max-height: 60px;
-	}
 </style>
 
 <script type="text/javascript">

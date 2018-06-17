@@ -24,7 +24,7 @@ function Picture(options)
 			"</div>",
 		"</div>"
 		];
-	
+
 	if (this.allow_uploads)
 		this.no_picture_html =
 			[
@@ -80,7 +80,7 @@ Picture.prototype.load_image = function(image_id)
 
 	if (!this.show_icons)
 		return;
-	
+
 	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
 		{
 		api_json(
