@@ -11,7 +11,10 @@ sub pending :Local :Args(0)
 	my $out          = $c->stash()->{out};
 	$out->{response} = \0;
 
-	my @pending_applications = $c->model('DB::Application')->search({})->all();
+	my @pending_applications = $c->model('DB::Application')->search({},
+		{
+		order_by => { -asc => 'updated_at' },
+		})->all();
 
 	$out->{response} = \1;
 	$out->{app_info} = \@pending_applications;
