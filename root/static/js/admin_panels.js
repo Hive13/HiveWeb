@@ -99,7 +99,7 @@ function display_pending_applications(data, $panel, odata)
 
 				api_json(
 					{
-					url: panel_urls.application_attach_picture,
+					path: "/application/attach_picture",
 					what: "Attach Picture to Application",
 					data: { application_id: application_id, image_id: image_id },
 					success: function () { pic.hide(function () { load_panel_data(odata); }); }
@@ -112,6 +112,21 @@ function display_pending_applications(data, $panel, odata)
 		});
 	$panel.find("a.upload-signed-form").click(function ()
 		{
+		new Picture(
+			{
+			accept: function(pic)
+				{
+				var image_id = pic.get_image_id();
+
+				api_json(
+					{
+					path: "/application/attach_form",
+					what: "Attach Yorm to Application",
+					data: { application_id: application_id, image_id: image_id },
+					success: function () { pic.hide(function () { load_panel_data(odata); }); }
+					});
+				}
+			}).show();
 		});
 	}
 

@@ -83,6 +83,25 @@ sub attach_picture :Local :Args(0)
 	$out->{response} = \1;
 	}
 
+sub attach_form :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $out          = $c->stash()->{out};
+	my $in           = $c->stash()->{in};
+	my $application  = $c->stash()->{application};
+
+	my $image = $c->model('DB::Image')->find($in->{image_id});
+	if (!$image || !$image->can_view($c->user()))
+		{
+		$out->{response} = 'Cannot find that image.';
+		return;
+		}
+
+	$application->update({ form_id => $image->image_id() });
+	$out->{response} = \1;
+	}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
