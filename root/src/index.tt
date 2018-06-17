@@ -23,6 +23,11 @@ var panel_urls =
 	, applications: "[% Catalyst.uri_for('/api/admin/applications/pending').dquote %]"
 [%~ END %]
 [%~ END %]
+[%~ IF Catalyst.check_user_roles('pending_applications') %]
+	, application: "[% Catalyst.uri_for('/api/application/status').dquote %]"
+	, mark_application_submitted: "[% Catalyst.uri_for('/api/application/submit').dquote %]"
+	, application_attach_picture: "[% Catalyst.uri_for('/api/application/attach_picture').dquote %]"
+[%~ END %]
 [%~ END %]
 	};
 </script>
@@ -30,9 +35,10 @@ var panel_urls =
 SET panels = [];
 panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info', large => 1 });
 IF Catalyst.user_exists;
+	IF Catalyst.check_user_roles('pending_applications');
+		panels.push({ name => 'application', title => 'Application Status', style => 'panel-warning' });
+	END;
 	panels.push({ name => 'soda', title => 'Soda Credits', style => 'panel-default', credits => Catalyst.user.vend_credits || 0 });
-END;
-IF Catalyst.user_exists;
 	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
 	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
 	IF Catalyst.check_user_roles('board');
@@ -91,6 +97,8 @@ END;
 				GET 'Loading accesses...';
 			CASE 'curse';
 				GET 'Loading notifications...';
+			CASE 'application';
+				GET 'Loading application status...';
 		END;
 %]
 			</div>

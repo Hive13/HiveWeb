@@ -11,18 +11,11 @@ sub auto :Private
 	{
 	my ($self, $c) = @_;
 
-	my $image_id    = $c->stash()->{in}->{image_id} || return;
+	my $image_id    = $c->stash()->{in}->{image_id} || return 1;
 	my $image       = $c->model('DB::Image')->find($image_id) || die 'Invalid image ID';
-	my $attachments = $image->attached_to();
 
-	# Board can see all images
-	if (!$c->check_user_roles('board'))
-		{
-		# If it's attached to members, but not me, forbid
-		die 'Invalid image ID'
-			if (   ref($attachments->{member_id}) eq 'ARRAY'
-			    && !(grep { $_ eq $c->user()->member_id() } @{ $attachments->{member_id} }));
-		}
+	die 'Invalid image ID'
+		if (!$image->can_view($c->user()));
 
 	$c->stash({ image => $image });
 	}

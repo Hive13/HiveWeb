@@ -12,7 +12,7 @@ function load_panel_data(data)
 		success_toast: false,
 		success:       function(rdata)
 			{
-			data.panel_function(rdata, data.$panel);
+			data.panel_function(rdata, data.$panel, data);
 			if (data.refresh)
 				setTimeout(function() { load_panel_data(data); }, 60000);
 			}

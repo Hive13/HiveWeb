@@ -107,4 +107,26 @@ sub attached_to
 	return $attachments;
 	}
 
+sub can_view
+	{
+	my ($self, $member) = @_;
+
+	my $attachments = $self->attached_to();
+	my $board       = $member
+		->search_related('member_mgroups')
+		->search_related('mgroup', { name => 'board' })
+		->count();
+
+	# Board can see all images
+	return 1 if $board;
+
+	# If it's attached to members, but not me, forbid
+	return 0
+		if (   ref($attachments->{member_id}) eq 'ARRAY'
+		    && !(grep { $_ eq $member->member_id() } @{ $attachments->{member_id} }));
+
+	# Default, allow to se
+	return 1;
+	}
+
 1;
