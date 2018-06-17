@@ -49,7 +49,7 @@ function Picture(options)
 		this.$dialogue  = $(dialogue.join(''));
 		this.$image_div = this.$dialogue.find("div.modal-body");
 		this.$icon_div  = this.$image_div;
-		if (this.accept)
+		if (typeof(this.accept) === "function")
 			this.$dialogue.find("button.accept-picture").click(function () { self.accept(self) });
 		}
 	else
@@ -98,7 +98,7 @@ Picture.prototype.load_image = function(image_id)
 			this.$dialogue.find("button.accept-picture").attr("disabled", true);
 		return;
 		}
-	this.$image_div.html("<img src=\"/image/thumb/" + this.image_id + "#" + new Date().getTime() + "\" />");
+	this.$image_div.html("<img src=\"/image/thumb/" + this.image_id + "#" + new Date().getTime() + "\" style=\"max-width: 100%; max-height: 100%;\" />");
 	if (this.$dialogue)
 		this.$dialogue.find("button.accept-picture").attr("disabled", false);
 
