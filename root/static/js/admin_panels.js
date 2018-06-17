@@ -50,9 +50,29 @@ function display_pending_applications(data, $panel, odata)
 		html += "<h6>Submitted " + dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</h6>";
 		html += "<ul class=\"application\" id=\"" + app.application_id + "\">";
 		if (app.picture_id)
-			html += "<li><a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a> - <a class=\"anchor-style\">Accept Picture and attach to member's profile</a></li>";
+			{
+			html += "<li><a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a>";
+			if (app.picture_id != app.member.member_image_id)
+				html += " - <a class=\"anchor-style accept-picture\">Accept Picture and attach to member's profile</a></li>";
+			else
+				html += " - accepted and attached to member's profile";
+			html += "</li>";
+			}
 		else
 			html += "<li>No picture has been attached yet. <a class=\"anchor-style attach-picture\">Attach one.</a></li>";
+		if (!app.form_id)
+			{
+			if (app.app_turned_in_at)
+				{
+				dt = new Date(app.app_turned_in_at);
+				html += "<li>Signed form turned in on " + dt.toLocaleDateString() + ".</li>";
+				}
+			html += "<li>No signed form uploaded. <a class=\"anchor-style upload-signed-form\">Upload it.</a></li>";
+			}
+		else
+			html += "<li><a class=\"anchor-style view-signed-form\" id=\"" + app.form_id + "\">View the signed form.</a></li>";
+		if (app.topic_id)
+			html += "<li>There's a discussion thread, but I don't know how to link to it, yet.</li>";
 		html += "</ul>";
 		}
 
@@ -86,6 +106,12 @@ function display_pending_applications(data, $panel, odata)
 					});
 				}
 			}).show();
+		});
+	$panel.find("a.accept-picture").click(function ()
+		{
+		});
+	$panel.find("a.upload-signed-form").click(function ()
+		{
 		});
 	}
 
