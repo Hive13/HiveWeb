@@ -107,11 +107,31 @@ function display_pending_applications(data, $panel, odata)
 				}
 			}).show();
 		});
+	$panel.find("a.view-signed-form").click(function ()
+		{
+		var picture_id = $(this).attr("id");
+		new Picture(
+			{
+			image_id:        picture_id,
+			title:           "View Form",
+			prevent_uploads: true,
+			prevent_deletes: true
+			}).show();
+		});
 	$panel.find("a.accept-picture").click(function ()
 		{
+		var application_id = $(this).closest("ul.application").attr("id");
+		api_json(
+			{
+			path: "/admin/applications/attach_picture_to_member",
+			what: "Attach Picture to Member Profile",
+			data: { application_id: application_id },
+			success: function () { load_panel_data(odata); }
+			});
 		});
 	$panel.find("a.upload-signed-form").click(function ()
 		{
+		var application_id = $(this).closest("ul.application").attr("id");
 		new Picture(
 			{
 			accept: function(pic)
@@ -121,7 +141,7 @@ function display_pending_applications(data, $panel, odata)
 				api_json(
 					{
 					path: "/application/attach_form",
-					what: "Attach Yorm to Application",
+					what: "Attach Form to Application",
 					data: { application_id: application_id, image_id: image_id },
 					success: function () { pic.hide(function () { load_panel_data(odata); }); }
 					});
