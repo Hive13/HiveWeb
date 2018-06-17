@@ -3,7 +3,8 @@ function Picture(options)
 	var dialogue, self = this;
 	this.show_icons    = !options.hide_icons;
 	this.title         = options.title || "Upload Photo";
-	this.allow_uploads = !options.prevent_uploads;
+	this.accept        = options.accept;
+	this.allow_deletes = !options.prevent_deletes;
 
 	dialogue =
 		[
@@ -17,15 +18,15 @@ function Picture(options)
 					"<div class=\"modal-body u-text-center\">",
 					"</div>",
 					"<div class=\"modal-footer\">",
-						"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">" + (this.allow_uploads ? "Cancel" : "Close" ) + "</button>",
-						(this.allow_uploads ? "<button type=\"button\" class=\"btn btn-primary\" id=\"add_picture\" disabled>Submit</button>" : ""),
+						"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">" + (this.accept ? "Cancel" : "Close" ) + "</button>",
+						(this.accept ? "<button type=\"button\" class=\"btn btn-primary accept-picture\" disabled>Submit</button>" : ""),
 					"</div>",
 				"</div>",
 			"</div>",
 		"</div>"
 		];
 
-	if (this.allow_uploads)
+	if (this.accept)
 		this.no_picture_html =
 			[
 			"<label class=\"btn btn-primary btn-lg\">",
@@ -48,6 +49,8 @@ function Picture(options)
 		this.$dialogue  = $(dialogue.join(''));
 		this.$image_div = this.$dialogue.find("div.modal-body");
 		this.$icon_div  = this.$image_div;
+		if (this.accept)
+			this.$dialogue.find("button.accept-picture").click(function () { self.accept(self) });
 		}
 	else
 		{
@@ -63,7 +66,19 @@ function Picture(options)
 
 Picture.prototype.show = function()
 	{
-	this.$dialogue.modal("show");
+	if (this.$dialogue)
+		this.$dialogue.modal("show");
+	};
+
+Picture.prototype.hide = function(after)
+	{
+	if (!this.$dialogue)
+		return;
+
+	this.$dialogue.off("hidden.bs.modal");
+	if (after)
+		this.$dialogue.on("hidden.bs.modal", after);
+	this.$dialogue.modal("hide");
 	};
 
 Picture.prototype.get_image_id = function()
@@ -79,9 +94,13 @@ Picture.prototype.load_image = function(image_id)
 	if (!this.image_id)
 		{
 		this.$image_div.html(this.no_picture_html);
+		if (this.$dialogue)
+			this.$dialogue.find("button.accept-picture").attr("disabled", true);
 		return;
 		}
 	this.$image_div.html("<img src=\"/image/thumb/" + this.image_id + "#" + new Date().getTime() + "\" />");
+	if (this.$dialogue)
+		this.$dialogue.find("button.accept-picture").attr("disabled", false);
 
 	if (!this.show_icons)
 		return;
@@ -108,14 +127,19 @@ Picture.prototype.load_image = function(image_id)
 			});
 		});
 
-	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
-		{
-		if (!confirm("Are you sure you want to remove this photo?"))
-			return;
-		self.load_image(undefined);
-		});
 	this.$icon_div.find("span.pull-right").remove();
-	this.$icon_div.prepend($rotateL).prepend($rotate).prepend($remove);
+	this.$icon_div.prepend($rotateL).prepend($rotate);
+
+	if (this.allow_deletes)
+		{
+		$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
+			{
+			if (!confirm("Are you sure you want to remove this photo?"))
+				return;
+			self.load_image(undefined);
+			});
+		this.$icon_div.prepend($remove);
+		}
 	};
 
 Picture.prototype.upload_photo = function (file)
