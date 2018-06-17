@@ -64,7 +64,12 @@ function Picture(options)
 Picture.prototype.show = function()
 	{
 	this.$dialogue.modal("show");
-	}
+	};
+
+Picture.prototype.get_image_id = function()
+	{
+	return this.image_id;
+	};
 
 Picture.prototype.load_image = function(image_id)
 	{
@@ -111,7 +116,7 @@ Picture.prototype.load_image = function(image_id)
 		});
 	this.$icon_div.find("span.pull-right").remove();
 	this.$icon_div.prepend($rotateL).prepend($rotate).prepend($remove);
-	}
+	};
 
 Picture.prototype.upload_photo = function (file)
 	{
@@ -176,5 +181,5 @@ Picture.prototype.upload_photo = function (file)
 			self.load_image(data.image_id);
 			}
 		});
-	}
+	};
 

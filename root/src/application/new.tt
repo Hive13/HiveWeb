@@ -44,10 +44,24 @@ var picture;
 
 $(function ()
 	{
+	var $t = $("table.apply");
 	picture = new Picture(
 		{
-		$image_div: $("table.apply div.photo"),
+		$image_div: $t.find("div.photo"),
 		image_id:   [% GET application.picture_id ? '"' _ application.picture_id.dquote _ '"' : 'undefined'; ~%]
+		});
+
+	$t.closest("form").submit(function()
+		{
+		var image_id = picture.get_image_id();
+
+		if (image_id)
+			$(this).append($("<input>",
+				{
+				type: "hidden",
+				name: "picture_id",
+				value: image_id
+				}));
 		});
 	});
 </script>
