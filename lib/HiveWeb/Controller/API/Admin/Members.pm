@@ -232,6 +232,20 @@ sub edit :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			if (exists($in->{member_image_id}))
+				{
+				my $image_id = $in->{member_image_id};
+				if ($image_id ne $member->member_image_id())
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'change_member_image',
+						changing_member_id => $c->user()->member_id(),
+						notes              => $image_id ? 'Set member image ID to ' . $image_id : 'Remove member image',
+						});
+					$member->update({ member_image_id => $image_id });
+					}
+				}
 			if (exists($in->{paypal_email}))
 				{
 				my $paypal = $in->{paypal_email};
