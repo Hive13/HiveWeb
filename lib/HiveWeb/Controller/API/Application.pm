@@ -22,7 +22,7 @@ sub auto :Private
 			rows     => 1,
 			});
 
-	if (!$application || $application->member_id() ne $user->member_id())
+	if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')))
 		{
 		$out->{response} = 'Cannot find application.';
 		return;
