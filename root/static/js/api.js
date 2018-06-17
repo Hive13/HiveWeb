@@ -18,6 +18,9 @@ function api_json(options, old_data, old_what, old_success)
 	if (!("success_toast" in options))
 		options.success_toast = true;
 
+	if ("path" in options)
+		options.url = api_base + options.path;
+
 	$.ajax(
 		{
 		dataType: "json",
