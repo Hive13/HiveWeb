@@ -49,7 +49,7 @@ function Picture(options)
 		this.$dialogue  = $(dialogue.join(''));
 		this.$image_div = this.$dialogue.find("div.modal-body");
 		this.$icon_div  = this.$image_div;
-		if (this.accept)
+		if (typeof(this.accept) === "function")
 			this.$dialogue.find("button.accept-picture").click(function () { self.accept(self) });
 		}
 	else
