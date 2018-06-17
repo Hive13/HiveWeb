@@ -38,7 +38,7 @@ function display_storage_status_data(data, $panel)
 	$panel.find(".panel-body").html(html);
 	}
 
-function display_pending_applications(data, $panel)
+function display_pending_applications(data, $panel, odata)
 	{
 	var html = "", i, app, dt;
 
@@ -48,11 +48,11 @@ function display_pending_applications(data, $panel)
 		dt = new Date(app.created_at);
 		html += "<h4>Application from " + app.member.fname + " " + app.member.lname + "</h4>";
 		html += "<h6>Submitted " + dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</h6>";
-		html += "<ul>";
+		html += "<ul class=\"application\" id=\"" + app.application_id + "\">";
 		if (app.picture_id)
-			html += "<li><a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a></li>";
+			html += "<li><a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a> - <a class=\"anchor-style\">Accept Picture and attach to member's profile</a></li>";
 		else
-			html += "<li>No picture hass been attached yet. <a class=\"anchor-style\">Attach one.</a></li>";
+			html += "<li>No picture has been attached yet. <a class=\"anchor-style attach-picture\">Attach one.</a></li>";
 		html += "</ul>";
 		}
 
@@ -60,8 +60,34 @@ function display_pending_applications(data, $panel)
 	$panel.find("a.show-picture").click(function()
 		{
 		var picture_id = $(this).attr("id");
+		var picture = new Picture(
+			{
+			image_id:        picture_id,
+			title:           "View Photo",
+			prevent_uploads: true,
+			prevent_deletes: true
+			});
+		picture.show();
+		});
+	$panel.find("a.attach-picture").click(function ()
+		{
+		var application_id = $(this).closest("ul.application").attr("id");
+		var picture = new Picture(
+			{
+			accept: function(pic)
+				{
+				var image_id = pic.get_image_id();
 
-		alert(picture_id);
+				api_json(
+					{
+					url: panel_urls.application_attach_picture,
+					what: "Attach Picture to Application",
+					data: { application_id: application_id, image_id: image_id },
+					success: function () { pic.hide(function () { load_panel_data(odata); }); }
+					});
+				}
+			});
+		picture.show();
 		});
 	}
 
