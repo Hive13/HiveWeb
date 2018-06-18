@@ -43,8 +43,10 @@
 		},
 	priorities =>
 		{
-		'application.create' => 50,
-		'password.reset'     => 1,
+		'application.create'         => 50,
+		'application.attach_picture' => 60,
+		'application.mark_submitted' => 60,
+		'password.reset'             => 1,
 		},
 	application =>
 		{
