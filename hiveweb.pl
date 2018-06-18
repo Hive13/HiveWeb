@@ -46,6 +46,7 @@
 		'application.create'         => 50,
 		'application.attach_picture' => 60,
 		'application.mark_submitted' => 60,
+		'application.attach_form'    => 60,
 		'password.reset'             => 1,
 		},
 	application =>
