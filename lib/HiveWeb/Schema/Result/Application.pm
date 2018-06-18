@@ -57,6 +57,8 @@ __PACKAGE__->add_columns(
 		default_value => undef,
 		is_nullable   => 1,
 	},
+	'thread_message_id',
+	{ data_type => 'character varying', is_nullable => 1, },
 );
 
 __PACKAGE__->set_primary_key('application_id');
