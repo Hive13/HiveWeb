@@ -17,7 +17,6 @@ sub index :Path :Args(0)
 
 	my $form = $c->request()->params();
 	my $fail = {};
-	my $application;
 
 	foreach my $key (keys(%$form))
 		{
@@ -64,13 +63,23 @@ sub index :Path :Args(0)
 		}
 	try
 		{
-		$form->{member_id} = $c->user()->member_id();
+		my $application;
+		my $member_id = $c->user()->member_id();
+		$form->{member_id} = $member_id;
 		$c->model('DB')->schema()->txn_do(sub
 			{
-			my $group = 'pending_applications';
+			my $priority = $c->config()->{priorities}->{'application.create'};
+			my $group    = $c->config()->{application}->{pending_group};
 			$application = $c->model('DB::Application')->create($form) || die $!;
-			my $mgroup = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
-			$mgroup->find_or_create_related('member_mgroups', { member_id => $c->user()->member_id() }) || die 'Unable to add user to group.';
+			my $mgroup   = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
+			$mgroup->find_or_create_related('member_mgroups', { member_id => $member_id }) || die 'Unable to add user to group.';
+			my $queue = $c->model('DB::Action')->create(
+				{
+				queuing_member_id => $member_id,
+				priority          => $priority,
+				action_type       => 'application.create',
+				row_id            => $application->application_id(),
+				}) || die 'Unable to queue notification.';
 			});
 
 		$c->stash(

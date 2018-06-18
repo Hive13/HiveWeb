@@ -41,4 +41,14 @@
 			subject    => 'Storage Slot assigned at Hive13',
 			},
 		},
+	priorities =>
+		{
+		'application.create' => 50,
+		'password.reset'     => 1,
+		},
+	application =>
+		{
+		email_address => 'leadership@hive13.org',
+		pending_group => 'pending_applications',
+		},
 	}
