@@ -49,6 +49,7 @@
 		'application.mark_submitted' => 60,
 		'application.attach_form'    => 60,
 		'password.reset'             => 1,
+		'storage.assign'             => 100,
 		},
 	application =>
 		{
@@ -70,6 +71,5 @@
 			{
 			temp_plain => 'email/application_form_attached_plain.tt',
 			},
-
 		},
 	}

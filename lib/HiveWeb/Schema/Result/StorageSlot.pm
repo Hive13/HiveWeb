@@ -48,50 +48,26 @@ __PACKAGE__->meta->make_immutable;
 
 sub assign
 	{
-	my ($self, $member_id, $c) = @_;
-	my $config   = $c->config()->{email};
-	my $schema   = $self->result_source()->schema();
-	my $template = $config->{assigned_slot};
+	my ($self, $member_id, $assigning_member_id) = @_;
+	my $schema = $self->result_source()->schema();
 
 	return
-		if (!$member_id || !$c);
+		if (!$member_id || !$assigning_member_id);
 	$member_id = $member_id->member_id()
 		if (ref($member_id));
+	$assigning_member_id = $assigning_member_id->member_id()
+		if (ref($assigning_member_id));
 
-	my $member = $schema->resultset('Member')->find($member_id)
-		|| die 'Invalid Member.';
-
-	my $to     = $member->email();
-	my $from   = $config->{from};
-	my $stash  =
+	$schema->txn_do(sub
 		{
-		member => $member,
-		slot   => $self,
-		};
-
-	my $body = $c->view('TT')->render($c, $template->{temp_plain}, $stash);
-
-	my $smtp = Net::SMTP->new(%{$config->{'Net::SMTP'}});
-	die "Could not connect to server\n"
-		if !$smtp;
-
-	if (exists($config->{auth}))
-		{
-		$smtp->auth($from, $config->{auth})
-			|| die "Authentication failed!\n";
-		}
-
-	$smtp->mail('<' . $from . ">\n");
-	$smtp->to('<' . $to . ">\n");
-	$smtp->data();
-	$smtp->datasend('From: "' . $config->{from_name} . '" <' . $from . ">\n");
-	$smtp->datasend('To: "' . $member->fname() . ' ' . $member->lname() . '" <' . $to . ">\n");
-	$smtp->datasend('Subject: ' . $template->{subject} . "\n");
-	$smtp->datasend("\n");
-	$smtp->datasend($body . "\n");
-	$smtp->dataend();
-	$smtp->quit();
-	$self->update({ member_id => $member_id }) || die $!;
+		$schema->resultset('Action')->create(
+			{
+			action_type       => 'storage.assign',
+			queuing_member_id => $assigning_member_id,
+			row_id            => $self->slot_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		$self->update({ member_id => $member_id }) || die $!;
+		});
 	}
 
 sub TO_JSON

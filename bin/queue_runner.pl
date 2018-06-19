@@ -56,6 +56,25 @@ while (my $action = $queue->next())
 				return;
 				}
 			}
+		elsif ($type eq 'storage.assign')
+			{
+			my $slot = $schema->resultset('StorageSlot')->find($action->row_id());
+			if (!$slot)
+				{
+				warn 'Cannot find referenced slot ' . $action->row_id();
+				return;
+				}
+			my $member             = $slot->member();
+			$message->{to}         = $member->email();
+			$message->{to_name}    = $member->fname() . ' ' . $member->lname();
+			$message->{temp_plain} = $mail_config->{assigned_slot}->{temp_plain};
+			$message->{subject}    = $mail_config->{assigned_slot}->{subject};
+			$message->{stash}      =
+				{
+				member => $member,
+				slot   => $slot,
+				};
+			}
 		elsif ($type eq 'password.reset')
 			{
 			my $member = $schema->resultset('Member')->find($action->row_id());
