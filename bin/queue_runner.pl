@@ -46,6 +46,7 @@ while (my $action = $queue->next())
 					{
 					application => $application,
 					enc_app_id  => $enc_app_id,
+					action      => $action,
 					};
 
 				$message->{body} = $c->view('TT')->render($c, $app_create->{temp_plain}, $stash);
