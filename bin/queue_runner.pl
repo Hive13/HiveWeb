@@ -49,11 +49,9 @@ while (my $action = $queue->next())
 					action      => $action,
 					};
 				$message->{temp_plain} = $app_create->{temp_plain};
-
 				}
 			else
 				{
-				warn $type;
 				# Unknown action type; leave it alone.
 				return;
 				}
@@ -109,6 +107,6 @@ while (my $action = $queue->next())
 		$smtp->datasend($body . "\n");
 		$smtp->dataend();
 		$smtp->quit();
-		#$action->delete();
+		$action->delete();
 		});
 	}
