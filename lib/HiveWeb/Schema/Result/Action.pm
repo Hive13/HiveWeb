@@ -4,10 +4,9 @@ package HiveWeb::Schema::Result::Action;
 use strict;
 use warnings;
 
-use Moose;
-use MooseX::NonMoose;
-use MooseX::MarkAsMethods autoclean => 1;
-extends 'DBIx::Class::Core';
+use HiveWeb;
+
+use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
 __PACKAGE__->table('action');
@@ -41,7 +40,16 @@ __PACKAGE__->belongs_to(
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
-__PACKAGE__->meta->make_immutable;
+sub new
+	{
+	my ($self, $attrs) = @_;
+	my $defaults = HiveWeb->config()->{priorities};
+
+	$attrs->{priority} = $defaults->{ $attrs->{action_type} }
+		if (!$attrs->{priority} && $attrs->{action_type});
+
+	return $self->next::method($attrs);
+	}
 
 sub TO_JSON
 	{
