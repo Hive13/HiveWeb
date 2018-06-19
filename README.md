@@ -20,3 +20,4 @@ The new Hive internal Web
 * libmath-round-perl
 * libtext-markdown-perl
 * libnet-imap-simple-ssl-perl
+* libemail-mime-perl

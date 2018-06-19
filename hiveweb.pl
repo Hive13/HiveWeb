@@ -1,3 +1,5 @@
+use IO::Socket::SSL;
+
 	{
 	'Model::DB' =>
 		{
@@ -21,14 +23,26 @@
 		},
 	email =>
 		{
-		from        => 'donotreply@hive13.org',
-		from_name   => 'Hive13 intweb',
+		from        => 'intweb@hive13.org',
+		from_name   => 'Hive13 Intweb',
 		auth        => '< put auth password here >',
+		list        => '<intwebsandbox.hive13.org>',
 		'Net::SMTP' =>
 			{
 			Hello => 'intweb.at.hive13.org',
 			Host  => 'smtp.gmail.com',
 			SSL   => 1
+			},
+		'Net::IMAP' =>
+			{
+			port => 993,
+			host => 'imap.gmail.com',
+			use_ssl => 1,
+			ssl_options =>
+				[
+				SSL_ca_path => "/etc/ssl/certs/",
+				SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_PEER(),
+				],
 			},
 		forgot =>
 			{
