@@ -22,72 +22,70 @@ while (my $action = $queue->next())
 	$schema->txn_do(sub
 		{
 		my $type = lc($action->action_type());
-		my $application;
-		if ($type =~ /^application\./)
+		my $message =
 			{
-			if (!($application = $schema->resultset('Application')->find($action->row_id())))
+			from      => $mail_config->{from},
+			from_name => $mail_config->{from_name},
+			};
+		if ($type =~ s/^application\.//)
+			{
+			my $application = $schema->resultset('Application')->find($action->row_id());
+			if (!$application)
 				{
 				warn 'Cannot find referenced application ' . $action->row_id();
-				next;
+				return;
 				}
-			}
-		if ($type eq 'application.create')
-			{
-			my $bin;
-			my $message_id;
-			UUID::parse($application->application_id(), $bin);
+			UUID::parse($application->application_id(), my $bin);
 			my $enc_app_id = encode_base64($bin, '');
-			my $app_create = $app_config->{create};
-			my $to         = $app_config->{email_address};
-			my $from       = $mail_config->{from};
-			my $subject    = 'Membership Application: ' . $application->member()->fname() . ' ' . $application->member()->lname() . ' [' . $enc_app_id . ']';
-			my $stash      =
+			$message->{to} = $app_config->{email_address};
+			$message->{subject} = 'Membership Application: ' . $application->member()->fname() . ' ' . $application->member()->lname() . ' [' . $enc_app_id . ']';
+			if (exists($app_config->{$type}))
 				{
-				application => $application,
-				enc_app_id  => $enc_app_id,
-				};
+				my $app_create = $app_config->{$type};
+				my $stash      =
+					{
+					application => $application,
+					enc_app_id  => $enc_app_id,
+					};
 
-			my $body = $c->view('TT')->render($c, $app_create->{temp_plain}, $stash);
-
-			my $smtp = Net::SMTP->new(%{$mail_config->{'Net::SMTP'}});
-			die "Could not connect to server\n"
-				if !$smtp;
-
-			if (exists($mail_config->{auth}))
-				{
-				$smtp->auth($from, $mail_config->{auth})
-					|| die "Authentication failed!\n";
+				$message->{body} = $c->view('TT')->render($c, $app_create->{temp_plain}, $stash);
 				}
-
-			$smtp->mail('<' . $from . ">\n");
-			$smtp->to('<' . $to . ">\n");
-			$smtp->data();
-			$smtp->datasend('From: "' . $mail_config->{from_name} . '" <' . $from . ">\n");
-			$smtp->datasend('To: <' . $to . ">\n");
-			$smtp->datasend('Subject: ' . $subject . "\n");
-			$smtp->datasend("\n");
-			$smtp->datasend($body . "\n");
-			$smtp->dataend();
-			$smtp->quit();
+			else
+				{
+				warn $type;
+				# Unknown action type; leave it alone.
+				return;
+				}
 			}
-		elsif ($type eq 'application.attach_picture')
-			{
-			}
-		elsif ($type eq 'application.mark_submitted')
-			{
-			}
-		elsif ($type eq 'application.attach_form')
-			{
-			}
-		elsif ($type eq 'application.password.reset')
+		elsif ($type eq 'password.reset')
 			{
 			}
 		else
 			{
-			warn $type;
 			# Unknown action type; leave it alone.
-			next;
+			return;
 			}
+
+		my $smtp = Net::SMTP->new(%{$mail_config->{'Net::SMTP'}});
+		die "Could not connect to server\n"
+			if !$smtp;
+
+		if (exists($mail_config->{auth}))
+			{
+			$smtp->auth($mail_config->{from}, $mail_config->{auth})
+				|| die "Authentication failed!\n";
+			}
+
+		$smtp->mail('<' . $message->{from} . ">\n");
+		$smtp->to('<' . $message->{to} . ">\n");
+		$smtp->data();
+		$smtp->datasend('From: "' . $message->{from_name} . '" <' . $message->{from} . ">\n");
+		$smtp->datasend('To: <' . $message->{to} . ">\n");
+		$smtp->datasend('Subject: ' . $message->{subject} . "\n");
+		$smtp->datasend("\n");
+		$smtp->datasend($message->{body} . "\n");
+		$smtp->dataend();
+		$smtp->quit();
 		#$action->delete();
 		});
 	}
