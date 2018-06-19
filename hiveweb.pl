@@ -71,5 +71,18 @@ use IO::Socket::SSL;
 			{
 			temp_plain => 'email/new_application_plain.tt',
 			},
+		mark_submitted =>
+			{
+			temp_plain => 'email/application_submitted_plain.tt',
+			},
+		attach_picture =>
+			{
+			temp_plain => 'email/application_picture_attached_plain.tt',
+			},
+		attach_form =>
+			{
+			temp_plain => 'email/application_form_attached_plain.tt',
+			},
+
 		},
 	}
