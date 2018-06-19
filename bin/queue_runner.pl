@@ -6,45 +6,88 @@ use warnings;
 use lib 'lib';
 use HiveWeb;
 use HiveWeb::Schema;
+use UUID;
+use MIME::Base64;
 
-my $config = HiveWeb->config();
+my $c           = HiveWeb->new || die $!;
+my $config      = $c->config();
+my $app_config  = $config->{application};
+my $mail_config = $config->{email};
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
 
-my $done = 0;
-while (!$done)
-	{
-	my $queue = $schema->resultset('Action')->search({}, { order_by => ['priority', 'queued_at'] }) || die $!;
+my $queue = $schema->resultset('Action')->search({}, { order_by => ['priority', 'queued_at'] }) || die $!;
 
-	while (my $action = $queue->next())
+while (my $action = $queue->next())
+	{
+	$schema->txn_do(sub
 		{
-		$schema->txn_do(sub
+		my $type = lc($action->action_type());
+		my $application;
+		if ($type =~ /^application\./)
 			{
-			my $type = lc($action->action_type());
-			if ($type eq 'application.create')
+			if (!($application = $schema->resultset('Application')->find($action->row_id())))
 				{
-				warn "h";
-				}
-			elsif ($type eq 'application.attach_picture')
-				{
-				}
-			elsif ($type eq 'application.mark_submitted')
-				{
-				}
-			elsif ($type eq 'application.attach_form')
-				{
-				}
-			elsif ($type eq 'application.password.reset')
-				{
-				}
-			else
-				{
-				warn $type;
-				# Unknown action type; leave it alone.
+				warn 'Cannot find referenced application ' . $action->row_id();
 				next;
 				}
-			$action->delete();
-			});
-		}
+			}
+		if ($type eq 'application.create')
+			{
+			my $bin;
+			my $message_id;
+			UUID::parse($application->application_id(), $bin);
+			my $enc_app_id = encode_base64($bin, '');
+			my $app_create = $app_config->{create};
+			my $to         = $app_config->{email_address};
+			my $from       = $mail_config->{from};
+			my $subject    = 'Membership Application: ' . $application->member()->fname() . ' ' . $application->member()->lname() . ' [' . $enc_app_id . ']';
+			my $stash      =
+				{
+				application => $application,
+				enc_app_id  => $enc_app_id,
+				};
 
-	$done = 1;
+			my $body = $c->view('TT')->render($c, $app_create->{temp_plain}, $stash);
+
+			my $smtp = Net::SMTP->new(%{$mail_config->{'Net::SMTP'}});
+			die "Could not connect to server\n"
+				if !$smtp;
+
+			if (exists($mail_config->{auth}))
+				{
+				$smtp->auth($from, $mail_config->{auth})
+					|| die "Authentication failed!\n";
+				}
+
+			$smtp->mail('<' . $from . ">\n");
+			$smtp->to('<' . $to . ">\n");
+			$smtp->data();
+			$smtp->datasend('From: "' . $mail_config->{from_name} . '" <' . $from . ">\n");
+			$smtp->datasend('To: <' . $to . ">\n");
+			$smtp->datasend('Subject: ' . $subject . "\n");
+			$smtp->datasend("\n");
+			$smtp->datasend($body . "\n");
+			$smtp->dataend();
+			$smtp->quit();
+			}
+		elsif ($type eq 'application.attach_picture')
+			{
+			}
+		elsif ($type eq 'application.mark_submitted')
+			{
+			}
+		elsif ($type eq 'application.attach_form')
+			{
+			}
+		elsif ($type eq 'application.password.reset')
+			{
+			}
+		else
+			{
+			warn $type;
+			# Unknown action type; leave it alone.
+			next;
+			}
+		#$action->delete();
+		});
 	}
