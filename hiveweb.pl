@@ -65,7 +65,11 @@ use IO::Socket::SSL;
 		},
 	application =>
 		{
-		email_address => 'leadership@hive13.org',
+		email_address => 'intwebsandbox@hive13.org',
 		pending_group => 'pending_applications',
+		create =>
+			{
+			temp_plain => 'email/new_application_plain.tt',
+			},
 		},
 	}
