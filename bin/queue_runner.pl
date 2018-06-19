@@ -41,15 +41,15 @@ while (my $action = $queue->next())
 			$message->{subject} = 'Membership Application: ' . $application->member()->fname() . ' ' . $application->member()->lname() . ' [' . $enc_app_id . ']';
 			if (exists($app_config->{$type}))
 				{
-				my $app_create = $app_config->{$type};
-				my $stash      =
+				my $app_create    = $app_config->{$type};
+				$message->{stash} =
 					{
 					application => $application,
 					enc_app_id  => $enc_app_id,
 					action      => $action,
 					};
+				$message->{temp_plain} = $app_create->{temp_plain};
 
-				$message->{body} = $c->view('TT')->render($c, $app_create->{temp_plain}, $stash);
 				}
 			else
 				{
@@ -60,6 +60,23 @@ while (my $action = $queue->next())
 			}
 		elsif ($type eq 'password.reset')
 			{
+			my $member = $schema->resultset('Member')->find($action->row_id());
+			if (!$member)
+				{
+				warn 'Cannot find referenced member ' . $action->row_id();
+				return;
+				}
+			my $token              = $member->create_related('reset_tokens', { valid => 1 });
+			my $forgot             = $mail_config->{forgot};
+			$message->{to}         = $member->email();
+			$message->{to_name}    = $member->fname() . ' ' . $member->lname();
+			$message->{subject}    = $forgot->{subject};
+			$message->{temp_plain} = $forgot->{temp_plain};
+			$message->{stash}      =
+				{
+				token  => $token,
+				member => $member,
+				};
 			}
 		else
 			{
@@ -77,14 +94,19 @@ while (my $action = $queue->next())
 				|| die "Authentication failed!\n";
 			}
 
+		my $body      = $c->view('TT')->render($c, $message->{temp_plain}, $message->{stash});
+		my $to_header = '<' . $message->{to} . '>';
+		$to_header    = '"' . $message->{to_name} . '" ' . $to_header
+			if (exists($message->{to_name}));
+
 		$smtp->mail('<' . $message->{from} . ">\n");
 		$smtp->to('<' . $message->{to} . ">\n");
 		$smtp->data();
 		$smtp->datasend('From: "' . $message->{from_name} . '" <' . $message->{from} . ">\n");
-		$smtp->datasend('To: <' . $message->{to} . ">\n");
+		$smtp->datasend('To: ' . $to_header . "\n");
 		$smtp->datasend('Subject: ' . $message->{subject} . "\n");
 		$smtp->datasend("\n");
-		$smtp->datasend($message->{body} . "\n");
+		$smtp->datasend($body . "\n");
 		$smtp->dataend();
 		$smtp->quit();
 		#$action->delete();
