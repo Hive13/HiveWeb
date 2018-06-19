@@ -19,5 +19,3 @@ The new Hive internal Web
 * libjson-perl
 * libmath-round-perl
 * libtext-markdown-perl
-* libnet-imap-simple-ssl-perl
-* libemail-mime-perl
