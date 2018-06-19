@@ -48,6 +48,7 @@ $(function ()
 	picture = new Picture(
 		{
 		$image_div: $t.find("div.photo"),
+		accept:     true,
 		image_id:   [% GET application.picture_id ? '"' _ application.picture_id.dquote _ '"' : 'undefined'; ~%]
 		});
 
@@ -95,7 +96,7 @@ $(function ()
 	</td>
 	<td>
 		[%~
-		IF message.$column.defined && message.$column.length > 0;
+		IF message.$column.defined;
 			GET '<span class="error">' _ message.$column _ '</span>';
 		END;
 		~%]
@@ -125,7 +126,7 @@ $(function ()
 				<tr>
 					<td colspan="2" class="center">
 						[%~
-						IF message.error.defined && message.error.length > 0;
+						IF message.error.defined;
 							GET '<span class="error">' _ message.error _ '</span><br />';
 						END;
 						%]
