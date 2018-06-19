@@ -105,12 +105,10 @@ sub attach_picture :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
-			my $priority = $c->config()->{priorities}->{'application.attach_picture'};
 			$application->update({ picture_id => $image->image_id() }) || die $!;
 			$c->model('DB::Action')->create(
 				{
 				queuing_member_id => $c->user()->member_id(),
-				priority          => $priority,
 				action_type       => 'application.attach_picture',
 				row_id            => $application->application_id(),
 				}) || die 'Could not queue notification: ' . $!;
