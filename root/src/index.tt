@@ -20,6 +20,7 @@ var panel_urls =
 	, access: "[% Catalyst.uri_for('/api/admin/accesslog/recent').dquote %]"
 [%~ IF Catalyst.check_user_roles('storage')%]
 	, storage_status: "[% Catalyst.uri_for('/api/admin/storage/status').dquote %]"
+	, applications: "[% Catalyst.uri_for('/api/admin/applications/pending').dquote %]"
 [%~ END %]
 [%~ END %]
 [%~ IF Catalyst.check_user_roles('pending_applications') %]
@@ -41,6 +42,7 @@ IF Catalyst.user_exists;
 	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
 	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
 	IF Catalyst.check_user_roles('board');
+		panels.push({ name => 'applications' style => 'panel-info', title => 'Pending Applications' });
 		panels.push({ name => 'access' style => 'panel-primary', title => 'Recent Accesses' });
 		IF Catalyst.check_user_roles('storage');
 			panels.push({ name => 'storage_status' style => 'panel-info', title => 'Storage Overview' });

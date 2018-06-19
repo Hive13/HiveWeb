@@ -54,10 +54,11 @@ __PACKAGE__->add_columns(
 	'app_turned_in_at',
 	{
 		data_type     => 'timestamp with time zone',
-		default_value => \'current_timestamp',
+		default_value => undef,
 		is_nullable   => 1,
-		original      => { default_value => \'now()' },
 	},
+	'thread_message_id',
+	{ data_type => 'character varying', is_nullable => 1, },
 );
 
 __PACKAGE__->set_primary_key('application_id');
@@ -78,20 +79,21 @@ sub TO_JSON
 
 	return
 		{
-		application_id => $self->application_id(),
-		member         => $self->member(),
-		address1       => $self->address1(),
-		address2       => $self->address2(),
-		city           => $self->city(),
-		state          => $self->state(),
-		zip            => $self->zip(),
-		contact_name   => $self->contact_name(),
-		contact_phone  => $self->contact_phone(),
-		form_id        => $self->form_id(),
-		topic_id       => $self->topic_id(),
-		picture_id     => $self->picture_id(),
-		created_at     => $self->created_at(),
-		updated_at     => $self->updated_at(),
+		application_id   => $self->application_id(),
+		member           => $self->member(),
+		address1         => $self->address1(),
+		address2         => $self->address2(),
+		city             => $self->city(),
+		state            => $self->state(),
+		zip              => $self->zip(),
+		contact_name     => $self->contact_name(),
+		contact_phone    => $self->contact_phone(),
+		form_id          => $self->form_id(),
+		topic_id         => $self->topic_id(),
+		picture_id       => $self->picture_id(),
+		created_at       => $self->created_at(),
+		updated_at       => $self->updated_at(),
+		app_turned_in_at => $self->app_turned_in_at(),
 		};
 	}
 1;
