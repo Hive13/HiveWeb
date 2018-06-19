@@ -28,14 +28,14 @@ for (my $i = 1; $i <= $count; $i++)
 	next if ($client->seen($i));
 	my $message = $client->get($i);
 	my $email   = Email::MIME->new(join('', @$message));
-	
+
 	my $list = $email->header('List-ID');
 	if (!$list || $list ne $wanted_list)
 		{
 		$client->see($i);
 		next;
 		}
-	
+
 	my $subject = $email->header('Subject');
 
 	if ($subject !~ /\[([a-zA-Z0-9.\/]+={0,3})\]/)
@@ -43,7 +43,7 @@ for (my $i = 1; $i <= $count; $i++)
 		$client->see($i);
 		next;
 		}
-	
+
 	my $uuid;
 	UUID::unparse(decode_base64($1), $uuid);
 	my $application = $schema->resultset('Application')->find($uuid);
@@ -52,7 +52,7 @@ for (my $i = 1; $i <= $count; $i++)
 		$client->see($i);
 		next;
 		}
-	
+
 	print 'From: ' . $email->header('From') . " -- $uuid\n";
 	my @parts = $email->parts();
 
@@ -75,8 +75,8 @@ for (my $i = 1; $i <= $count; $i++)
 			warn $body;
 			}
 		}
-	
-	
+
+
 	#print Data::Dumper::Dumper(\@parts);
 	$client->unsee($i);
 	}
