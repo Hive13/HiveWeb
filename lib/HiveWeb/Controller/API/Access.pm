@@ -7,16 +7,6 @@ use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub find_member :Private
-	{
-	my $c        = shift;
-	my $badge_no = shift;
-	my $badge    = $c->model('DB::Badge')->find( { badge_number => $badge_no } );
-
-	return $badge->member()
-		if (defined($badge));
-	}
-
 sub index :Path
 	{
 	my ($self, $c) = @_;
@@ -98,10 +88,10 @@ sub access
 	my $data       = $stash->{in}->{data};
 	my $out        = $stash->{out};
 	my $device     = $stash->{device};
-	my $badge      = $data->{badge};
 	my $item_name  = $data->{location} // $data->{item};
 	my $item       = $c->model('DB::Item')->find({ name => $item_name });
-	my $member     = find_member($c, $badge);
+	my $badge      = $c->model('DB::Badge')->find( { badge_number => $data->{badge} } );
+	my $member     = $badge ? $badge->member() : undef;
 	my $access     = 0;
 	$out->{access} = \$access;
 
@@ -156,7 +146,8 @@ sub vend :Private
 	my $out        = $stash->{out};
 	my $device     = $stash->{device};
 	my $data       = $stash->{in}->{data};
-	my $member     = find_member($c, $data->{badge});
+	my $badge      = $c->model('DB::Badge')->find({ badge_number => $data->{badge} });
+	my $member     = $badge ? $badge->member() : undef;
 	my $vend       = 0;
 	$out->{error}  = 'Cannot find member associated with this badge.';
 	$out->{vend}   = \$vend;
