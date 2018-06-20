@@ -38,7 +38,6 @@ sub find_member :Private
 
 sub has_access :Private
 	{
-	my $c        = shift;
 	my $badge_no = shift;
 	my $iname    = shift;
 	my $item     = $c->model('DB::Item')->find( { name => $iname } );
@@ -55,9 +54,8 @@ sub has_access :Private
 		$access    = $member->has_access($item);
 		}
 
-	my $access_log = $c->model('DB::AccessLog')->create(
+	my $access_log = $item->create_related('access_logs',
 		{
-		item_id   => $item->item_id(),
 		granted   => $access ? 1 : 0,
 		member_id => $member_id,
 		badge_id  => $badge_no,
@@ -167,7 +165,7 @@ sub access :Local
 		{
 		my $badge  = $data->{badge};
 		my $item   = $data->{location} // $data->{item};
-		my $access = has_access($c, $badge, $item);
+		my $access = has_access($badge, $item);
 		my $d_i    = $device
 			->search_related('device_items')
 			->search_related('item', { name => $item } );
