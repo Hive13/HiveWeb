@@ -99,7 +99,6 @@ sub attach_picture_to_member :Local :Args(0)
 
 	if (!$application->picture_id())
 		{
-		$out->{response} = \0;
 		$out->{data}     = 'This application does not have a picture attached.';
 		return;
 		}
