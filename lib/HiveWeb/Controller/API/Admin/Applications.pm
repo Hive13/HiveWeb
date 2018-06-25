@@ -5,11 +5,31 @@ use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
+sub auto :Private
+	{
+	my ($self, $c)   = @_;
+	my $in           = $c->stash()->{in};
+	my $out          = $c->stash()->{out};
+	$out->{response} = \0;
+
+	return 1
+		if (!exists($in->{application_id}));
+
+	my $application = $c->model('DB::Application')->find($in->{application_id});
+
+	if (!$application)
+		{
+		$out->{response} = 'Cannot find application.';
+		return;
+		}
+
+	$c->stash({ application => $application });
+	}
+
 sub pending :Local :Args(0)
 	{
 	my ($self, $c)   = @_;
 	my $out          = $c->stash()->{out};
-	$out->{response} = \0;
 
 	my @pending_applications = $c->model('DB::Application')->search(
 		{
@@ -28,14 +48,8 @@ sub attach_picture_to_member :Local :Args(0)
 	my ($self, $c)   = @_;
 	my $out          = $c->stash()->{out};
 	my $in           = $c->stash()->{in};
-	$out->{response} = \0;
+	my $application  = $c->stash()->{application};
 
-	my $application = $c->model('DB::Application')->find($in->{application_id});
-	if (!$application)
-		{
-		$out->{response} = 'Invalid application ID';
-		return;
-		}
 	if (!$application->picture_id())
 		{
 		$out->{response} = 'This application does not have a picture attached.';
