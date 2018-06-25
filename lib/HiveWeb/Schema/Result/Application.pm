@@ -59,6 +59,14 @@ __PACKAGE__->add_columns(
 	},
 	'thread_message_id',
 	{ data_type => 'character varying', is_nullable => 1, },
+	'decided_at',
+	{
+		data_type     => 'timestamp with time zone',
+		default_value => undef,
+		is_nullable   => 1,
+	},
+	'final_result',
+	{ data_type => 'character varying', is_nullable => 1, },
 );
 
 __PACKAGE__->set_primary_key('application_id');
@@ -94,6 +102,8 @@ sub TO_JSON
 		created_at       => $self->created_at(),
 		updated_at       => $self->updated_at(),
 		app_turned_in_at => $self->app_turned_in_at(),
+		decided_at       => $self->decided_at(),
+		final_result     => $self->final_result(),
 		};
 	}
 1;
