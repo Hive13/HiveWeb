@@ -116,7 +116,7 @@ function display_pending_applications(data, $panel, odata)
 
 			api_json(
 				{
-				path: "/admin/application/finalize",
+				path: "/admin/applications/finalize",
 				what: "Finalize Application",
 				data: { application_id: application_id, result: result },
 				success: function ()
