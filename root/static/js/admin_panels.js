@@ -114,7 +114,16 @@ function display_pending_applications(data, $panel, odata)
 			{
 			var result = $dialogue.find("select").val();
 
-			alert(result);
+			api_json(
+				{
+				path: "/admin/application/finalize",
+				what: "Finalize Application",
+				data: { application_id: application_id, result: result },
+				success: function ()
+					{
+					$dialogue.on("hidden.bs.modal", function () { load_panel_data(odata); }).modal("hide");
+					}
+				});
 			});
 
 		$dialogue.modal("show");
