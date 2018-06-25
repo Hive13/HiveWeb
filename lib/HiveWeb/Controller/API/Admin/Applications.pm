@@ -26,6 +26,53 @@ sub auto :Private
 	$c->stash({ application => $application });
 	}
 
+sub finalize :Local :Args(0)
+	{
+	my ($self, $c)   = @_;
+	my $out          = $c->stash()->{out};
+	my $in           = $c->stash()->{in};
+	my $application  = $c->stash()->{application};
+	my $result       = $in->{result};
+
+	if ($application->decided_at())
+		{
+		$out->{data} = 'This application is already finalized.';
+		return;
+		}
+
+	if (!$result)
+		{
+		$out->{data} = 'You must specify a final action.';
+		return;
+		}
+
+	$out->{response} = \1;
+
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			my $member = $application->member();
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'finalize_application',
+				notes              => 'Finalized Application ID ' . $application->application_id(),
+				changing_member_id => $c->user()->member_id(),
+				}) || die 'Could not audit finalization: ' . $!;
+			$application->update(
+				{
+				decided_at   => \'NOW()',
+				final_result => $result,
+				}) || die $!;
+			});
+		}
+	catch
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Could not finalize application: ' . $_;
+		};
+	}
+
 sub pending :Local :Args(0)
 	{
 	my ($self, $c)   = @_;
