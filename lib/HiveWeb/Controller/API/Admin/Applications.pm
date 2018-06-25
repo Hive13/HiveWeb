@@ -19,7 +19,7 @@ sub auto :Private
 
 	if (!$application)
 		{
-		$out->{response} = 'Cannot find application.';
+		$out->{data} = 'Cannot find application.';
 		return;
 		}
 
