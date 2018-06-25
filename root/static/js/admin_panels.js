@@ -92,6 +92,7 @@ function display_pending_applications(data, $panel, odata)
 						"</div>",
 						"<div class=\"modal-body u-text-center\">",
 							"<select>",
+								"<option value=\"\" selected>(Select one)</option>",
 								"<option value=\"accepted\">Accepted</option>",
 								"<option value=\"rejected\">Rejected</option>",
 								"<option value=\"withdrew\">Withdrew</option>",
@@ -106,6 +107,15 @@ function display_pending_applications(data, $panel, odata)
 				"</div>",
 			"</div>"
 			].join(""));
+
+		$dialogue.find("select").change(function () { $dialogue.find("button.accept").attr("disabled", !$(this).val()); });
+
+		$dialogue.find("button.accept").click(function ()
+			{
+			var result = $dialogue.find("select").val();
+
+			alert(result);
+			});
 
 		$dialogue.modal("show");
 		});
