@@ -91,7 +91,7 @@ function display_curse_data(data, $curse_panel)
 			+ curse.issuing_member.fname + " " + curse.issuing_member.lname + "\">";
 		html += "<h5>" + curse.curse.display_name + "</h5>" + curse.curse.notification + "</li>";
 		}
-	
+
 	html += "</ol>";
 	$curse_panel.find(".panel-body").html(html);
 	}
