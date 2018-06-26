@@ -18,9 +18,10 @@ my $candidates = $schema->resultset('Image')->search(
 	{
 	-and =>
 		[
-		{	image_id => { '-not_in' => $member_images } },
-		{	image_id => { '-not_in' => $app_images } },
-		{	image_id => { '-not_in' => $form_images } },
+		{ image_id   => { '-not_in' => $member_images } },
+		{ image_id   => { '-not_in' => $app_images } },
+		{ image_id   => { '-not_in' => $form_images } },
+		{ created_at => { '<=' => \"NOW() - INTERVAL '1 DAY'" } },
 		],
 	},
 	{
