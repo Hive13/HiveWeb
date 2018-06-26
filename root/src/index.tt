@@ -25,7 +25,7 @@ var panel_urls =
 [%~ END %]
 	};
 </script>
-[%~ 
+[%~
 SET panels = [];
 panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info', large => 1 });
 IF Catalyst.user_exists;

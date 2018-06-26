@@ -19,7 +19,7 @@ function display_access_data(data, $access_panel)
 		html += "Access Time: " + date.toLocaleDateString() + " " + date.toLocaleTimeString();
 		html += "</span></li>";
 		}
-	
+
 	html += "</ol><div class=\"u-w-100 text-center\"><a href=\"/admin/access_log\" class=\"btn btn-primary\">View All Access Logs</a></div>";
 	$access_panel.find(".panel-body").html(html);
 	}
