@@ -68,6 +68,7 @@ function display_pending_applications(data, $panel, odata)
 				html += "<li>Signed form turned in on " + dt.toLocaleDateString() + ".</li>";
 				}
 			html += "<li>No signed form uploaded. <a class=\"anchor-style upload-signed-form\">Upload it.</a></li>";
+			html += "<li><a href=\"/application/print/" + app.application_id + "\" target=\"_blank\">Print the filled-out application.</a></li>";
 			}
 		else
 			html += "<li><a class=\"anchor-style view-signed-form\" id=\"" + app.form_id + "\">View the signed form.</a></li>";

@@ -99,7 +99,7 @@ sub index :Path :Args(0)
 		};
 	}
 
-sub print :Local :Args(0)
+sub print :Local
 	{
 	my ($self, $c, $application_id) = @_;
 	my $user                        = $c->user();
