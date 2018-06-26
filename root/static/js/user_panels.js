@@ -106,11 +106,11 @@ function display_application_status(data, $panel, odata)
 	if (data.has_form)
 		steps.push("Your signed form has been received.");
 	else if (!data.submitted_form_at)
-		steps.push("<a href\"#\">Print out your application</a>, sign it, and turn it into the Completed Paperwork tray near the main entrance to the Hive.  <a class=\"anchor-style submitted-form\">Click here if you have already turned it in.</a>");
+		steps.push("<a href\"/application/print\" target=\"_blank\">Print out your application</a>, sign it, and turn it into the Completed Paperwork tray near the main entrance to the Hive.  <a class=\"anchor-style submitted-form\">Click here if you have already turned it in.</a>");
 	else
 		{
 		date = new Date(data.submitted_form_at);
-		steps.push("You submitted your form on " + date.toLocaleDateString() + ".  <a href=\"#\">Print it out again.</a>");
+		steps.push("You submitted your form on " + date.toLocaleDateString() + ".  <a href=\"/application/print\" target=\"_blank\">Print it out again.</a>");
 		}
 
 	steps.push("Keep attending meetings and get to know the membership.");
