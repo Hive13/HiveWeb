@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use Try::Tiny;
+use PDF::API2;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -96,6 +97,77 @@ sub index :Path :Args(0)
 			vals    => $form
 			});
 		};
+	}
+
+sub print :Local :Args(0)
+	{
+	my ($self, $c, $application_id) = @_;
+	my $user                        = $c->user();
+
+	return if (!$user);
+
+	my $application = $application_id ?
+		$c->model('DB::Application')->find($application_id) :
+		$user->find_related('applications',
+			{
+			decided_at => undef,
+			},
+			{
+			order_by => { -desc => 'updated_at' },
+			rows     => 1,
+			});
+
+	if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')))
+		{
+		die 'Cannot find application.';
+		}
+	my $member = $application->member();
+
+	my $pdf  = PDF::API2->open($c->config()->{home} . '/root/static/Hive Membership Application.pdf') || die $!;
+	my $page = $pdf->openpage(1);
+	my $font = $pdf->corefont('Helvetica');
+
+	my $text = $page->text();
+	$text->font($font, 16);
+	$text->translate(107, 518);
+	$text->text($member->fname() . ' ' . $member->lname());
+
+	my $address = $application->address1();
+	$address .= ' ' . $application->address2()
+		if ($application->address2());
+	$text->translate(122, 492);
+	$text->text($address);
+
+	$text->translate(94, 468);
+	$text->text($application->city());
+
+	$text->translate(352, 468);
+	$text->text($application->state());
+
+	my $zip = $application->zip();
+	$zip =~ /(\d{5})(\d{0,4)/;
+	$zip = "$1-$2" if $2;
+	$text->translate(481, 468);
+	$text->text($zip);
+
+	my $phone = $member->phone();
+	$phone =~ s/(\d{3})(\d{3})(\d{4})/($1) $2-$3/;
+	$text->translate(108, 443);
+	$text->text($phone);
+
+	$text->translate(164, 417);
+	$text->text($member->email());
+
+	$text->translate(250, 390);
+	$text->text($application->contact_name());
+
+	my $phone = $application->contact_phone();
+	$phone =~ s/(\d{3})(\d{3})(\d{4})/($1) $2-$3/;
+	$text->translate(444, 390);
+	$text->text($phone);
+
+	$c->response()->body($pdf->stringify());
+	$c->response()->content_type('application/pdf');
 	}
 
 __PACKAGE__->meta->make_immutable;
