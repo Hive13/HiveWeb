@@ -15,7 +15,10 @@ sub status :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 	my $out        = $c->stash()->{out};
-	my @sodas      = $c->model('DB::SodaStatus')->all();
+	my @sodas      = $c->model('DB::SodaStatus')->search({},
+		{
+		prefetch => 'soda_type'
+		});
 
 	$out->{response} = \1;
 	$out->{sodas}    = \@sodas;
