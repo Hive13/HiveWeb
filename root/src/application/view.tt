@@ -41,6 +41,19 @@ table.apply td.center
 
 <script type="text/javascript">
 var picture;
+[%~ IF other %]
+function update_image(picture)
+	{
+	var image_id = pic.get_image_id();
+
+	api_json(
+		{
+		path: "/application/attach_picture",
+		what: "Attach Picture to Application",
+		data: { application_id: "[% application.application_id.dquote %]", image_id: image_id }
+		});
+	}
+[%~ END %]
 
 $(function ()
 	{
@@ -48,11 +61,11 @@ $(function ()
 	picture = new Picture(
 		{
 		$image_div: $t.find("div.photo"),
-		prevent_deletes: [% GET other ? 'true' : 'false' %],
-		accept: [% GET other ? 'false' : 'true' %],
+		accept:     [% GET other ? 'update_image' : 'true' %],
 		image_id:   [% GET application.picture_id ? '"' _ application.picture_id.dquote _ '"' : 'undefined'; ~%]
 		});
 
+	[%~ IF other %]
 	$t.closest("form").submit(function()
 		{
 		var image_id = picture.get_image_id();
@@ -65,6 +78,7 @@ $(function ()
 				value: image_id
 				}));
 		});
+	[%~ END %]
 	});
 </script>
 
@@ -129,7 +143,9 @@ $(function ()
 							GET '<span class="error">' _ message.error _ '</span><br />';
 						END;
 						%]
+						[%~ IF other %]
 						<input type="submit" value="Register!" />
+						[%~ END %]
 					</td>
 				</tr>
 			</table>
