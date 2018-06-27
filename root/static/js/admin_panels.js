@@ -55,7 +55,7 @@ function display_pending_applications(data, $panel, odata)
 		if (app.picture_id)
 			actions.push("<a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a>" +
 				((app.picture_id != app.member.member_image_id) ?
-				" - <a class=\"anchor-style accept-picture\">Accept Picture and attach to member's profile</a></li>" :
+				" - <a class=\"anchor-style accept-picture\">Accept Picture and attach to member's profile</a>" :
 				" - accepted and attached to member's profile"));
 		else
 			actions.push("No picture has been attached yet. <a class=\"anchor-style attach-picture\">Attach one.</a>");
@@ -64,7 +64,7 @@ function display_pending_applications(data, $panel, odata)
 			if (app.app_turned_in_at)
 				{
 				dt = new Date(app.app_turned_in_at);
-				actions.push("<li>Signed form turned in on " + dt.toLocaleDateString() + ".");
+				actions.push("Signed form turned in on " + dt.toLocaleDateString() + ".");
 				}
 			actions.push("No signed form uploaded. <a class=\"anchor-style upload-signed-form\">Upload it.</a>");
 			actions.push("<a href=\"/application/print/" + app.application_id + "\" target=\"_blank\">Print the filled-out application.</a>");
