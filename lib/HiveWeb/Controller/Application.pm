@@ -121,6 +121,7 @@ sub view :Local
 		if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')));
 
 	$c->stash()->{application} = $application;
+	$c->stash()->{other}       = ($application->member_id() ne $user->member_id());
 	}
 
 sub print :Local
