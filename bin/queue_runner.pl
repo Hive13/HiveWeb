@@ -48,6 +48,7 @@ while (my $action = $queue->next())
 					application => $application,
 					enc_app_id  => $enc_app_id,
 					action      => $action,
+					base_url    => $config->{base_url},
 					};
 				$message->{temp_plain} = $app_create->{temp_plain};
 				}
@@ -72,8 +73,9 @@ while (my $action = $queue->next())
 			$message->{subject}    = $mail_config->{assigned_slot}->{subject};
 			$message->{stash}      =
 				{
-				member => $member,
-				slot   => $slot,
+				member   => $member,
+				slot     => $slot,
+				base_url => $config->{base_url},
 				};
 			}
 		elsif ($type eq 'password.reset')
@@ -92,8 +94,9 @@ while (my $action = $queue->next())
 			$message->{temp_plain} = $forgot->{temp_plain};
 			$message->{stash}      =
 				{
-				token  => $token,
-				member => $member,
+				token    => $token,
+				member   => $member,
+				base_url => $config->{base_url},
 				};
 			}
 		else

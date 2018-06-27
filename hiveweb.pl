@@ -9,6 +9,7 @@
 			password => '< password >',
 			},
 		},
+	base_url => 'https://intweb.at.hive13.org/',
 	soda =>
 		{
 		add_amount => 20,
