@@ -5,13 +5,83 @@ use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
+sub auto :Private
+	{
+	my ($self, $c)   = @_;
+	my $in           = $c->stash()->{in};
+	my $out          = $c->stash()->{out};
+	$out->{response} = \0;
+
+	return 1
+		if (!exists($in->{application_id}));
+
+	my $application = $c->model('DB::Application')->find($in->{application_id});
+
+	if (!$application)
+		{
+		$out->{data} = 'Cannot find application.';
+		return;
+		}
+
+	$c->stash({ application => $application });
+	}
+
+sub finalize :Local :Args(0)
+	{
+	my ($self, $c)   = @_;
+	my $out          = $c->stash()->{out};
+	my $in           = $c->stash()->{in};
+	my $application  = $c->stash()->{application};
+	my $result       = $in->{result};
+
+	if ($application->decided_at())
+		{
+		$out->{data} = 'This application is already finalized.';
+		return;
+		}
+
+	if (!$result)
+		{
+		$out->{data} = 'You must specify a final action.';
+		return;
+		}
+
+	$out->{response} = \1;
+
+	try
+		{
+		$c->model('DB')->txn_do(sub
+			{
+			my $member = $application->member();
+			$member->create_related('changed_audits',
+				{
+				change_type        => 'finalize_application',
+				notes              => 'Finalized Application ID ' . $application->application_id(),
+				changing_member_id => $c->user()->member_id(),
+				}) || die 'Could not audit finalization: ' . $!;
+			$application->update(
+				{
+				decided_at   => \'NOW()',
+				final_result => $result,
+				}) || die $!;
+			});
+		}
+	catch
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Could not finalize application: ' . $_;
+		};
+	}
+
 sub pending :Local :Args(0)
 	{
 	my ($self, $c)   = @_;
 	my $out          = $c->stash()->{out};
-	$out->{response} = \0;
 
-	my @pending_applications = $c->model('DB::Application')->search({},
+	my @pending_applications = $c->model('DB::Application')->search(
+		{
+		decided_at => undef,
+		},
 		{
 		order_by => { -asc => 'updated_at' },
 		})->all();
@@ -25,17 +95,11 @@ sub attach_picture_to_member :Local :Args(0)
 	my ($self, $c)   = @_;
 	my $out          = $c->stash()->{out};
 	my $in           = $c->stash()->{in};
-	$out->{response} = \0;
+	my $application  = $c->stash()->{application};
 
-	my $application = $c->model('DB::Application')->find($in->{application_id});
-	if (!$application)
-		{
-		$out->{response} = 'Invalid application ID';
-		return;
-		}
 	if (!$application->picture_id())
 		{
-		$out->{response} = 'This application does not have a picture attached.';
+		$out->{data} = 'This application does not have a picture attached.';
 		return;
 		}
 

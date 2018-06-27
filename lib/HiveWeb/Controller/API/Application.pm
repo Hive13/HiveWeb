@@ -18,7 +18,10 @@ sub auto :Private
 
 	my $application = $in->{application_id} ?
 		$c->model('DB::Application')->find($in->{application_id}) :
-		$user->find_related('applications', {},
+		$user->find_related('applications',
+			{
+			decided_at => undef,
+			},
 			{
 			order_by => { -desc => 'updated_at' },
 			rows     => 1,

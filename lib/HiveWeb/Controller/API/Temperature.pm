@@ -34,6 +34,7 @@ sub current :Local :Args(0)
 			{
 			order_by => { -desc => 'create_time' },
 			rows     => 1,
+			prefetch => 'item',
 			})->first();
 		push (@$temps, $temp)
 			if ($temp);

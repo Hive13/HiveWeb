@@ -68,15 +68,67 @@ function display_pending_applications(data, $panel, odata)
 				html += "<li>Signed form turned in on " + dt.toLocaleDateString() + ".</li>";
 				}
 			html += "<li>No signed form uploaded. <a class=\"anchor-style upload-signed-form\">Upload it.</a></li>";
+			html += "<li><a href=\"/application/print/" + app.application_id + "\" target=\"_blank\">Print the filled-out application.</a></li>";
 			}
 		else
 			html += "<li><a class=\"anchor-style view-signed-form\" id=\"" + app.form_id + "\">View the signed form.</a></li>";
 		if (app.topic_id)
 			html += "<li><a href=\"https://groups.google.com/a/hive13.org/forum/#!topic/leadership/" + app.topic_id + "\" target=\"_blank\">View the discussion thread.</a></li>";
+		html += "<li><a class=\"anchor-style finalize-application\">Mark this application as finished.</a></li>";
 		html += "</ul>";
 		}
 
 	$panel.find(".panel-body").html(html);
+	$panel.find("a.finalize-application").click(function ()
+		{
+		var application_id = $(this).closest("ul.application").attr("id");
+		var $dialogue =
+			$([
+			"<div class=\"modal fade picture-dialogue\" tabIndex=\"-1\" role=\"dialog\">",
+				"<div class=\"modal-dialog\" role=\"document\">",
+					"<div class=\"modal-content\">",
+						"<div class=\"modal-header\">",
+							"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+							"<h3 class=\"modal-title\">Select Result</h3>",
+						"</div>",
+						"<div class=\"modal-body u-text-center\">",
+							"<select>",
+								"<option value=\"\" selected>(Select one)</option>",
+								"<option value=\"accepted\">Accepted</option>",
+								"<option value=\"rejected\">Rejected</option>",
+								"<option value=\"withdrew\">Withdrew</option>",
+								"<option value=\"expired\">Expired</option>",
+							"</select>",
+						"</div>",
+						"<div class=\"modal-footer\">",
+							"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+							"<button type=\"button\" class=\"btn btn-primary accept\" disabled>Submit</button>",
+						"</div>",
+					"</div>",
+				"</div>",
+			"</div>"
+			].join(""));
+
+		$dialogue.find("select").change(function () { $dialogue.find("button.accept").attr("disabled", !$(this).val()); });
+
+		$dialogue.find("button.accept").click(function ()
+			{
+			var result = $dialogue.find("select").val();
+
+			api_json(
+				{
+				path: "/admin/applications/finalize",
+				what: "Finalize Application",
+				data: { application_id: application_id, result: result },
+				success: function ()
+					{
+					$dialogue.on("hidden.bs.modal", function () { load_panel_data(odata); }).modal("hide");
+					}
+				});
+			});
+
+		$dialogue.modal("show");
+		});
 	$panel.find("a.show-picture").click(function()
 		{
 		var picture_id = $(this).attr("id");
