@@ -100,6 +100,7 @@ function display_application_status(data, $panel, odata)
 	{
 	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date, $div;
 
+
 	if (!data.has_picture)
 		steps.push("<a class=\"anchor-style attach-picture\">Attach your picture</a> to the application or get a Hive Officer to do it for you.");
 
@@ -114,6 +115,7 @@ function display_application_status(data, $panel, odata)
 		}
 
 	steps.push("Keep attending meetings and get to know the membership.");
+	steps.push("<a href=\"/application/view\" target=\"_blank\">Review your Application</a>");
 
 	html += "<ul><li>" + steps.join("</li><li>") + "</li></ul>";
 	$panel.find(".panel-body").html(html);

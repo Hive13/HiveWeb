@@ -99,6 +99,30 @@ sub index :Path :Args(0)
 		};
 	}
 
+sub view :Local
+	{
+	my ($self, $c, $application_id) = @_;
+	my $user                        = $c->user();
+
+	return if (!$user);
+
+	my $application = $application_id ?
+		$c->model('DB::Application')->find($application_id) :
+		$user->find_related('applications',
+			{
+			decided_at => undef,
+			},
+			{
+			order_by => { -desc => 'updated_at' },
+			rows     => 1,
+			});
+
+	die 'Cannot find application.'
+		if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')));
+
+	$c->stash()->{application} = $application;
+	}
+
 sub print :Local
 	{
 	my ($self, $c, $application_id) = @_;
