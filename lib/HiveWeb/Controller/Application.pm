@@ -145,7 +145,7 @@ sub print :Local
 	$text->text($application->state());
 
 	my $zip = $application->zip();
-	$zip =~ /(\d{5})(\d{0,4)/;
+	$zip =~ /(\d{5})(\d{0,4})/;
 	$zip = "$1-$2" if $2;
 	$text->translate(481, 468);
 	$text->text($zip);
@@ -161,7 +161,7 @@ sub print :Local
 	$text->translate(250, 390);
 	$text->text($application->contact_name());
 
-	my $phone = $application->contact_phone();
+	$phone = $application->contact_phone();
 	$phone =~ s/(\d{3})(\d{3})(\d{4})/($1) $2-$3/;
 	$text->translate(444, 390);
 	$text->text($phone);
