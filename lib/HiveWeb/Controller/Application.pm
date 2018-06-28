@@ -107,8 +107,12 @@ sub index :Path
 					row_id            => $application->application_id(),
 					}) || die 'Unable to queue notification.';
 
-				$c->stash()->{template} = 'application/updated.tt';
-				return;
+				$c->flash()->{auto_toast} =
+					{
+					title => 'Application Updated',
+					text  => 'The application has been successfully updated.',
+					};
+				$c->response()->redirect($c->uri_for('/'));
 				}
 
 			$form->{member_id} = $member_id;
