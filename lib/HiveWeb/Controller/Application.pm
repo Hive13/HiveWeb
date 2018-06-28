@@ -26,23 +26,21 @@ sub index :Path
 			});
 
 	# Create a new application if none found and no ID specified
-	$application =
+	if (!$application)
 		{
-		member    => $c->user(),
-		member_id => $c->user()->member_id(),
-		new       => 1,
+		die 'Cannot find application.' if ($application_id);
+		$c->stash()->{other} = 0;
 		}
-		if (!$application && !$application_id);
-
-	die 'Cannot find application.'
-		if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')));
-
-	$c->stash(
+	else
 		{
-		template    => 'application/edit.tt',
-		other       => ($application->member_id() ne $user->member_id()),
-		application => $application,
-		});
+		die 'Cannot find application.' if ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board'));
+		$c->stash(
+			{
+			template=>  => 'application/edit.tt',
+			application => $application,
+			other       => ($application->member_id() ne $user->member_id()),
+			});
+		}
 
 	return
 		if ($c->request()->method() eq 'GET');
@@ -86,8 +84,6 @@ sub index :Path
 
 	if (scalar(%$fail))
 		{
-		$form->{member} = $c->user();
-		$form->{new}    = 1;
 		$c->stash(
 			{
 			message     => $fail,
@@ -99,18 +95,31 @@ sub index :Path
 		{
 		$c->model('DB')->schema()->txn_do(sub
 			{
-			my $member_id      = $c->user()->member_id();
+			my $member_id = $user->member_id();
+
+			if ($application)
+				{
+				$application->update($form) || die $!;
+				my $queue = $c->model('DB::Action')->create(
+					{
+					queuing_member_id => $member_id,
+					action_type       => 'application.update',
+					row_id            => $application->application_id(),
+					}) || die 'Unable to queue notification.';
+
+				$c->stash()->{template} = 'application/updated.tt';
+				return;
+				}
+
 			$form->{member_id} = $member_id;
-			my $priority       = $c->config()->{priorities}->{'application.create'};
 			my $group          = $c->config()->{application}->{pending_group};
 			my $mgroup         = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
 
-			my $application = $c->model('DB::Application')->create($form) || die $!;
+			$application = $c->model('DB::Application')->create($form) || die $!;
 			$mgroup->find_or_create_related('member_mgroups', { member_id => $member_id }) || die 'Unable to add user to group.';
 			my $queue = $c->model('DB::Action')->create(
 				{
 				queuing_member_id => $member_id,
-				priority          => $priority,
 				action_type       => 'application.create',
 				row_id            => $application->application_id(),
 				}) || die 'Unable to queue notification.';
@@ -126,8 +135,8 @@ sub index :Path
 		{
 		$c->stash(
 			{
-			message => { error => "$_" },
-			vals    => $form
+			message     => { error => "$_" },
+			application => $form
 			});
 		};
 	}
