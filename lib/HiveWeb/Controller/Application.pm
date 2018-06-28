@@ -7,11 +7,40 @@ use PDF::API2;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-sub index :Path :Args(0)
+sub index :Path
 	{
-	my ($self, $c) = @_;
+	my ($self, $c, $application_id) = @_;
 
-	$c->stash()->{template} = 'application/new.tt';
+	my $user = $c->user();
+	return if (!$user);
+
+	my $application = $application_id ?
+		$c->model('DB::Application')->find($application_id) :
+		$user->find_related('applications',
+			{
+			decided_at => undef,
+			},
+			{
+			order_by => { -desc => 'updated_at' },
+			rows     => 1,
+			});
+
+	# Create a new application if none found and no ID specified
+	if (!$application)
+		{
+		die 'Cannot find application.' if ($application_id);
+		$c->stash()->{other} = 0;
+		}
+	else
+		{
+		die 'Cannot find application.' if ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board'));
+		$c->stash(
+			{
+			template=>  => 'application/edit.tt',
+			application => $application,
+			other       => ($application->member_id() ne $user->member_id()),
+			});
+		}
 
 	return
 		if ($c->request()->method() eq 'GET');
@@ -64,37 +93,54 @@ sub index :Path :Args(0)
 		}
 	try
 		{
-		my $application;
-		my $member_id = $c->user()->member_id();
-		$form->{member_id} = $member_id;
 		$c->model('DB')->schema()->txn_do(sub
 			{
-			my $priority = $c->config()->{priorities}->{'application.create'};
-			my $group    = $c->config()->{application}->{pending_group};
+			my $member_id = $user->member_id();
+
+			if ($application)
+				{
+				$application->update($form) || die $!;
+				my $queue = $c->model('DB::Action')->create(
+					{
+					queuing_member_id => $member_id,
+					action_type       => 'application.update',
+					row_id            => $application->application_id(),
+					}) || die 'Unable to queue notification.';
+
+				$c->flash()->{auto_toast} =
+					{
+					title => 'Application Updated',
+					text  => 'The application has been successfully updated.',
+					};
+				$c->response()->redirect($c->uri_for('/'));
+				}
+
+			$form->{member_id} = $member_id;
+			my $group          = $c->config()->{application}->{pending_group};
+			my $mgroup         = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
+
 			$application = $c->model('DB::Application')->create($form) || die $!;
-			my $mgroup   = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
 			$mgroup->find_or_create_related('member_mgroups', { member_id => $member_id }) || die 'Unable to add user to group.';
 			my $queue = $c->model('DB::Action')->create(
 				{
 				queuing_member_id => $member_id,
-				priority          => $priority,
 				action_type       => 'application.create',
 				row_id            => $application->application_id(),
 				}) || die 'Unable to queue notification.';
-			});
 
-		$c->stash(
-			{
-			template    => 'application/complete.tt',
-			application => $application,
+			$c->stash(
+				{
+				template    => 'application/complete.tt',
+				application => $application,
+				});
 			});
 		}
 	catch
 		{
 		$c->stash(
 			{
-			message => { error => $_ },
-			vals    => $form
+			message     => { error => "$_" },
+			application => $form
 			});
 		};
 	}

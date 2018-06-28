@@ -40,42 +40,41 @@ function display_storage_status_data(data, $panel)
 
 function display_pending_applications(data, $panel, odata)
 	{
-	var html = "", i, app, dt;
+	var html = "", i, app, dt, actions;
 
 	for (i = 0; i < data.app_info.length; i++)
 		{
-		app = data.app_info[i];
-		dt = new Date(app.created_at);
+		actions = [];
+		app     = data.app_info[i];
+		dt      = new Date(app.created_at);
+
 		html += "<h4>Application from " + app.member.fname + " " + app.member.lname + "</h4>";
 		html += "<h6>Submitted " + dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</h6>";
-		html += "<ul class=\"application\" id=\"" + app.application_id + "\">";
+		html += "<ul class=\"application\" id=\"" + app.application_id + "\"><li>";
+		actions.push("<a href=\"/application/" + app.application_id + "\" target=\"_blank\">View this Application</a>");
 		if (app.picture_id)
-			{
-			html += "<li><a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a>";
-			if (app.picture_id != app.member.member_image_id)
-				html += " - <a class=\"anchor-style accept-picture\">Accept Picture and attach to member's profile</a></li>";
-			else
-				html += " - accepted and attached to member's profile";
-			html += "</li>";
-			}
+			actions.push("<a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a>" +
+				((app.picture_id != app.member.member_image_id) ?
+				" - <a class=\"anchor-style accept-picture\">Accept Picture and attach to member's profile</a>" :
+				" - accepted and attached to member's profile"));
 		else
-			html += "<li>No picture has been attached yet. <a class=\"anchor-style attach-picture\">Attach one.</a></li>";
+			actions.push("No picture has been attached yet. <a class=\"anchor-style attach-picture\">Attach one.</a>");
 		if (!app.form_id)
 			{
 			if (app.app_turned_in_at)
 				{
 				dt = new Date(app.app_turned_in_at);
-				html += "<li>Signed form turned in on " + dt.toLocaleDateString() + ".</li>";
+				actions.push("Signed form turned in on " + dt.toLocaleDateString() + ".");
 				}
-			html += "<li>No signed form uploaded. <a class=\"anchor-style upload-signed-form\">Upload it.</a></li>";
-			html += "<li><a href=\"/application/print/" + app.application_id + "\" target=\"_blank\">Print the filled-out application.</a></li>";
+			actions.push("No signed form uploaded. <a class=\"anchor-style upload-signed-form\">Upload it.</a>");
+			actions.push("<a href=\"/application/print/" + app.application_id + "\" target=\"_blank\">Print the filled-out application.</a>");
 			}
 		else
-			html += "<li><a class=\"anchor-style view-signed-form\" id=\"" + app.form_id + "\">View the signed form.</a></li>";
+			actions.push("<a class=\"anchor-style view-signed-form\" id=\"" + app.form_id + "\">View the signed form.</a>");
 		if (app.topic_id)
-			html += "<li><a href=\"https://groups.google.com/a/hive13.org/forum/#!topic/leadership/" + app.topic_id + "\" target=\"_blank\">View the discussion thread.</a></li>";
-		html += "<li><a class=\"anchor-style finalize-application\">Mark this application as finished.</a></li>";
-		html += "</ul>";
+			actions.push("<a href=\"https://groups.google.com/a/hive13.org/forum/#!topic/leadership/" + app.topic_id + "\" target=\"_blank\">View the discussion thread.</a>");
+		actions.push("<a class=\"anchor-style finalize-application\">Mark this application as finished.</a>");
+		html += actions.join("</li><li>") + "</li></ul>";
 		}
 
 	$panel.find(".panel-body").html(html);
