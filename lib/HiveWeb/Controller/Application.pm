@@ -26,14 +26,23 @@ sub index :Path
 			});
 
 	# Create a new application if none found and no ID specified
-	$application = { member => $c->user(), new => 1 }
+	$application =
+		{
+		member    => $c->user(),
+		member_id => $c->user()->member_id(),
+		new       => 1,
+		}
 		if (!$application && !$application_id);
 
 	die 'Cannot find application.'
 		if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')));
 
-	$c->stash()->{template} = 'application/edit.tt';
-	$c->stash()->{other}       = ($application->member_id() ne $user->member_id());
+	$c->stash(
+		{
+		template    => 'application/edit.tt',
+		other       => ($application->member_id() ne $user->member_id()),
+		application => $application,
+		});
 
 	return
 		if ($c->request()->method() eq 'GET');
