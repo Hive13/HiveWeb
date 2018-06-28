@@ -49,6 +49,7 @@
 		'application.attach_picture' => 60,
 		'application.mark_submitted' => 60,
 		'application.attach_form'    => 60,
+		'application.update'         => 60,
 		'password.reset'             => 1,
 		'storage.assign'             => 100,
 		},
@@ -58,19 +59,23 @@
 		pending_group => 'pending_applications',
 		create =>
 			{
-			temp_plain => 'email/new_application_plain.tt',
+			temp_plain => 'email/application/created_plain.tt',
 			},
 		mark_submitted =>
 			{
-			temp_plain => 'email/application_submitted_plain.tt',
+			temp_plain => 'email/application/submitted_plain.tt',
 			},
 		attach_picture =>
 			{
-			temp_plain => 'email/application_picture_attached_plain.tt',
+			temp_plain => 'email/application/picture_attached_plain.tt',
 			},
 		attach_form =>
 			{
-			temp_plain => 'email/application_form_attached_plain.tt',
+			temp_plain => 'email/application/form_attached_plain.tt',
+			},
+		update =>
+			{
+			temp_plain => 'email/application/updated_plain.tt',
 			},
 		},
 	}
