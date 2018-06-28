@@ -25,7 +25,7 @@ sub list :Local :Args(0)
 		},
 		{
 		order_by => [ 'priority', 'issued_at' ],
-		prefetch => [ 'curse', 'issuing_member' ],
+		prefetch => { issuing_member => 'member_mgroups', curse => 'curse_actions' },
 		});
 
 	$out->{curses}   = \@curses;
