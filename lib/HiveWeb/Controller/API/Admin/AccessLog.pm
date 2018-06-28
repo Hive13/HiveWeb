@@ -142,7 +142,7 @@ sub recent :Local :Args(0)
 		{
 		order_by => { -desc => 'me.access_time' },
 		rows     => 10,
-		prefetch => [ 'item', 'member' ],
+		prefetch => [ 'item', { member => 'member_mgroups' } ],
 		});
 	$out->{accesses} = \@accesses;
 	$out->{response} = \1;

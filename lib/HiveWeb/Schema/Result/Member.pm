@@ -313,7 +313,7 @@ sub list_slots
 	foreach my $slot (@slots)
 		{
 		my $location = $slot->location();
-		my $lname;
+		my $lname = "";
 		while ($location)
 			{
 			$lname = ' &rarr; ' . $lname
