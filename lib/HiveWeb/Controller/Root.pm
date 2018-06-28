@@ -14,6 +14,10 @@ sub auto :Private
 	my ($self, $c) = @_;
 
 	my $toast = $c->stash()->{auto_toast} = [];
+	if (my $f = $c->flash()->{auto_toast})
+		{
+		push(@$toast, $f);
+		}
 
 	if (my $user = $c->user())
 		{
