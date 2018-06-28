@@ -7,11 +7,33 @@ use PDF::API2;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-sub index :Path :Args(0)
+sub index :Path
 	{
-	my ($self, $c) = @_;
+	my ($self, $c, $application_id) = @_;
 
-	$c->stash()->{template} = 'application/new.tt';
+	my $user = $c->user();
+	return if (!$user);
+
+	my $application = $application_id ?
+		$c->model('DB::Application')->find($application_id) :
+		$user->find_related('applications',
+			{
+			decided_at => undef,
+			},
+			{
+			order_by => { -desc => 'updated_at' },
+			rows     => 1,
+			});
+
+	# Create a new application if none found and no ID specified
+	$application = { member => $c->user(), new => 1 }
+		if (!$application && !$application_id);
+
+	die 'Cannot find application.'
+		if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')));
+
+	$c->stash()->{template} = 'application/edit.tt';
+	$c->stash()->{other}       = ($application->member_id() ne $user->member_id());
 
 	return
 		if ($c->request()->method() eq 'GET');
@@ -55,6 +77,8 @@ sub index :Path :Args(0)
 
 	if (scalar(%$fail))
 		{
+		$form->{member} = $c->user();
+		$form->{new}    = 1;
 		$c->stash(
 			{
 			message     => $fail,
@@ -64,15 +88,15 @@ sub index :Path :Args(0)
 		}
 	try
 		{
-		my $application;
-		my $member_id = $c->user()->member_id();
-		$form->{member_id} = $member_id;
 		$c->model('DB')->schema()->txn_do(sub
 			{
-			my $priority = $c->config()->{priorities}->{'application.create'};
-			my $group    = $c->config()->{application}->{pending_group};
-			$application = $c->model('DB::Application')->create($form) || die $!;
-			my $mgroup   = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
+			my $member_id      = $c->user()->member_id();
+			$form->{member_id} = $member_id;
+			my $priority       = $c->config()->{priorities}->{'application.create'};
+			my $group          = $c->config()->{application}->{pending_group};
+			my $mgroup         = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
+
+			my $application = $c->model('DB::Application')->create($form) || die $!;
 			$mgroup->find_or_create_related('member_mgroups', { member_id => $member_id }) || die 'Unable to add user to group.';
 			my $queue = $c->model('DB::Action')->create(
 				{
@@ -81,47 +105,22 @@ sub index :Path :Args(0)
 				action_type       => 'application.create',
 				row_id            => $application->application_id(),
 				}) || die 'Unable to queue notification.';
-			});
 
-		$c->stash(
-			{
-			template    => 'application/complete.tt',
-			application => $application,
+			$c->stash(
+				{
+				template    => 'application/complete.tt',
+				application => $application,
+				});
 			});
 		}
 	catch
 		{
 		$c->stash(
 			{
-			message => { error => $_ },
+			message => { error => "$_" },
 			vals    => $form
 			});
 		};
-	}
-
-sub view :Local
-	{
-	my ($self, $c, $application_id) = @_;
-	my $user                        = $c->user();
-
-	return if (!$user);
-
-	my $application = $application_id ?
-		$c->model('DB::Application')->find($application_id) :
-		$user->find_related('applications',
-			{
-			decided_at => undef,
-			},
-			{
-			order_by => { -desc => 'updated_at' },
-			rows     => 1,
-			});
-
-	die 'Cannot find application.'
-		if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')));
-
-	$c->stash()->{application} = $application;
-	$c->stash()->{other}       = ($application->member_id() ne $user->member_id());
 	}
 
 sub print :Local
