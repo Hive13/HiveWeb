@@ -83,7 +83,8 @@ sub pending :Local :Args(0)
 		decided_at => undef,
 		},
 		{
-		order_by => { -asc => 'updated_at' },
+		order_by => { -asc => 'me.updated_at' },
+		prefetch => { member => 'member_mgroups' },
 		})->all();
 
 	$out->{response} = \1;
