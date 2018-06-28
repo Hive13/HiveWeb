@@ -115,7 +115,7 @@ function display_application_status(data, $panel, odata)
 		}
 
 	steps.push("Keep attending meetings and get to know the membership.");
-	steps.push("<a href=\"/application/view\" target=\"_blank\">Review your Application</a>");
+	steps.push("<a href=\"/application\" target=\"_blank\">Review your Application</a>");
 
 	html += "<ul><li>" + steps.join("</li><li>") + "</li></ul>";
 	$panel.find(".panel-body").html(html);

@@ -51,7 +51,7 @@ function display_pending_applications(data, $panel, odata)
 		html += "<h4>Application from " + app.member.fname + " " + app.member.lname + "</h4>";
 		html += "<h6>Submitted " + dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</h6>";
 		html += "<ul class=\"application\" id=\"" + app.application_id + "\"><li>";
-		actions.push("<a href=\"/application/view/" + app.application_id + "\" target=\"_blank\">View this Application</a>");
+		actions.push("<a href=\"/application/" + app.application_id + "\" target=\"_blank\">View this Application</a>");
 		if (app.picture_id)
 			actions.push("<a class=\"anchor-style show-picture\" id=\"" + app.picture_id + "\">Picture Attached</a>" +
 				((app.picture_id != app.member.member_image_id) ?
