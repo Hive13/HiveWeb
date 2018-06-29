@@ -18,6 +18,18 @@
 			uri  => Catalyst.uri_for('/member/profile'),
 			text => 'My Profile',
 			});
+		IF Catalyst.check_user_roles('members');
+			links.push(
+				{
+				uri  => Catalyst.uri_for('/member/pay'),
+				text => 'Payments',
+				});
+		END;
+		links.push(
+			{
+			uri  => Catalyst.uri_for('/logout'),
+			text => 'Sign Out',
+			});
 	ELSE;
 		links.push(
 			{
@@ -28,20 +40,6 @@
 			{
 			uri  => Catalyst.uri_for('/member/register'),
 			text => 'Register',
-			});
-	END;
-	IF Catalyst.check_user_roles('members');
-		links.push(
-			{
-			uri  => Catalyst.uri_for('/member/pay'),
-			text => 'Payments',
-			});
-	END;
-	IF Catalyst.user_exists;
-		links.push(
-			{
-			uri  => Catalyst.uri_for('/logout'),
-			text => 'Sign Out',
 			});
 	END;
 ~%]
