@@ -66,7 +66,7 @@ sub two_factor :Local :Args(0)
 	if ($enable)
 		{
 		my $secret = $c->session()->{candidate_secret};
-		my $code   = int($in->{code} || 0);
+		my $code   = $in->{code};
 		if (!$secret)
 			{
 			$out->{data} = 'Cannot find secret.';
@@ -75,7 +75,7 @@ sub two_factor :Local :Args(0)
 		my $oath = Authen::OATH->new();
 		my $needed_code = $oath->totp($secret);
 
-		if ($code != $needed_code)
+		if ($code ne $needed_code)
 			{
 			$out->{data} = 'That code does not work.  Please try again.';
 			return;
