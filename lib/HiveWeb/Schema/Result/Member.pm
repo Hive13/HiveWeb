@@ -54,6 +54,8 @@ __PACKAGE__->add_columns(
   { data_type => 'uuid', is_nullable => 1, size => 16 },
 	'door_count',
   { data_type => 'integer', is_nullable => 1 },
+  'totp_secret',
+  { data_type => 'bytea', is_nullable => 1 },
 );
 
 __PACKAGE__->uuid_columns('member_id');
