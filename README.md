@@ -20,3 +20,7 @@ The new Hive internal Web
 * libmath-round-perl
 * libtext-markdown-perl
 * libimage-magick-perl
+* libconvert-base32-perl
+* libconvert-base32-perl
+* libconvert-base32-perl
+* libimager-qrcode-perl
