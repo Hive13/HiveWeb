@@ -47,10 +47,20 @@ function do_checkbox()
 
 function enable_2fa()
 	{
+	var $dialogue = $("#totp_dialogue");
+	$dialogue.modal("show");
+	return false;
 	}
 
 function disable_2fa()
 	{
+	return false;
+	}
+
+function enable_totp()
+	{
+	var $dialogue = $("#totp_dialogue");
+	var code = $dialogue.find("input#test_code").val();
 	}
 
 $(function()
@@ -60,8 +70,28 @@ $(function()
 
 	$("button#enable_2fa").click(enable_2fa);
 	$("button#disable_2fa").click(disable_2fa);
+	$("button#enable_totp").click(enable_totp);
 	});
 </script>
+<div class="modal fade" id="totp_dialogue" tabIndex="-1" role="dialog" aria-labelledby="totp_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button>
+				<h3 class="modal-title" id="totp_label">Add Two-Factor Authentication</h3>
+			</div>
+			<div class="modal-body u-text-center">
+				Please scan this code and enter a code into the box below.<br />
+				<img src="[% Catalyst.uri_for('/member/totp_qrcode').dquote %]" /><br />
+				<input type="text" id="test_code" size="6" maxlength="6" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="enable_totp">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
 <div class="row">
 	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info" style="text-align: center; padding: 20px;">
 		<form method="post">
@@ -169,6 +199,7 @@ $(function()
 						<input type="submit" value="[% submit %]" class="btn btn-lg btn-block btn-success" style="margin-top: 10px;" />
 					</td>
 				</tr>
+				[%~ IF !show_pass %]
 				<tr>
 					<td colspan="2" class="u-text-center bg-primary" style="padding-top: 20px; padding-bottom: 20px;">
 						[%~ IF vals.totp_secret %]
@@ -180,6 +211,7 @@ $(function()
 						[%~ END %]
 					</td>
 				</tr>
+				[%~ END %]
 			</table>
 		</form>
 	</div>
