@@ -45,10 +45,21 @@ function do_checkbox()
 		$paypal_tr.css("display", "none");
 	}
 
+function enable_2fa()
+	{
+	}
+
+function disable_2fa()
+	{
+	}
+
 $(function()
 	{
 	$("input#different_paypal").click(do_checkbox);
 	do_checkbox();
+
+	$("button#enable_2fa").click(enable_2fa);
+	$("button#disable_2fa").click(disable_2fa);
 	});
 </script>
 <div class="row">
@@ -156,6 +167,17 @@ $(function()
 				<tr>
 					<td colspan="2">
 						<input type="submit" value="[% submit %]" class="btn btn-lg btn-block btn-success" style="margin-top: 10px;" />
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" class="u-text-center bg-primary" style="padding-top: 20px; padding-bottom: 20px;">
+						[%~ IF vals.totp_secret %]
+						Two-Factor Authentication is set up.<br />
+						<button class="btn btn-danger" id="disable_2fa">Disable Two-Factor Authentication</button>
+						[%~ ELSE %]
+						Two-Factor Authentication is not set up.<br />
+						<button class="btn btn-success" id="enable_2fa">Enable Two-Factor Authentication</button>
+						[%~ END %]
 					</td>
 				</tr>
 			</table>
