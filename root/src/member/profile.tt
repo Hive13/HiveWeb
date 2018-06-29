@@ -34,6 +34,15 @@ table.register td.paypal
 	}
 </style>
 <script>
+function show_2fa(enabled)
+	{
+	var $td = $("tr#two_factor > td");
+
+	if (enabled)
+		$td.html("Two-Factor Authentication is set up.<br /><button class=\"btn btn-danger\" id=\"disable_2fa\">Disable Two-Factor Authentication</button>");
+	else
+		$td.html("Two-Factor Authentication is not set up.<br /><button class=\"btn btn-success\" id=\"enable_2fa\">Enable Two-Factor Authentication</button>");
+	}
 function do_checkbox()
 	{
 	var checked    = $("input#different_paypal").prop("checked");
@@ -54,6 +63,20 @@ function enable_2fa()
 
 function disable_2fa()
 	{
+	if (!confirm("Are you sure?"))
+		return;
+
+	api_json(
+		{
+		url: "/api/member/two_factor",
+		data: { enable: false },
+		what: "Disable Two-Factor Authentication",
+		success: function()
+			{
+			$("#totp_dialogue").modal("hide");
+			show_2fa(false);
+			}
+		});
 	return false;
 	}
 
@@ -61,16 +84,33 @@ function enable_totp()
 	{
 	var $dialogue = $("#totp_dialogue");
 	var code = $dialogue.find("input#test_code").val();
+	api_json(
+		{
+		url: "/api/member/two_factor",
+		data:
+			{
+			enable: true,
+			code:   code
+			},
+		what: "Enable Two-Factor Authentication",
+		success: function()
+			{
+			$dialogue.modal("hide");
+			show_2fa(true);
+			}
+		});
 	}
 
 $(function()
 	{
+	var $tr = $("tr#two_factor");
 	$("input#different_paypal").click(do_checkbox);
 	do_checkbox();
 
-	$("button#enable_2fa").click(enable_2fa);
-	$("button#disable_2fa").click(disable_2fa);
+	$tr.on("click", "button#enable_2fa", enable_2fa);
+	$tr.on("click", "button#disable_2fa", disable_2fa);
 	$("button#enable_totp").click(enable_totp);
+	show_2fa([% GET vals.totp_secret ? 'true' : 'false' %]);
 	});
 </script>
 <div class="modal fade" id="totp_dialogue" tabIndex="-1" role="dialog" aria-labelledby="totp_label">
@@ -200,16 +240,8 @@ $(function()
 					</td>
 				</tr>
 				[%~ IF !show_pass %]
-				<tr>
-					<td colspan="2" class="u-text-center bg-primary" style="padding-top: 20px; padding-bottom: 20px;">
-						[%~ IF vals.totp_secret %]
-						Two-Factor Authentication is set up.<br />
-						<button class="btn btn-danger" id="disable_2fa">Disable Two-Factor Authentication</button>
-						[%~ ELSE %]
-						Two-Factor Authentication is not set up.<br />
-						<button class="btn btn-success" id="enable_2fa">Enable Two-Factor Authentication</button>
-						[%~ END %]
-					</td>
+				<tr id="two_factor">
+					<td colspan="2" class="u-text-center bg-primary" style="padding-top: 20px; padding-bottom: 20px;"></td>
 				</tr>
 				[%~ END %]
 			</table>

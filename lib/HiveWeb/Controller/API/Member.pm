@@ -2,7 +2,16 @@ package HiveWeb::Controller::API::Member;
 use Moose;
 use namespace::autoclean;
 
+use Authen::OATH;
+
 BEGIN { extends 'Catalyst::Controller' }
+
+sub auto :Private
+	{
+	my ($self, $c)   = @_;
+	my $out          = $c->stash()->{out};
+	$out->{response} = \0;
+	}
 
 sub index :Path :Args(0)
 	{
@@ -44,16 +53,43 @@ sub find :Local :Args(0)
 		};
 	}
 
-=head1 AUTHOR
+sub two_factor :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $in         = $c->stash()->{in};
+	my $out        = $c->stash()->{out};
+	my $user       = $c->user();
+	my $enable     = $in->{enable} // 1;
 
-Greg Arnold
+	return if (!$user);
 
-=head1 LICENSE
+	if ($enable)
+		{
+		my $secret = $c->session()->{candidate_secret};
+		my $code   = int($in->{code} || 0);
+		if (!$secret)
+			{
+			$out->{data} = 'Cannot find secret.';
+			return;
+			}
+		my $oath = Authen::OATH->new();
+		my $needed_code = $oath->totp($secret);
 
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+		if ($code != $needed_code)
+			{
+			$out->{data} = 'That code does not work.  Please try again.';
+			return;
+			}
 
-=cut
+		$user->update({ totp_secret => $secret }) || die $!;
+		$out->{response} = \1;
+		}
+	else
+		{
+		$user->update({ totp_secret => undef }) || die $!;
+		$out->{response} = \1;
+		}
+	}
 
 __PACKAGE__->meta->make_immutable;
 

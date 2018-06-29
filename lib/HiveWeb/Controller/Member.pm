@@ -125,8 +125,8 @@ sub totp_qrcode :Local :Args(0)
 
 	return if ($c->user()->totp_secret());
 
-	my $secret = $c->flash()->{candidate_secret} || encode_base32(random_bytes(16));
-	$c->flash()->{candidate_secret} = $secret;
+	my $secret = $c->session()->{candidate_secret} || random_bytes(16);
+	$c->session()->{candidate_secret} = $secret;
 
 	my $qrcode = Imager::QRCode->new(
 		{
@@ -139,7 +139,7 @@ sub totp_qrcode :Local :Args(0)
 		darkcolor     => Imager::Color->new(0, 0, 0),
 		});
 	my $data;
-	my $img = $qrcode->plot(sprintf('otpauth://totp/%s?secret=%s&issuer=Hive13+intweb', $c->user()->email(), $secret));
+	my $img = $qrcode->plot(sprintf('otpauth://totp/%s?secret=%s&issuer=Hive13+intweb', $c->user()->email(), encode_base32($secret)));
 	$img->write(data => \$data, type => 'png')
 		or die 'Failed to write: ' . $img->errstr;
 
