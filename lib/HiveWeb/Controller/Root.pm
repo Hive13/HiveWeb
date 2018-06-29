@@ -4,6 +4,7 @@ use namespace::autoclean;
 
 use Net::SMTP;
 use Try::Tiny;
+use Authen::OATH;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -14,6 +15,9 @@ sub auto :Private
 	my ($self, $c) = @_;
 
 	my $toast = $c->stash()->{auto_toast} = [];
+
+	$c->detach('/two_factor')
+		if ($c->session()->{need_2fa} && $c->request()->path() ne '/two_factor');
 
 	if (my $user = $c->user())
 		{
@@ -96,6 +100,39 @@ sub blocked_by_curse :Local :Args(0)
 	$c->stash()->{template} = 'blocked_by_curse.tt';
 	}
 
+sub two_factor :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	$c->response()->redirect('/')
+		if (!$c->session()->{need_2fa});
+
+	$c->stash()->{template} = 'two_factor.tt';
+	return
+		if ($c->request()->method() eq 'GET');
+
+	my $code        = $c->request()->params()->{code};
+	my $oath        = Authen::OATH->new();
+	my $needed_code = $oath->totp($c->user()->totp_secret());
+
+	if (!$code)
+		{
+		$c->stash()->{msg} = 'You must enter a Two-Factor Authentication code to continue.';
+		return;
+		}
+
+	if ($code ne $needed_code)
+		{
+		$c->stash()->{msg} = 'That code is not correct.  Please enter a valid Two-Factor Authentication code to continue.';
+		return;
+		}
+
+	delete($c->session()->{need_2fa});
+	my $return = $c->flash()->{return} || $c->uri_for('/');
+	$c->clear_flash();
+	$c->response()->redirect($return);
+	}
+
 sub login :Local
 	{
 	my ($self, $c) = @_;
@@ -138,6 +175,12 @@ sub login :Local
 		}) || die $!;
 	if ($user)
 		{
+		if ($user->totp_secret())
+			{
+			$c->session()->{need_2fa} = 1;
+			$c->detach('/two_factor');
+			}
+
 		my $return = $c->flash()->{return} || $c->uri_for('/');
 		$c->clear_flash();
 		$c->response()->redirect($return);
