@@ -1,0 +1,68 @@
+.hive-edit-table
+	{
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	width: 100%;
+	
+	tbody tr td.edit
+		{
+		opacity: 0;
+		text-align: center;
+		}
+	
+	tbody tr:not(.loading):hover td.edit
+		{
+		opacity: 1;
+		}
+	}
+
+img.icon
+	{
+	width: 1.2em;
+	height: 1.2em;
+	cursor: pointer;
+
+	&.icon-disabled
+		{
+		cursor: default;
+		opacity: .5;
+		}
+	}
+
+div#photo div.panel-body
+	{
+	.btn img
+		{
+		max-width: 75px;
+		max-height: 75px;
+		}
+	
+	img
+		{
+		max-width: 500px;
+		max-height: 190px;
+		}
+	}
+
+div#photo_dialogue div.modal-body img
+	{
+	max-width: 100%;
+	max-height: 500px;
+	}
+
+div.search
+  {
+	width: 25%;
+	min-width: 100px;
+	float: right;
+	height: 34px;
+	padding-left: 10px;
+	}
+
+nav ul.pagination
+	{
+	margin: 0;
+	}
+

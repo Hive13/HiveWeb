@@ -1,18 +1,4 @@
 <style>
-div.search
-	{
-	width: 25%;
-	min-width: 100px;
-	float: right;
-	height: 34px;
-	padding-left: 10px;
-	}
-
-nav ul.pagination
-	{
-	margin: 0;
-	}
-
 table th.options
 	{
 	text-align: right;
@@ -85,8 +71,8 @@ table th.options
 									<img title="Add" class="add icon" src="/static/icons/add.png" />
 									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
 								</div>
-								<div id="badge_edit" style="display: none; max-width: 100%;">
-									<input type="number" id="badge_number" style="max-width: 100%" /><br />
+								<div id="badge_edit" class="u-mw-100" style="display: none;">
+									<input type="number" id="badge_number" class="u-mw-100" /><br />
 									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
 									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
 								</div>
@@ -777,7 +763,7 @@ function load_image($dialogue, image_id, member_id)
 		}
 	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
 
-	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
+	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("u-anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
 		{
 		api_json(
 			{
@@ -792,7 +778,7 @@ function load_image($dialogue, image_id, member_id)
 		});
 	$photo_header.prepend($rotateL);
 
-	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Clockwise").click(function ()
+	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("u-anchor-style").attr("title", "Rotate Clockwise").click(function ()
 		{
 		api_json(
 			{
@@ -807,7 +793,7 @@ function load_image($dialogue, image_id, member_id)
 		});
 	$photo_header.prepend($rotate);
 
-	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
+	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("u-anchor-style").attr("title", "Delete Image").click(function ()
 		{
 		if (!confirm("Are you sure you want to remove this photo?"))
 			return;
@@ -879,7 +865,7 @@ function load_header($table)
 		html += "<th";
 		if ("hidden" in columns[i])
 			html += " class=\"" + hidden_styles(columns[i].hidden) + "\"";
-		html += "><a id=\"sort-" + columns[i].name + "\" class=\"anchor-style sort sort-";
+		html += "><a id=\"sort-" + columns[i].name + "\" class=\"u-anchor-style sort sort-";
 		html += (order === columns[i].name && dir === "ASC") ? "desc" : "asc";
 		html += "\">" + columns[i].desc;
 		if (order === columns[i].name)
@@ -1012,18 +998,18 @@ function load_members()
 			i = 1;
 
 		if (i > 1)
-			html += "<li><a class=\"anchor-style\" id=\"page_first\">&laquo;</a></li>";
+			html += "<li><a class=\"u-anchor-style\" id=\"page_first\">&laquo;</a></li>";
 
 		for (j = 0; j < 7 && i <= val; i++, j++)
 			{
 			html += "<li";
 			if (i == data.page)
 				html += " class=\"active\"";
-			html += "><a class=\"anchor-style\" id=\"page_" + i + "\">" + i + "</a></li>";
+			html += "><a class=\"u-anchor-style\" id=\"page_" + i + "\">" + i + "</a></li>";
 			}
 
 		if (i < val)
-			html += "<li><a class=\"anchor-style\" id=\"page_last\">&raquo;</a></li>";
+			html += "<li><a class=\"u-anchor-style\" id=\"page_last\">&raquo;</a></li>";
 
 		html += "</ul>";
 		set_top_html(count);
