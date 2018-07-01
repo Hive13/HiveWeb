@@ -1,10 +1,3 @@
-<style>
-table th.options
-	{
-	text-align: right;
-	padding-right: 10px;
-	}
-</style>
 <div class="row">
 	<div class="col-sm-12 panel panel-default hive-member-panel u-p-0">
 		<div class="panel-heading">
@@ -856,7 +849,7 @@ function load_header($table)
 
 	$("select.per-page").find("option[value=" + per_page + "]").attr("selected", true);
 
-	html = "<th colspan=\"2\" class=\"options\">"
+	html = "<th colspan=\"2\" class=\"u-text-right u-pr-1\">"
 		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
 		+ "</th>";
 

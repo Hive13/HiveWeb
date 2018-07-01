@@ -17,25 +17,49 @@
 	{
 	text-align: center;
 	}
+.u-text-right
+	{
+	text-align: right;
+	}
 
 .u-dis-none
 	{
 	display: none !important;
 	}
 
+@size0: 0     !important;
+@size1: 0.5em !important;
+@size2: 1em   !important;
+
 .u-p
 	{
 	&-0
 		{
-		padding: 0 !important;
+		padding: @size0;
 		}
 	&-1
 		{
-		padding: 0.5em !important;
+		padding: @size1;
 		}
 	&-2
 		{
-		padding: 1em !important;
+		padding: @size2;
+		}
+	}
+
+.u-pr
+	{
+	&-0
+		{
+		padding-right: @size0;
+		}
+	&-1
+		{
+		padding-right: @size1;
+		}
+	&-2
+		{
+		padding-right: @size2;
 		}
 	}
 
