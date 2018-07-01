@@ -27,41 +27,30 @@
 	display: none !important;
 	}
 
-@size0: 0     !important;
-@size1: 0.5em !important;
-@size2: 1em   !important;
+@size0: 0;
+@size1: 0.5em;
+@size2: 1em;
+@size3: 1.5em;
 
-.u-p
+.sizing(@attr)
 	{
-	&-0
-		{
-		padding: @size0;
-		}
-	&-1
-		{
-		padding: @size1;
-		}
-	&-2
-		{
-		padding: @size2;
-		}
+	&-0 { @{attr}: @size0 !important; }
+	&-1 { @{attr}: @size1 !important; }
+	&-2 { @{attr}: @size2 !important; }
+	&-3 { @{attr}: @size3 !important; }
 	}
 
-.u-pr
-	{
-	&-0
-		{
-		padding-right: @size0;
-		}
-	&-1
-		{
-		padding-right: @size1;
-		}
-	&-2
-		{
-		padding-right: @size2;
-		}
-	}
+.u-p         { .sizing(padding);        }
+.u-pr,.u-plr { .sizing(padding-right);  }
+.u-pl,.u-plr { .sizing(padding-left);   }
+.u-pt,.u-ptb { .sizing(padding-top);    }
+.u-pb,.u-ptb { .sizing(padding-bottom); }
+
+.u-m         { .sizing(margin);        }
+.u-mr,.u-mlr { .sizing(margin-right);  }
+.u-ml,.u-mlr { .sizing(margin-left);   }
+.u-mt,.u-mtb { .sizing(margin-top);    }
+.u-mb,.u-mtb { .sizing(margin-bottom); }
 
 .u-f-r
 	{

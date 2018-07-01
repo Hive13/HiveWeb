@@ -73,7 +73,7 @@ END;
 					s
 				[%~ END =%]
 				remaining.
-				<div class="col-sm-10 col-sm-offset-1 alert alert-info u-text-center" style="margin-top: 10px;">
+				<div class="col-sm-10 col-sm-offset-1 alert alert-info u-text-center u-mt-3">
 					<form method="post" action="[% Catalyst.uri_for('/member/charge') %]">
 						Add [% Catalyst.config.soda.add_amount %] credits to your account for $[% Catalyst.config.soda.cost / 100 %].<br />
 						<script src="https://checkout.stripe.com/v2/checkout.js" class="stripe-button"
