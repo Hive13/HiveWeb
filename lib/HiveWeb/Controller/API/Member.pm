@@ -2,8 +2,6 @@ package HiveWeb::Controller::API::Member;
 use Moose;
 use namespace::autoclean;
 
-use Authen::OATH;
-
 BEGIN { extends 'Catalyst::Controller' }
 
 sub auto :Private
@@ -72,10 +70,8 @@ sub two_factor :Local :Args(0)
 			$out->{data} = 'Cannot find secret.';
 			return;
 			}
-		my $oath = Authen::OATH->new();
-		my $needed_code = $oath->totp($secret);
 
-		if ($code ne $needed_code)
+		if (!$user->check_2fa($code, $secret))
 			{
 			$out->{data} = 'That code does not work.  Please try again.';
 			return;
@@ -83,11 +79,13 @@ sub two_factor :Local :Args(0)
 
 		$user->update({ totp_secret => $secret }) || die $!;
 		$out->{response} = \1;
+		$out->{data}     = 'Two-Factor Authentication has been enabled on your account.';
 		}
 	else
 		{
 		$user->update({ totp_secret => undef }) || die $!;
 		$out->{response} = \1;
+		$out->{data}     = 'Two-Factor Authentication has been disabled on your account.';
 		}
 	}
 

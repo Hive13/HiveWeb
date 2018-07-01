@@ -4,7 +4,6 @@ use namespace::autoclean;
 
 use Net::SMTP;
 use Try::Tiny;
-use Authen::OATH;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -111,17 +110,14 @@ sub two_factor :Local :Args(0)
 	return
 		if ($c->request()->method() eq 'GET');
 
-	my $code        = $c->request()->params()->{code};
-	my $oath        = Authen::OATH->new();
-	my $needed_code = $oath->totp($c->user()->totp_secret());
-
+	my $code = $c->request()->params()->{code};
 	if (!$code)
 		{
 		$c->stash()->{msg} = 'You must enter a Two-Factor Authentication code to continue.';
 		return;
 		}
 
-	if ($code ne $needed_code)
+	if (!$c->user()->check_2fa($code))
 		{
 		$c->stash()->{msg} = 'That code is not correct.  Please enter a valid Two-Factor Authentication code to continue.';
 		return;
