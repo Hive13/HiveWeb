@@ -15,8 +15,10 @@ sub auto :Private
 
 	my $toast = $c->stash()->{auto_toast} = [];
 
+	delete($c->session()->{need_2fa})
+		if (!$c->user());
 	$c->detach('/two_factor')
-		if ($c->session()->{need_2fa} && $c->request()->path() ne '/two_factor');
+		if ($c->session()->{need_2fa} && $c->request()->path() ne 'two_factor' && $c->request()->path() ne 'logout' && $c->request()->path() ne 'login');
 
 	if (my $user = $c->user())
 		{

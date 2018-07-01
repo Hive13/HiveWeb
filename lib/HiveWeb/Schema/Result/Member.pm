@@ -334,11 +334,11 @@ sub check_2fa
 	$secret = $self->totp_secret()
 		if (!$secret);
 
-	my $oath            = Authen::OATH->new(timestep => 60);
+	my $oath            = Authen::OATH->new();
 	my $now             = time();
 	my $candidate_code1 = $oath->totp($secret, $now);
-	my $candidate_code2 = $oath->totp($secret, $now + 60);
-	my $candidate_code3 = $oath->totp($secret, $now - 60);
+	my $candidate_code2 = $oath->totp($secret, $now + 30);
+	my $candidate_code3 = $oath->totp($secret, $now - 30);
 
 	return (($code eq $candidate_code1) || ($code eq $candidate_code2) || ($code eq $candidate_code3));
 	}
