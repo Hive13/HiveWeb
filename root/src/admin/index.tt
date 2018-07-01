@@ -4,7 +4,7 @@
 			<div class="panel-heading u-text-center">
 				<h4>This is some neat-o Administration shit.</h4>
 			</div>
-			<div class="panel-body" style="padding: 18px;">
+			<div class="panel-body u-p-2">
 				<ul>
 					<li><a href="[% Catalyst.uri_for('/admin/members') %]">Member Admin</a></li>
 					<li><a href="[% Catalyst.uri_for('/admin/groups') %]">Group Admin</a></li>

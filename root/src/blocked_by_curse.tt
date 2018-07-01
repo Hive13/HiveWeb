@@ -4,7 +4,7 @@
 			<div class="panel-heading u-text-center">
 				<h4>Outstanding Issues</h4>
 			</div>
-			<div class="panel-body" style="padding: 18px;">
+			<div class="panel-body u-p-2">
 				<h6>Access to this page has been blocked by one or more outstanding notifications</h6>
 				<ul class="list-group">
 					[%~ FOREACH message IN messages %]
