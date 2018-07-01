@@ -6,7 +6,7 @@ table th.options
 	}
 </style>
 <div class="row">
-	<div class="col-sm-12 panel panel-default hive-member-panel" style="padding: 0;">
+	<div class="col-sm-12 panel panel-default hive-member-panel u-p-0">
 		<div class="panel-heading">
 			<h3>Members</h3>
 		</div>
@@ -14,7 +14,7 @@ table th.options
 			<div class="search">
 				<input type="text" class="form-control" placeholder="Search for members" title="<span class='label label-info'>fname:</span>, <span class='label label-info'>lname:</span>, <span class='label label-info'>name:</span>, <span class='label label-info'>email:</span>, <span class='label label-info'>paypal:</span>, and <span class='label label-info'>tel:</span> may be prepended to a search term only search that column.  Note that <span class='label label-info'>name:</span> searches both first and last name.  Badges may be searched by prepending <span class='label label-info'>badge:</span> to a term." data-placement="top" data-toggle="tooltip" />
 			</div>
-			<div style="float: right">
+			<div class="u-f-r">
 				<select class="per-page">
 					<option value="25">25 per page</option>
 					<option value="50">50 per page</option>
@@ -71,7 +71,7 @@ table th.options
 									<img title="Add" class="add icon" src="/static/icons/add.png" />
 									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
 								</div>
-								<div id="badge_edit" class="u-mw-100" style="display: none;">
+								<div id="badge_edit" class="u-mw-100 u-dis-none">
 									<input type="number" id="badge_number" class="u-mw-100" /><br />
 									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
 									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
@@ -92,7 +92,7 @@ table th.options
 									<input type="checkbox" name="different_paypal" id="different_paypal" />
 									Member uses a different e-mail for PayPal or does not use PayPal.
 								</label><br />
-								<div style="display: none" id="paypal_div">
+								<div class="u-dis-none" id="paypal_div">
 									<label for="paypal_email">PayPal E-mail:</label>
 									<input type="email" name="paypal_email" id="paypal_email" maxlength="255" />
 									<br />
@@ -151,7 +151,7 @@ table th.options
 				Curse:
 				<select></select>
 			</label><br />
-			<div id="protect" style="display: none">
+			<div id="protect" class="u-dis-none">
 				This curse is protected.
 				To cast this curse on an individual, type in its name - not its display name.<br />
 				<input type="text" id="curse_name" size="30" />
@@ -718,7 +718,7 @@ function upload_photo()
 			},
 		error: function(jqXHR, status, error_thrown)
 			{
-			$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+			$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden class=\"u-dis-none\" /></label>");
 			$.toast(
 				{
 				icon: "error",
@@ -758,7 +758,7 @@ function load_image($dialogue, image_id, member_id)
 	$photo_header.find("span").remove();
 	if (!image_id)
 		{
-		$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+		$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden class=\"u-dis-none\" /></label>");
 		return;
 		}
 	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
@@ -804,7 +804,7 @@ function load_image($dialogue, image_id, member_id)
 			data:    { member_id: member_id },
 			success: function()
 				{
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
+				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden class=\"u-dis-none\" /></label>");
 				$("table#hive-member-table tr#" + member_id + " td.photo").empty();
 				}
 			});

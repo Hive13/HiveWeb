@@ -1,10 +1,10 @@
 <div class="row">
-	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+	<div class="col-sm-12 panel panel-default u-p-0">
 		<div class="panel-heading">
 			<h3>Access Logs</h3>
 		</div>
 		<div class="panel-body">
-			<div class="search" style="float: right; width: 25%; min-width: 100px;">
+			<div class="search u-f-r" style="width: 25%; min-width: 100px;">
 				<input type="text" class="form-control" placeholder="Search for members" title="<span class='label label-info'>fname:</span>, <span class='label label-info'>lname:</span>, <span class='label label-info'>name:</span> may be prepended to a search term only search that column.  Note that <span class='label label-info'>name:</span> searches both first and last name." data-placement="top" data-toggle="tooltip" />
 			</div>
 			<nav id="pagination_top" class="hive-accesslog-pagination">
