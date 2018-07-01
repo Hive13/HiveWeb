@@ -1,10 +1,4 @@
 <script type="text/javascript" src="[% Catalyst.uri_for('/static/js/jquery.contextmenu.js').dquote %]"></script>
-<style>
-i.glyphicon
-	{
-	margin-right: 0.4em;
-	}
-</style>
 <div class="row" id="hive-storage">
 	<div class="col-sm-12 panel panel-default u-p-0">
 		<div class="panel-heading">
