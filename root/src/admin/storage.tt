@@ -54,7 +54,7 @@ i.glyphicon
 			<div class="modal-body">
 				<div class="requests">
 				</div>
-				<div class="notes u-w-100 u-dis-none">
+				<div class="notes u-w-100" style="display: none">
 					<span class="info"></span><br />
 					<textarea rows="5" class="u-w-100"></textarea><br />
 					<button type="button" class="btn btn-success">Action</button>
@@ -107,20 +107,20 @@ i.glyphicon
 	</div>
 </div>
 
-<ul id="location_menu" class="dropdown-menu u-dis-none" role="menu">
+<ul id="location_menu" class="dropdown-menu" style="display: none" role="menu">
 	<li><a tabindex="-1" href="#" value="location_add_sub">Add Sub-Location</a></li>
 	<li><a tabindex="-1" href="#" value="location_add_slot">Add Slot</a></li>
 	<li><a tabindex="-1" href="#" value="location_delete">Delete this Location</a></li>
 </ul>
-<ul id="slot_menu" class="dropdown-menu u-dis-none" role="menu">
+<ul id="slot_menu" class="dropdown-menu" style="display: none" role="menu">
 	<li class="assign"><a tabindex="-1" href="#" value="slot_assign">Assign this Slot</a></li>
 	<li class="fulfil"><a tabindex="-1" href="#" value="slot_fulfil">Fulfil a Request with this Slot</a></li>
 	<li><a tabindex="-1" href="#" value="slot_delete">Delete this Slot</a></li>
 	<li><a tabindex="-1" href="#" value="slot_edit">Edit this Slot</a></li>
 </ul>
-<ul id="request_menu" class="dropdown-menu u-dis-none" role="menu">
+<ul id="request_menu" class="dropdown-menu" style="display: none" role="menu">
 	<li><a tabindex="-1" href="#" value="request_reject">Reject this Request</a></li>
-	<li class="accept u-dis-none"><a tabindex="-1" href="#" value="request_accept">Accept this Request</a></li>
+	<li class="accept" style="display: none"><a tabindex="-1" href="#" value="request_accept">Accept this Request</a></li>
 </ul>
 
 <script type="text/javascript">
@@ -432,7 +432,7 @@ function finish_loc()
 
 function handle_slot(slot, selected_id)
 	{
-	var html = "<li class=\"storage-slot u-dis-none" + (slot.member_id ? " storage-slot-assigned" : "")
+	var html = "<li style=\"display: none\" class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
 		+ (slot.slot_id == selected_id ? " selected" : "")
 		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\">"
 		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
@@ -449,8 +449,8 @@ function handle_location(loc, show_depth, selected_id)
 	{
 	var i, ret = "<li class=\"storage-location"
 		+ (loc.location_id == selected_id ? " selected" : "")
-		+ (((show_depth) > 0) ? "" : " u-dis-none")
-		+ "\" id=\"" + loc.location_id + "\"><span><i class=\"glyphicon"
+		+ "\" " + (((show_depth) > 0) ? "" : "style=\"display: none\" ")
+		+ "id=\"" + loc.location_id + "\"><span><i class=\"glyphicon"
 		+ (((show_depth - 1) > 0) ? " glyphicon-minus" : " glyphicon-plus")
 		+ "\"></i>" + loc.name + "</span><ul>";
 

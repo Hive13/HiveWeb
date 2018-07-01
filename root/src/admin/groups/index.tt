@@ -28,7 +28,7 @@
 					Curse:
 					<select></select>
 				</label><br />
-				<div id="protect" class="u-dis-none">
+				<div id="protect" style="display: none">
 					This curse is protected.
 					To cast this curse on a group, type in its name - not its display name.<br />
 					<input type="text" id="curse_name" size="30" />

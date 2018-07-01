@@ -71,7 +71,7 @@ table th.options
 									<img title="Add" class="add icon" src="/static/icons/add.png" />
 									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
 								</div>
-								<div id="badge_edit" class="u-mw-100 u-dis-none">
+								<div id="badge_edit" class="u-mw-100" style="display: none">
 									<input type="number" id="badge_number" class="u-mw-100" /><br />
 									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
 									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
@@ -92,7 +92,7 @@ table th.options
 									<input type="checkbox" name="different_paypal" id="different_paypal" />
 									Member uses a different e-mail for PayPal or does not use PayPal.
 								</label><br />
-								<div class="u-dis-none" id="paypal_div">
+								<div style="display: none" id="paypal_div">
 									<label for="paypal_email">PayPal E-mail:</label>
 									<input type="email" name="paypal_email" id="paypal_email" maxlength="255" />
 									<br />
@@ -151,7 +151,7 @@ table th.options
 				Curse:
 				<select></select>
 			</label><br />
-			<div id="protect" class="u-dis-none">
+			<div id="protect" style="display: none">
 				This curse is protected.
 				To cast this curse on an individual, type in its name - not its display name.<br />
 				<input type="text" id="curse_name" size="30" />
@@ -718,7 +718,7 @@ function upload_photo()
 			},
 		error: function(jqXHR, status, error_thrown)
 			{
-			$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden class=\"u-dis-none\" /></label>");
+			$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 			$.toast(
 				{
 				icon: "error",
@@ -758,7 +758,7 @@ function load_image($dialogue, image_id, member_id)
 	$photo_header.find("span").remove();
 	if (!image_id)
 		{
-		$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden class=\"u-dis-none\" /></label>");
+		$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 		return;
 		}
 	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
@@ -804,7 +804,7 @@ function load_image($dialogue, image_id, member_id)
 			data:    { member_id: member_id },
 			success: function()
 				{
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden class=\"u-dis-none\" /></label>");
+				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
 				$("table#hive-member-table tr#" + member_id + " td.photo").empty();
 				}
 			});
