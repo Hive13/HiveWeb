@@ -1,6 +1,7 @@
-LESS_SRC  = src/*.less
-LESS_IN   = src/base.less
-LESS_DEST = style.css
+LESS_SRC = src/*.less
+TARGETS  = admin.min.css main.min.css
+
+all: $(TARGETS)
 
 %.min.css: %.css
 	cssmin < $< > $@
