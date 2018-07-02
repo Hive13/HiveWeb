@@ -1,6 +1,6 @@
 function loading_icon()
 	{
-	return "Loading...<br /><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active\" style=\"width: 100%\"></div></div>";
+	return "Loading...<br /><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active u-w-100\"></div></div>";
 	}
 
 function api_json(options, old_data, old_what, old_success)

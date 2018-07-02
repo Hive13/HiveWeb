@@ -24,3 +24,5 @@ The new Hive internal Web
 * libconvert-base32-perl
 * libimager-qrcode-perl
 * libauthen-oath-perl
+* cssmin
+* node-less

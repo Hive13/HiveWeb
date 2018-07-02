@@ -1,10 +1,10 @@
 <div class="row">
 	<div class="col-xs-12 col-md-8 col-md-offset-2">
 		<div class="panel panel-danger">
-			<div class="panel-heading" style="text-align: center;">
+			<div class="panel-heading u-text-center">
 				<h4>Outstanding Issues</h4>
 			</div>
-			<div class="panel-body" style="padding: 18px;">
+			<div class="panel-body u-p-2">
 				<h6>Access to this page has been blocked by one or more outstanding notifications</h6>
 				<ul class="list-group">
 					[%~ FOREACH message IN messages %]

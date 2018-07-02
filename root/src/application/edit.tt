@@ -13,31 +13,6 @@
 		END;
 	END;
 ~%]
-<style type="text/css">
-table.apply th
-	{
-	text-align: right;
-	}
-table.apply td
-	{
-	text-align: left;
-	}
-table.apply label
-	{
-	cursor: pointer;
-	}
-table.apply span.error
-	{
-	color: #ff0000;
-	background-color: #EEEEEE;
-	}
-
-table.apply td.center
-	{
-	text-align: center;
-	padding-top: 20px;
-	}
-</style>
 
 <script type="text/javascript">
 var picture;
@@ -105,9 +80,9 @@ $(function ()
 [%~ END %]
 
 <div class="row">
-	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info" style="text-align: center; padding: 20px">
+	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info u-text-center u-p-2">
 		<form method="post">
-			<table class="apply">
+			<table class="hive-profile-table">
 				[% INCLUDE column column='address1' title='Address Line 1' required=1 %]
 				[% INCLUDE column column='address2' title='Address Line 2' %]
 				[% INCLUDE column column='city' title='City' required=1 %]
