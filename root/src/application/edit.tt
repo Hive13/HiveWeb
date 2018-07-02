@@ -19,12 +19,12 @@ var picture;
 
 $(function ()
 	{
-	var $t = $("table.apply");
+	var $t = $("table#application");
 	picture = new Picture(
 		{
 		$image_div: $t.find("div.photo"),
 		accept:     true,
-		image_id:   [% GET application.picture_id ? '"' _ application.picture_id.dquote _ '"' : 'undefined'; ~%]
+		image_id:   [% GET application.picture_id ? '"' _ application.picture_id.dquote _ '"' : 'undefined'; %]
 		});
 
 	$t.closest("form").submit(function()
@@ -82,7 +82,7 @@ $(function ()
 <div class="row">
 	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info u-text-center u-p-2">
 		<form method="post">
-			<table class="hive-profile-table">
+			<table class="hive-profile-table" id="application">
 				[% INCLUDE column column='address1' title='Address Line 1' required=1 %]
 				[% INCLUDE column column='address2' title='Address Line 2' %]
 				[% INCLUDE column column='city' title='City' required=1 %]
