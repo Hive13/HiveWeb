@@ -3,6 +3,9 @@ use Moose;
 use namespace::autoclean;
 use LWP::UserAgent;
 use HTTP::Request::Common;
+use Bytes::Random::Secure qw(random_bytes);
+use Convert::Base32;
+use Imager::QRCode;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -98,22 +101,50 @@ sub profile :Local :Args(0)
 	my ($self, $c) = @_;
 
 	$c->stash()->{template} = 'member/profile.tt';
-	
+
 	return
 		if ($c->request()->method() eq 'GET');
 
 	my $form = $c->request()->params();
 	my $fail;
 	($fail, $c->stash()->{message}) = $self->verify_user_data($c, $form, 0);
-	
+
 	if ($fail)
 		{
 		$c->stash()->{vals} = $form;
 		return;
 		}
-		
+
 	$c->user()->update($form) || die $!;
 	$c->response()->redirect($c->uri_for('/'));
+	}
+
+sub totp_qrcode :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	return if ($c->user()->totp_secret());
+
+	my $secret = $c->session()->{candidate_secret} || random_bytes(16);
+	$c->session()->{candidate_secret} = $secret;
+
+	my $qrcode = Imager::QRCode->new(
+		{
+		size          => 5,
+		margin        => 2,
+		version       => 1,
+		level         => 'H',
+		casesensitive => 1,
+		lightcolor    => Imager::Color->new(255, 255, 255),
+		darkcolor     => Imager::Color->new(0, 0, 0),
+		});
+	my $data;
+	my $img = $qrcode->plot(sprintf('otpauth://totp/%s?secret=%s&issuer=Hive13+intweb', $c->user()->email(), encode_base32($secret)));
+	$img->write(data => \$data, type => 'png')
+		or die 'Failed to write: ' . $img->errstr;
+
+	$c->response()->body($data);
+	$c->response()->content_type('image/png');
 	}
 
 sub charge :Local :Args(0)
@@ -153,7 +184,7 @@ sub register :Local :Args(0)
 	my ($self, $c) = @_;
 
 	$c->stash()->{template} = 'member/profile.tt';
-	
+
 	return
 		if ($c->request()->method() eq 'GET');
 

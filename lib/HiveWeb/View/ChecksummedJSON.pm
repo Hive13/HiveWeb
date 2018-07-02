@@ -24,7 +24,7 @@ sub encode_json
 	state $srt   = sub { $JSON::PP::a cmp $JSON::PP::b; };
 	my $out_json = {};
 	my $key      = $c->stash()->{device}->key();
-	
+
 	$out_json->{data} = $data;
 	if (defined($key))
 		{
@@ -36,7 +36,7 @@ sub encode_json
 		$data->{random}       = $random;
 		$out_json->{checksum} = $self->make_hash($c, $data);
 		}
-	
+
 	return $js->sort_by($srt)->encode($out_json);
 	}
 

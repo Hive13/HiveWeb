@@ -4,6 +4,13 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller' }
 
+sub auto :Private
+	{
+	my ($self, $c)   = @_;
+	my $out          = $c->stash()->{out};
+	$out->{response} = \0;
+	}
+
 sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -28,7 +35,7 @@ sub find :Local :Args(0)
 		{
 		$member = $c->model('DB::Member')->find({ member_id => $id });
 		}
-	
+
 	if (!$member)
 		{
 		$out->{response} = \0;
@@ -44,16 +51,43 @@ sub find :Local :Args(0)
 		};
 	}
 
-=head1 AUTHOR
+sub two_factor :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $in         = $c->stash()->{in};
+	my $out        = $c->stash()->{out};
+	my $user       = $c->user();
+	my $enable     = $in->{enable} // 1;
 
-Greg Arnold
+	return if (!$user);
 
-=head1 LICENSE
+	if ($enable)
+		{
+		my $secret = $c->session()->{candidate_secret};
+		my $code   = $in->{code};
+		if (!$secret)
+			{
+			$out->{data} = 'Cannot find secret.';
+			return;
+			}
 
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+		if (!$user->check_2fa($code, $secret))
+			{
+			$out->{data} = 'That code does not work.  Please try again.';
+			return;
+			}
 
-=cut
+		$user->update({ totp_secret => $secret }) || die $!;
+		$out->{response} = \1;
+		$out->{data}     = 'Two-Factor Authentication has been enabled on your account.';
+		}
+	else
+		{
+		$user->update({ totp_secret => undef }) || die $!;
+		$out->{response} = \1;
+		$out->{data}     = 'Two-Factor Authentication has been disabled on your account.';
+		}
+	}
 
 __PACKAGE__->meta->make_immutable;
 
