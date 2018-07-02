@@ -119,6 +119,9 @@ sub access :Local
 		return;
 		}
 
+	$c->stash()->{view}   = $view;
+	$c->stash()->{device} = $device;
+
 	if ($device->min_version() > $version || $version > $device->max_version())
 		{
 		$out->{response} = \0;
@@ -146,9 +149,6 @@ sub access :Local
 			}
 		$out->{nonce_valid} = \1;
 		}
-
-	$c->stash()->{view}   = $view;
-	$c->stash()->{device} = $device;
 
 	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))

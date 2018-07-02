@@ -20,7 +20,7 @@ use Catalyst qw/
 	-Debug
 	ConfigLoader
 	Static::Simple
-	
+
 	Authentication
 	Authorization::ACL
 	Authorization::Roles
