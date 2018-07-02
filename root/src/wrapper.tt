@@ -55,7 +55,7 @@
 	<link rel="stylesheet" href="[% Catalyst.uri_for('/static/css/jquery.toast.min.css') %]" type="text/css" />
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-	<link rel="stylesheet" href="[% Catalyst.uri_for('/static/css/main.css') %]" type="text/css" />
+	<link rel="stylesheet" href="[% Catalyst.uri_for('/static/css/main.min.css') %]" type="text/css" />
 [%~ FOREACH link IN extra_css %]
 	<link rel="stylesheet" href="[% link %]" type="text/css" />
 [%~ END %]
