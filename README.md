@@ -21,3 +21,6 @@ The new Hive internal Web
 * libtext-markdown-perl
 * libpdf-api2-perl
 * libimage-magick-perl
+* libconvert-base32-perl
+* libimager-qrcode-perl
+* libauthen-oath-perl

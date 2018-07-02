@@ -1,0 +1,16 @@
+[%~
+	IF !msg.defined OR msg.length == 0;
+		SET msg = "Please enter your Two-Factor Authenication code.";
+	END;
+~%]
+
+<div class="row">
+	<div class="col-xs-12 col-sm-4 col-sm-offset-4 col-xl-2 col-xl-offset-5">
+		<span>[% msg %]</span>
+		<form id="login" method="post" action="[% Catalyst.uri_for('/two_factor').dquote %]">
+			<input type="text" maxlength="6" size="6" name="code" required autofocus placeholder="Code" />
+			<input type="submit" value="Submit" class="btn btn-block btn-primary" /><br />
+		</form>
+	</div>
+</div>
+[%~ # vim:set filetype=tt2html: ~%]

@@ -34,6 +34,15 @@ table.register td.paypal
 	}
 </style>
 <script>
+function show_2fa(enabled)
+	{
+	var $td = $("tr#two_factor > td");
+
+	if (enabled)
+		$td.html("Two-Factor Authentication is set up.<br /><button class=\"btn btn-danger\" id=\"disable_2fa\">Disable Two-Factor Authentication</button>");
+	else
+		$td.html("Two-Factor Authentication is not set up.<br /><button class=\"btn btn-success\" id=\"enable_2fa\">Enable Two-Factor Authentication</button>");
+	}
 function do_checkbox()
 	{
 	var checked    = $("input#different_paypal").prop("checked");
@@ -45,12 +54,84 @@ function do_checkbox()
 		$paypal_tr.css("display", "none");
 	}
 
+function enable_2fa()
+	{
+	var $dialogue = $("#totp_dialogue");
+	$dialogue.modal("show");
+	return false;
+	}
+
+function disable_2fa()
+	{
+	if (!confirm("Are you sure?"))
+		return;
+
+	api_json(
+		{
+		url: "/api/member/two_factor",
+		data: { enable: false },
+		what: "Disable Two-Factor Authentication",
+		success: function()
+			{
+			$("#totp_dialogue").modal("hide");
+			show_2fa(false);
+			}
+		});
+	return false;
+	}
+
+function enable_totp()
+	{
+	var $dialogue = $("#totp_dialogue");
+	var code = $dialogue.find("input#test_code").val();
+	api_json(
+		{
+		url: "/api/member/two_factor",
+		data:
+			{
+			enable: true,
+			code:   code
+			},
+		what: "Enable Two-Factor Authentication",
+		success: function()
+			{
+			$dialogue.modal("hide");
+			show_2fa(true);
+			}
+		});
+	}
+
 $(function()
 	{
+	var $tr = $("tr#two_factor");
 	$("input#different_paypal").click(do_checkbox);
 	do_checkbox();
+
+	$tr.on("click", "button#enable_2fa", enable_2fa);
+	$tr.on("click", "button#disable_2fa", disable_2fa);
+	$("button#enable_totp").click(enable_totp);
+	show_2fa([% GET vals.totp_secret ? 'true' : 'false' %]);
 	});
 </script>
+<div class="modal fade" id="totp_dialogue" tabIndex="-1" role="dialog" aria-labelledby="totp_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button>
+				<h3 class="modal-title" id="totp_label">Add Two-Factor Authentication</h3>
+			</div>
+			<div class="modal-body u-text-center">
+				Please scan this code and enter a code into the box below.<br />
+				<img src="[% Catalyst.uri_for('/member/totp_qrcode').dquote %]" /><br />
+				<input type="text" id="test_code" size="6" maxlength="6" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="enable_totp">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
 <div class="row">
 	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info" style="text-align: center; padding: 20px;">
 		<form method="post">
@@ -158,6 +239,11 @@ $(function()
 						<input type="submit" value="[% submit %]" class="btn btn-lg btn-block btn-success" style="margin-top: 10px;" />
 					</td>
 				</tr>
+				[%~ IF !show_pass %]
+				<tr id="two_factor">
+					<td colspan="2" class="u-text-center bg-primary" style="padding-top: 20px; padding-bottom: 20px;"></td>
+				</tr>
+				[%~ END %]
 			</table>
 		</form>
 	</div>

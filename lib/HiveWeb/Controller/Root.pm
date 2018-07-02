@@ -18,6 +18,11 @@ sub auto :Private
 		push(@$toast, $f);
 		}
 
+	delete($c->session()->{need_2fa})
+		if (!$c->user());
+	$c->detach('/two_factor')
+		if ($c->session()->{need_2fa} && $c->request()->path() ne 'two_factor' && $c->request()->path() ne 'logout' && $c->request()->path() ne 'login');
+
 	if (my $user = $c->user())
 		{
 		my $path  = '/';
@@ -99,6 +104,36 @@ sub blocked_by_curse :Local :Args(0)
 	$c->stash()->{template} = 'blocked_by_curse.tt';
 	}
 
+sub two_factor :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	$c->response()->redirect('/')
+		if (!$c->session()->{need_2fa});
+
+	$c->stash()->{template} = 'two_factor.tt';
+	return
+		if ($c->request()->method() eq 'GET');
+
+	my $code = $c->request()->params()->{code};
+	if (!$code)
+		{
+		$c->stash()->{msg} = 'You must enter a Two-Factor Authentication code to continue.';
+		return;
+		}
+
+	if (!$c->user()->check_2fa($code))
+		{
+		$c->stash()->{msg} = 'That code is not correct.  Please enter a valid Two-Factor Authentication code to continue.';
+		return;
+		}
+
+	delete($c->session()->{need_2fa});
+	my $return = $c->flash()->{return} || $c->uri_for('/');
+	$c->clear_flash();
+	$c->response()->redirect($return);
+	}
+
 sub login :Local
 	{
 	my ($self, $c) = @_;
@@ -141,6 +176,12 @@ sub login :Local
 		}) || die $!;
 	if ($user)
 		{
+		if ($user->totp_secret())
+			{
+			$c->session()->{need_2fa} = 1;
+			$c->detach('/two_factor');
+			}
+
 		my $return = $c->flash()->{return} || $c->uri_for('/');
 		$c->clear_flash();
 		$c->response()->redirect($return);
@@ -269,17 +310,6 @@ sub default :Path
 	}
 
 sub end : ActionClass('RenderView') {}
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 
