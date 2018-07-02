@@ -8,7 +8,7 @@ sub auto :Private
 	{
 	my ($self, $c) = @_;
 
-	push (@{$c->stash()->{extra_css}}, $c->uri_for('/static/css/admin.css'));
+	push (@{$c->stash()->{extra_css}}, $c->uri_for('/static/css/admin.min.css'));
 	}
 
 sub index :Path :Args(0)
