@@ -1,26 +1,5 @@
-<style>
-div.search
-	{
-	width: 25%;
-	min-width: 100px;
-	float: right;
-	height: 34px;
-	padding-left: 10px;
-	}
-
-nav ul.pagination
-	{
-	margin: 0;
-	}
-
-table th.options
-	{
-	text-align: right;
-	padding-right: 10px;
-	}
-</style>
 <div class="row">
-	<div class="col-sm-12 panel panel-default hive-member-panel" style="padding: 0;">
+	<div class="col-sm-12 panel panel-default hive-member-panel u-p-0">
 		<div class="panel-heading">
 			<h3>Members</h3>
 		</div>
@@ -28,7 +7,7 @@ table th.options
 			<div class="search">
 				<input type="text" class="form-control" placeholder="Search for members" title="<span class='label label-info'>fname:</span>, <span class='label label-info'>lname:</span>, <span class='label label-info'>name:</span>, <span class='label label-info'>email:</span>, <span class='label label-info'>paypal:</span>, and <span class='label label-info'>tel:</span> may be prepended to a search term only search that column.  Note that <span class='label label-info'>name:</span> searches both first and last name.  Badges may be searched by prepending <span class='label label-info'>badge:</span> to a term." data-placement="top" data-toggle="tooltip" />
 			</div>
-			<div style="float: right">
+			<div class="u-f-r">
 				<select class="per-page">
 					<option value="25">25 per page</option>
 					<option value="50">50 per page</option>
@@ -85,8 +64,8 @@ table th.options
 									<img title="Add" class="add icon" src="/static/icons/add.png" />
 									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
 								</div>
-								<div id="badge_edit" style="display: none; max-width: 100%;">
-									<input type="number" id="badge_number" style="max-width: 100%" /><br />
+								<div id="badge_edit" class="u-mw-100" style="display: none">
+									<input type="number" id="badge_number" class="u-mw-100" /><br />
 									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
 									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
 								</div>
@@ -777,7 +756,7 @@ function load_image($dialogue, image_id, member_id)
 		}
 	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
 
-	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
+	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("u-anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
 		{
 		api_json(
 			{
@@ -792,7 +771,7 @@ function load_image($dialogue, image_id, member_id)
 		});
 	$photo_header.prepend($rotateL);
 
-	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Clockwise").click(function ()
+	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("u-anchor-style").attr("title", "Rotate Clockwise").click(function ()
 		{
 		api_json(
 			{
@@ -807,7 +786,7 @@ function load_image($dialogue, image_id, member_id)
 		});
 	$photo_header.prepend($rotate);
 
-	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
+	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("u-anchor-style").attr("title", "Delete Image").click(function ()
 		{
 		if (!confirm("Are you sure you want to remove this photo?"))
 			return;
@@ -870,7 +849,7 @@ function load_header($table)
 
 	$("select.per-page").find("option[value=" + per_page + "]").attr("selected", true);
 
-	html = "<th colspan=\"2\" class=\"options\">"
+	html = "<th colspan=\"2\" class=\"u-text-right u-pr-1\">"
 		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
 		+ "</th>";
 
@@ -879,7 +858,7 @@ function load_header($table)
 		html += "<th";
 		if ("hidden" in columns[i])
 			html += " class=\"" + hidden_styles(columns[i].hidden) + "\"";
-		html += "><a id=\"sort-" + columns[i].name + "\" class=\"anchor-style sort sort-";
+		html += "><a id=\"sort-" + columns[i].name + "\" class=\"u-anchor-style sort sort-";
 		html += (order === columns[i].name && dir === "ASC") ? "desc" : "asc";
 		html += "\">" + columns[i].desc;
 		if (order === columns[i].name)
@@ -1012,18 +991,18 @@ function load_members()
 			i = 1;
 
 		if (i > 1)
-			html += "<li><a class=\"anchor-style\" id=\"page_first\">&laquo;</a></li>";
+			html += "<li><a class=\"u-anchor-style\" id=\"page_first\">&laquo;</a></li>";
 
 		for (j = 0; j < 7 && i <= val; i++, j++)
 			{
 			html += "<li";
 			if (i == data.page)
 				html += " class=\"active\"";
-			html += "><a class=\"anchor-style\" id=\"page_" + i + "\">" + i + "</a></li>";
+			html += "><a class=\"u-anchor-style\" id=\"page_" + i + "\">" + i + "</a></li>";
 			}
 
 		if (i < val)
-			html += "<li><a class=\"anchor-style\" id=\"page_last\">&raquo;</a></li>";
+			html += "<li><a class=\"u-anchor-style\" id=\"page_last\">&raquo;</a></li>";
 
 		html += "</ul>";
 		set_top_html(count);
