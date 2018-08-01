@@ -29,14 +29,18 @@ sub index :Path
 	if (!$application)
 		{
 		die 'Cannot find application.' if ($application_id);
-		$c->stash()->{other} = 0;
+		$c->stash(
+			{
+			other    => 0,
+			template => 'application/edit.tt',
+			});
 		}
 	else
 		{
 		die 'Cannot find application.' if ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board'));
 		$c->stash(
 			{
-			template=>  => 'application/edit.tt',
+			template    => 'application/edit.tt',
 			application => $application,
 			other       => ($application->member_id() ne $user->member_id()),
 			});
