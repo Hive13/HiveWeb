@@ -18,9 +18,9 @@ var panel_urls =
 	, storage_hide: "[% Catalyst.uri_for('/api/storage/hide').dquote %]"
 [%~ IF Catalyst.check_user_roles('board') %]
 	, access: "[% Catalyst.uri_for('/api/admin/accesslog/recent').dquote %]"
+	, applications: "[% Catalyst.uri_for('/api/admin/applications/pending').dquote %]"
 [%~ IF Catalyst.check_user_roles('storage')%]
 	, storage_status: "[% Catalyst.uri_for('/api/admin/storage/status').dquote %]"
-	, applications: "[% Catalyst.uri_for('/api/admin/applications/pending').dquote %]"
 [%~ END %]
 [%~ END %]
 [%~ IF Catalyst.check_user_roles('pending_applications') %]
