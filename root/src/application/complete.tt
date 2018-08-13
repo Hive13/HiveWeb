@@ -1,0 +1,20 @@
+<div class="row">
+	<div class="col-xs-12 col-md-6 col-md-offset-3">
+		<div class="panel panel-success">
+			<div class="panel-heading u-text-center">
+				<h3>Application Submitted</h3>
+			</div>
+			<div class="panel-body">
+				Your application has been submitted.  The application process takes a couple weeks.
+				<h4>What do I do now?</h4>
+				<ol>
+					<li>Keep attending meetings.  Get to know the members.</li>
+					<li><a href="[% Catalyst.uri_for('/application/print').dquote %]" target="_blank">Print out the application form</a>, sign it, and turn it into the Completed Paperwork tray near the main entrance to the Hive.</li>
+					[%~ IF !application.picture_id %]
+					<li>Get an officer to take your picture. This helps us put a face with your name. You can also submit a photo <a href="[% Catalyst.uri_for('/application/attach_picture').dquote %]" target="_blank">here</a>.
+					[%~ END %]
+			</div>
+		</div>
+	</div>
+</div>
+[%~ # vim:set filetype=tt2html: ~%]

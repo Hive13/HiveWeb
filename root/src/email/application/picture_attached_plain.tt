@@ -1,0 +1,9 @@
+Hello Leadership,
+
+[% action.queuing_member.fname %] [% action.queuing_member.lname %] has attached a picture to this application.
+The app and its attached picture may be viewed at [% base_url %]application/[% application.application_id %].
+
+Sincerely,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

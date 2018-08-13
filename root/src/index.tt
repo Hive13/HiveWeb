@@ -18,9 +18,15 @@ var panel_urls =
 	, storage_hide: "[% Catalyst.uri_for('/api/storage/hide').dquote %]"
 [%~ IF Catalyst.check_user_roles('board') %]
 	, access: "[% Catalyst.uri_for('/api/admin/accesslog/recent').dquote %]"
+	, applications: "[% Catalyst.uri_for('/api/admin/applications/pending').dquote %]"
 [%~ IF Catalyst.check_user_roles('storage')%]
 	, storage_status: "[% Catalyst.uri_for('/api/admin/storage/status').dquote %]"
 [%~ END %]
+[%~ END %]
+[%~ IF Catalyst.check_user_roles('pending_applications') %]
+	, application: "[% Catalyst.uri_for('/api/application/status').dquote %]"
+	, mark_application_submitted: "[% Catalyst.uri_for('/api/application/submit').dquote %]"
+	, application_attach_picture: "[% Catalyst.uri_for('/api/application/attach_picture').dquote %]"
 [%~ END %]
 [%~ END %]
 	};
@@ -29,12 +35,14 @@ var panel_urls =
 SET panels = [];
 panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info', large => 1 });
 IF Catalyst.user_exists;
+	IF Catalyst.check_user_roles('pending_applications');
+		panels.push({ name => 'application', title => 'Application Status', style => 'panel-warning' });
+	END;
 	panels.push({ name => 'soda', title => 'Soda Credits', style => 'panel-default', credits => Catalyst.user.vend_credits || 0 });
-END;
-IF Catalyst.user_exists;
 	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
 	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
 	IF Catalyst.check_user_roles('board');
+		panels.push({ name => 'applications' style => 'panel-info', title => 'Pending Applications' });
 		panels.push({ name => 'access' style => 'panel-primary', title => 'Recent Accesses' });
 		IF Catalyst.check_user_roles('storage');
 			panels.push({ name => 'storage_status' style => 'panel-info', title => 'Storage Overview' });
@@ -89,6 +97,8 @@ END;
 				GET 'Loading accesses...';
 			CASE 'curse';
 				GET 'Loading notifications...';
+			CASE 'application';
+				GET 'Loading application status...';
 		END;
 %]
 			</div>
