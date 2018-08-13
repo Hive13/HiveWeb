@@ -38,7 +38,7 @@ function display_storage_status_data(data)
 	this.$panel.find(".panel-body").html(html);
 	}
 
-function display_pending_applications(data, $panel, odata)
+function display_pending_applications(data)
 	{
 	var html = "", i, app, dt, actions;
 
@@ -77,8 +77,8 @@ function display_pending_applications(data, $panel, odata)
 		html += actions.join("</li><li>") + "</li></ul>";
 		}
 
-	$panel.find(".panel-body").html(html);
-	$panel.find("a.finalize-application").click(function ()
+	this.$panel.find(".panel-body").html(html);
+	this.$panel.find("a.finalize-application").click(function ()
 		{
 		var application_id = $(this).closest("ul.application").attr("id");
 		var $dialogue =
@@ -121,14 +121,14 @@ function display_pending_applications(data, $panel, odata)
 				data: { application_id: application_id, result: result },
 				success: function ()
 					{
-					$dialogue.on("hidden.bs.modal", function () { load_panel_data(odata); }).modal("hide");
+					$dialogue.on("hidden.bs.modal", function () { this.load_panel_data(); }).modal("hide");
 					}
 				});
 			});
 
 		$dialogue.modal("show");
 		});
-	$panel.find("a.show-picture").click(function()
+	this.$panel.find("a.show-picture").click(function()
 		{
 		var picture_id = $(this).attr("id");
 		new Picture(
@@ -139,7 +139,7 @@ function display_pending_applications(data, $panel, odata)
 			prevent_deletes: true
 			}).show();
 		});
-	$panel.find("a.attach-picture").click(function ()
+	this.$panel.find("a.attach-picture").click(function ()
 		{
 		var application_id = $(this).closest("ul.application").attr("id");
 		new Picture(
@@ -153,12 +153,12 @@ function display_pending_applications(data, $panel, odata)
 					path: "/application/attach_picture",
 					what: "Attach Picture to Application",
 					data: { application_id: application_id, image_id: image_id },
-					success: function () { pic.hide(function () { load_panel_data(odata); }); }
+					success: function () { pic.hide(function () { this.load_panel_data(); }); }
 					});
 				}
 			}).show();
 		});
-	$panel.find("a.view-signed-form").click(function ()
+	this.$panel.find("a.view-signed-form").click(function ()
 		{
 		var picture_id = $(this).attr("id");
 		new Picture(
@@ -169,7 +169,7 @@ function display_pending_applications(data, $panel, odata)
 			prevent_deletes: true
 			}).show();
 		});
-	$panel.find("a.accept-picture").click(function ()
+	this.$panel.find("a.accept-picture").click(function ()
 		{
 		var application_id = $(this).closest("ul.application").attr("id");
 		api_json(
@@ -177,10 +177,10 @@ function display_pending_applications(data, $panel, odata)
 			path: "/admin/applications/attach_picture_to_member",
 			what: "Attach Picture to Member Profile",
 			data: { application_id: application_id },
-			success: function () { load_panel_data(odata); }
+			success: function () { this.load_panel_data(); }
 			});
 		});
-	$panel.find("a.upload-signed-form").click(function ()
+	this.$panel.find("a.upload-signed-form").click(function ()
 		{
 		var application_id = $(this).closest("ul.application").attr("id");
 		new Picture(
@@ -194,7 +194,7 @@ function display_pending_applications(data, $panel, odata)
 					path: "/application/attach_form",
 					what: "Attach Form to Application",
 					data: { application_id: application_id, image_id: image_id },
-					success: function () { pic.hide(function () { load_panel_data(odata); }); }
+					success: function () { pic.hide(function () { this.load_panel_data(); }); }
 					});
 				}
 			}).show();
