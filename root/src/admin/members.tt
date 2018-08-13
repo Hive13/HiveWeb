@@ -330,22 +330,6 @@
 	</div>
 </div>
 
-<div class="modal fade" id="photo_dialogue" tabIndex="-1" role="dialog" aria-labelledby="photo_label">
-	<div class="modal-dialog modal-lg" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
-				<h3 class="modal-title" id="filter_label">Member Photo</h3>
-			</div>
-			<div class="modal-body text-center">
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
-			</div>
-		</div>
-	</div>
-</div>
-
 <script type="text/javascript">
 var load_url   = "[% Catalyst.uri_for('/api/admin/members').dquote %]";
 var order      = "lname";
@@ -551,11 +535,14 @@ $(function()
 		.on("click", "td.photo img.icon", function ()
 			{
 			var image_id  = $(this).parents("td").attr("id");
-			var $dialogue = $("#photo_dialogue");
 
-			$dialogue.find("div.modal-body").html("<img src=\"[% Catalyst.uri_for('/admin/images/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
-
-			$dialogue.modal("show");
+			new Picture(
+				{
+				image_id:        image_id,
+				allow_uploads:   false,
+				title:           "View Photo",
+				prevent_deletes: true
+				}).show();
 			})
 		.on("click", "td.edit img.password", function ()
 			{
@@ -583,7 +570,6 @@ $(function()
 
 	$("div#password_dialogue button#finish_pass").click(save_password);
 
-	$edit_dialogue.find("div#photo div.panel div.panel-body").on("change", "input[type=file]", upload_photo);
 	$edit_dialogue.find("input#different_paypal").click(paypal_checkbox);
 	$edit_dialogue.find("div#badges img.add").click(function () { badge_edit(undefined) });
 	$edit_dialogue.find("button#finish_edit").click(save_member);
@@ -669,140 +655,6 @@ function do_search()
 
 	search = val;
 	load_members();
-	}
-
-function upload_photo()
-	{
-	var $progress, $this = $(this),
-		$image_div = $this.parents("div.panel-body");
-		fd = new FormData(),
-		$dialogue = $this.parents("div.modal"),
-		member_id = $dialogue.data("member_id");
-	fd.append("photo", $this[0].files[0]);
-	fd.append("member_id", member_id);
-	$image_div.html("<div class=\"progress\"><div class=\"progress-bar progress-bar-striped active progress-bar-success\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\" style=\"width: 0%\"></div></div>");
-	$progress = $image_div.find("div.progress div.progress-bar");
-
-	$.ajax(
-		{
-		url: "[% Catalyst.uri_for('/api/admin/members/photo').dquote %]",
-		type: "POST",
-		data: fd,
-		cache: false,
-		contentType: false,
-		processData: false,
-		xhr: function()
-			{
-			var myXhr = $.ajaxSettings.xhr();
-			if (myXhr.upload)
-				{
-				myXhr.upload.addEventListener('progress', function(e)
-					{
-					var pct;
-
-					if (e.lengthComputable)
-						{
-						pct = e.loaded * 100 / e.total;
-						$progress.attr("aria-valuenow", pct).css("width", pct + "%");
-						}
-					} , false);
-				}
-			return myXhr;
-			},
-		error: function(jqXHR, status, error_thrown)
-			{
-			$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\"><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-			$.toast(
-				{
-				icon: "error",
-				heading: "Image upload failed",
-				position: "top-right",
-				text: error_thrown
-				});
-			},
-		success: function(data)
-			{
-			var image_id;
-
-			if (!data.response)
-				{
-				$.toast(
-					{
-					heading: options.what + " failed",
-					text: data.data,
-					icon: "error",
-					position: "top-right"
-					});
-				return;
-				}
-			else
-				image_id = data.image_id;
-			load_image($dialogue, data.image_id, member_id);
-			}
-		});
-	}
-
-function load_image($dialogue, image_id, member_id)
-	{
-	var $remove, $rotate, $rotateL;
-	var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
-	var $photo_header = $dialogue.find("div#photo div.panel div.panel-heading");
-
-	$photo_header.find("span").remove();
-	if (!image_id)
-		{
-		$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-		return;
-		}
-	$image_div.html("<img src=\"[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime() + "\" />");
-
-	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("u-anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
-		{
-		api_json(
-			{
-			what:    "Rotate Photo",
-			url:     "[% Catalyst.uri_for('/api/admin/images/rotate').dquote %]",
-			data:    { image_id: image_id, degrees: 270 },
-			success: function()
-				{
-				$image_div.find("img").attr("src", "[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime());
-				}
-			});
-		});
-	$photo_header.prepend($rotateL);
-
-	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("u-anchor-style").attr("title", "Rotate Clockwise").click(function ()
-		{
-		api_json(
-			{
-			what:    "Rotate Photo",
-			url:     "[% Catalyst.uri_for('/api/admin/images/rotate').dquote %]",
-			data:    { image_id: image_id, degrees: 90 },
-			success: function()
-				{
-				$image_div.find("img").attr("src", "[% Catalyst.uri_for('/admin/images/thumb/').dquote %]" + image_id + "#" + new Date().getTime());
-				}
-			});
-		});
-	$photo_header.prepend($rotate);
-
-	$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("u-anchor-style").attr("title", "Delete Image").click(function ()
-		{
-		if (!confirm("Are you sure you want to remove this photo?"))
-			return;
-		api_json(
-			{
-			what:    "Remove Photo",
-			url:     "[% Catalyst.uri_for('/api/admin/members/remove_photo').dquote %]",
-			data:    { member_id: member_id },
-			success: function()
-				{
-				$image_div.html("<label class=\"btn btn-primary btn-lg\"><img src=\"[% Catalyst.uri_for('/static/icons/add_photo.png').dquote %]\" /><br />Upload photo<input type=\"file\" hidden style=\"display: none\" /></label>");
-				$("table#hive-member-table tr#" + member_id + " td.photo").empty();
-				}
-			});
-		});
-	$photo_header.prepend($remove);
 	}
 
 function paypal_checkbox()
@@ -1160,24 +1012,15 @@ function save_member()
 	{
 	var $this = $(this).parents(".modal"), groups = [], member_id = $this.data("member_id");
 	var soda_credits = $this.find("input#soda_credits").val();
-	var url, what, data =
+	var member_image_id = $this.data("picture").get_image_id();
+	var data =
 		{
 		groups: groups,
 		vend_credits: soda_credits,
-		paypal_email: null
+		paypal_email: null,
+		member_image_id: member_image_id || null,
+		member_id: member_id
 		};
-
-	if (member_id)
-		{
-		what = "Member edit";
-		url = "[% Catalyst.uri_for('/api/admin/members/edit') %]";
-		data.member_id = member_id;
-		}
-	else
-		{
-		what = "Member add";
-		url = "[% Catalyst.uri_for('/api/admin/members/new') %]";
-		}
 
 	$("input.group[type=\"checkbox\"]:checked").each(function()
 		{
@@ -1189,9 +1032,9 @@ function save_member()
 
 	api_json(
 		{
-		url: url,
+		path: "/admin/members/edit",
 		data: data,
-		what: what,
+		what: member_id ? "Member edit" : "Member add",
 		success: function (data) { $this.modal("hide"); }
 		});
 	}
@@ -1226,8 +1069,16 @@ function edit(member_id)
 		success: function (data)
 			{
 			var i, badge, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc, phone;
-			var $image_div    = $dialogue.find("div#photo div.panel div.panel-body");
-			var $info         = $dialogue.find("div#info_div div.panel-body");
+			var $info   = $dialogue.find("div#info_div div.panel-body");
+			var picture = new Picture(
+				{
+				$image_div: $dialogue.find("div#photo div.panel div.panel-body"),
+				$icon_div:  $dialogue.find("div#photo div.panel div.panel-heading"),
+				image_id:   data.member.member_image_id,
+				accept:     true
+				});
+
+			$dialogue.data("picture", picture);
 
 			title = "Edit " + data.member.fname + " " + data.member.lname;
 
@@ -1279,8 +1130,6 @@ function edit(member_id)
 				$("input#different_paypal").prop("checked", true);
 				$("input#paypal_email").val(data.member.paypal_email);
 				}
-
-			load_image($dialogue, data.member.member_image_id, member_id);
 
 			for (i = 0; i < data.badges.length; i++)
 				{

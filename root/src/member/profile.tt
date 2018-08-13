@@ -216,7 +216,7 @@ $(function()
 		[%~ END; %]
 				<tr>
 					<td colspan="2">
-						<input type="submit" value="[% submit %]" class="btn btn-lg btn-block btn-success" style="margin-top: 10px;" />
+						<input type="submit" value="[% submit %]" class="btn btn-lg btn-block btn-success u-mt-1" />
 					</td>
 				</tr>
 				[%~ IF !show_pass %]

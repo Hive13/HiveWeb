@@ -2,7 +2,6 @@ package HiveWeb::Controller::Root;
 use Moose;
 use namespace::autoclean;
 
-use Net::SMTP;
 use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller' }
@@ -14,6 +13,10 @@ sub auto :Private
 	my ($self, $c) = @_;
 
 	my $toast = $c->stash()->{auto_toast} = [];
+	if (my $f = $c->flash()->{auto_toast})
+		{
+		push(@$toast, $f);
+		}
 
 	delete($c->session()->{need_2fa})
 		if (!$c->user());
@@ -227,41 +230,12 @@ sub forgot :Local
 
 	if ($member)
 		{
-		$c->log()->debug('Sending mail.');
-
-		my $config = $c->config()->{email};
-		my $forgot = $config->{forgot};
-		my $token  = $member->create_related('reset_tokens', { valid => 1 });
-		my $to     = $member->email();
-		my $from   = $config->{from};
-		my $stash  =
+		$c->model('DB::Action')->create(
 			{
-			token  => $token,
-			member => $member,
-			};
-
-		my $body = $c->view('TT')->render($c, $forgot->{temp_plain}, $stash);
-
-		my $smtp = Net::SMTP->new(%{$config->{'Net::SMTP'}});
-		die "Could not connect to server\n"
-			if !$smtp;
-
-		if (exists($config->{auth}))
-			{
-			$smtp->auth($from, $config->{auth})
-				|| die "Authentication failed!\n";
-			}
-
-		$smtp->mail('<' . $from . ">\n");
-		$smtp->to('<' . $to . ">\n");
-		$smtp->data();
-		$smtp->datasend('From: "' . $config->{from_name} . '" <' . $from . ">\n");
-		$smtp->datasend('To: "' . $member->fname() . ' ' . $member->lname() . '" <' . $to . ">\n");
-		$smtp->datasend('Subject: ' . $forgot->{subject} . "\n");
-		$smtp->datasend("\n");
-		$smtp->datasend($body . "\n");
-		$smtp->dataend();
-		$smtp->quit();
+			queuing_member_id => $member->member_id(),
+			action_type       => 'password.reset',
+			row_id            => $member->member_id(),
+			});
 		}
 
 	$stash->{email}    = $email;

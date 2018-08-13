@@ -1,0 +1,9 @@
+Hello Leadership,
+
+[% action.queuing_member.fname %] [% action.queuing_member.lname %] has attached a scan of the signed copy of this application to it.
+The app and its attached signed form may be viewed at [% base_url %]application/[% application.application_id %].
+
+Sincerely,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

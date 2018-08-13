@@ -96,8 +96,65 @@ function display_curse_data(data, $curse_panel)
 	$curse_panel.find(".panel-body").html(html);
 	}
 
+function display_application_status(data, $panel, odata)
+	{
+	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date, $div;
+
+
+	if (!data.has_picture)
+		steps.push("<a class=\"anchor-style attach-picture\">Attach your picture</a> to the application or get a Hive Officer to do it for you.");
+
+	if (data.has_form)
+		steps.push("Your signed form has been received.");
+	else if (!data.submitted_form_at)
+		steps.push("<a href=\"/application/print\" target=\"_blank\">Print out your application</a>, sign it, and turn it into the Completed Paperwork tray near the main entrance to the Hive.  <a class=\"anchor-style submitted-form\">Click here if you have already turned it in.</a>");
+	else
+		{
+		date = new Date(data.submitted_form_at);
+		steps.push("You submitted your form on " + date.toLocaleDateString() + ".  <a href=\"/application/print\" target=\"_blank\">Print it out again.</a>");
+		}
+
+	steps.push("Keep attending meetings and get to know the membership.");
+	steps.push("<a href=\"/application\" target=\"_blank\">Review your Application</a>");
+
+	html += "<ul><li>" + steps.join("</li><li>") + "</li></ul>";
+	$panel.find(".panel-body").html(html);
+
+	$panel.find("a.submitted-form").click(function()
+		{
+		api_json(
+			{
+			url: panel_urls.mark_application_submitted,
+			what: "Mark Application as Submitted",
+			data: { application_id: app_id },
+			success: function () { load_panel_data(odata); },
+			success_toast: false
+			});
+		});
+
+	$panel.find("a.attach-picture").click(function ()
+		{
+		new Picture(
+			{
+			accept: function (pic)
+				{
+				var image_id = pic.get_image_id();
+
+				api_json(
+					{
+					url: panel_urls.application_attach_picture,
+					what: "Attach Picture to Application",
+					data: { application_id: app_id, image_id: image_id },
+					success: function () { pic.hide(function () { load_panel_data(odata); }); }
+					});
+				}
+			}).show();
+		});
+	}
+
 $(function()
 	{
 	init_panel("curse", display_curse_data);
 	init_panel("storage", display_storage_data, false);
+	init_panel("application", display_application_status, false);
 	});
