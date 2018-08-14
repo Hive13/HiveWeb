@@ -110,7 +110,9 @@ __PACKAGE__->config
 	);
 
 __PACKAGE__->setup();
-__PACKAGE__->deny_access_unless("/api/admin", ['board']);
-__PACKAGE__->deny_access_unless("/admin",     ['board']);
+__PACKAGE__->deny_access_unless('/api/admin', ['board']);
+__PACKAGE__->deny_access_unless('/admin',     ['board']);
 __PACKAGE__->deny_access_unless('/storage',   sub { return shift->user_exists(); });
+__PACKAGE__->deny_access_unless('/member',    sub { return shift->user_exists(); });
+__PACKAGE__->allow_access(      '/member/register');
 1;
