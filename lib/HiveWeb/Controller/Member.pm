@@ -14,7 +14,6 @@ sub verify_user_data
 	my ($self, $c, $form, $has_pass) = @_;
 
 	my $message = {};
-	my $fail    = 0;
 
 	my $different_paypal = delete($form->{different_paypal});
 
@@ -23,7 +22,6 @@ sub verify_user_data
 		if ($form->{paypal_email} && $form->{paypal_email} !~ /.+@.+\..+/)
 			{
 			$message->{paypal_email} = "You must specify a valid PayPal e-mail address or leave it blank if you do not use PayPal.";
-			$fail = 1;
 			}
 		}
 	else
@@ -38,7 +36,6 @@ sub verify_user_data
 		my $member = $c->model('DB::Member')->search($search);
 		if ($member->count())
 			{
-			$fail = 1;
 			$message->{handle} = 'That handle is already in use.';
 			}
 		}
@@ -55,7 +52,6 @@ sub verify_user_data
 	if (!$form->{email} || $form->{email} eq '' || $form->{email} !~ /.+@.+\..+/)
 		{
 		$message->{email} = "You must specify a valid e-mail address.";
-		$fail = 1;
 		}
 	else
 		{
@@ -66,27 +62,24 @@ sub verify_user_data
 		if ($member->count())
 			{
 			$message->{email} = 'That e-mail address has already been registered.';
-			$fail = 1;
 			}
 		}
 	if (!$form->{fname} || $form->{fname} eq '')
 		{
 		$message->{fname} = "You must specify your first name.";
-		$fail = 1;
 		}
 	if (!$form->{lname} || $form->{lname} eq '')
 		{
 		$message->{lname} = "You must specify your last name.";
-		$fail = 1;
 		}
 
 	if ($has_pass && $form->{password1} ne $form->{password2})
 		{
 		$message->{password} = "&lsaquo; The passwords don't match.";
-		$fail = 1;
 		}
 
-	return ($fail, $message);
+	return $message
+		if (keys %$message);
 	}
 
 sub index :Path :Args(0)
@@ -105,13 +98,16 @@ sub profile :Local :Args(0)
 	return
 		if ($c->request()->method() eq 'GET');
 
-	my $form = $c->request()->params();
-	my $fail;
-	($fail, $c->stash()->{message}) = $self->verify_user_data($c, $form, 0);
+	my $form    = $c->request()->params();
+	my $message = $self->verify_user_data($c, $form, 0);
 
-	if ($fail)
+	if ($message)
 		{
-		$c->stash()->{vals} = $form;
+		$c->stash(
+			{
+			vals    => $form,
+			message => $message,
+			});
 		return;
 		}
 
@@ -188,13 +184,16 @@ sub register :Local :Args(0)
 	return
 		if ($c->request()->method() eq 'GET');
 
-	my $form = $c->request()->params();
-	my $fail;
-	($fail, $c->stash()->{message}) = $self->verify_user_data($c, $form, 1);
+	my $form    = $c->request()->params();
+	my $message = $self->verify_user_data($c, $form, 1);
 
-	if ($fail)
+	if ($message)
 		{
-		$c->stash()->{vals} = $form;
+		$c->stash(
+			{
+			vals    => $form,
+			message => $message,
+			});
 		return;
 		}
 
