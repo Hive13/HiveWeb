@@ -49,6 +49,10 @@ sub verify_user_data
 		$phone =~ s/[^0-9]//g;
 		$form->{phone} = $phone;
 		}
+	else
+		{
+		$form->{phone} = undef;
+		}
 	if (!$form->{email} || $form->{email} eq '' || $form->{email} !~ /.+@.+\..+/)
 		{
 		$message->{email} = "You must specify a valid e-mail address.";
