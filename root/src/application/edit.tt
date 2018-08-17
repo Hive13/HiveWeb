@@ -7,9 +7,9 @@
 		SET contact_phone = '(' _ application.contact_phone.substr(0, 3) _ ') ' _ application.contact_phone.substr(3, 3) _ '-' _ application.contact_phone.substr(6);
 	END;
 	IF application.zip;
-		SET zip = application.zip.substr(0, 5);
-		IF application.zip.length > 5;
-			SET zip = zip _ '-' _ application.zip.substr(5);
+		SET zip = application.zip.trim.substr(0, 5);
+		IF application.trim.zip.length > 5;
+			SET zip = zip _ '-' _ application.zip.trim.substr(5);
 		END;
 	END;
 ~%]
