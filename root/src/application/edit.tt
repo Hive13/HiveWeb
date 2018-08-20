@@ -7,9 +7,9 @@
 		SET contact_phone = '(' _ application.contact_phone.substr(0, 3) _ ') ' _ application.contact_phone.substr(3, 3) _ '-' _ application.contact_phone.substr(6);
 	END;
 	IF application.zip;
-		SET zip = application.zip.substr(0, 5);
-		IF application.zip.length > 5;
-			SET zip = zip _ '-' _ application.zip.substr(5);
+		SET zip = application.zip.trim.substr(0, 5);
+		IF application.trim.zip.length > 5;
+			SET zip = zip _ '-' _ application.zip.trim.substr(5);
 		END;
 	END;
 ~%]
@@ -83,6 +83,15 @@ $(function ()
 	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info u-text-center u-p-2">
 		<form method="post">
 			<table class="hive-profile-table" id="application">
+				[%~ IF other %]
+				<tr>
+					<td colspan="2" class="center">
+						<h2>Application for [% application.member.fname %] [% application.member.lname %]</h2>
+						Submitted [% application.created_at.strftime('%D %r') %]<br />
+						Last updated [% application.updated_at.strftime('%D %r') %]
+					</td>
+				</tr>
+				[%~ END %]
 				[% INCLUDE column column='address1' title='Address Line 1' required=1 %]
 				[% INCLUDE column column='address2' title='Address Line 2' %]
 				[% INCLUDE column column='city' title='City' required=1 %]

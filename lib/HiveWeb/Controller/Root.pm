@@ -296,7 +296,7 @@ sub access_denied :Private
 		}
 	else
 		{
-		$c->flash()->{return} = $c->uri_for($c->action());
+		$c->flash()->{return} = $c->request()->uri() . '';
 		$c->detach('/login');
 		}
 	}
