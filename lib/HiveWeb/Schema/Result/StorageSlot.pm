@@ -79,6 +79,7 @@ sub TO_JSON
 		slot_id     => $self->slot_id(),
 		name        => $self->name(),
 		member_id   => $self->member_id(),
+		member      => $self->member(),
 		location_id => $self->location_id(),
 		sort_order  => $self->sort_order(),
 		};
