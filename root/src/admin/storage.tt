@@ -625,9 +625,10 @@ $(function ()
 	$("div#slot_assign button#finish_slot_assign").click(finish_slot_assign);
 	$("div#slot_assign select").select2(
 		{
+		dropdownParent: $("div#slot_assign"),
 		ajax:
 			{
-			path: "/admin/members/search",
+			url: "/api/admin/members/search",
 			dataType: "json",
 			delay: 250,
 			method: "POST",
