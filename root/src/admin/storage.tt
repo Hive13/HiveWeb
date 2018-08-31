@@ -207,7 +207,7 @@ function view_requests(slot_id)
 					{
 					var items = {};
 
-					if (slot_id)
+					if ($dialogue.data("slot_id"))
 						items["request_accept"] = { name: "Accept this Request", icon: "fas fa-user-tag" };
 
 					items["request_reject"] = { name: "Reject this Request", icon: "fas fa-user-slash" };
