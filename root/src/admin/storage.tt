@@ -626,6 +626,7 @@ $(function ()
 	$("div#slot_assign select").select2(
 		{
 		dropdownParent: $("div#slot_assign"),
+		width: "100%",
 		ajax:
 			{
 			url: "/api/admin/members/search",
