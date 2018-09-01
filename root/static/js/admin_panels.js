@@ -24,21 +24,7 @@ function display_access_data(data)
 	this.$panel.find(".panel-body").html(html);
 	}
 
-function display_storage_status_data(data)
-	{
-	var html = "";
-
-	html += "Pending Requests: " + data.requests + "<br />"
-		+ "Free Slots: " + data.free_slots + "<br />"
-		+ "Occupied Slots: " + data.occupied_slots + "<br />"
-		+ "<br />";
-
-	html += "<div class=\"u-w-100 text-center\"><a href=\"/admin/storage\" class=\"btn btn-primary\">Visit the Storage Admin Area</a></div>";
-
-	this.$panel.find(".panel-body").html(html);
-	}
-
-function display_pending_applications(data)
+function display_pending_applications(data, $panel, odata)
 	{
 	var html = "", i, app, dt, actions;
 
@@ -207,13 +193,6 @@ $(function()
 		{
 		panel_class:    "access",
 		panel_function: display_access_data
-		});
-
-	var storage_admin_panel = new Panel(
-		{
-		panel_class:    "storage_status",
-		panel_function: display_storage_status_data,
-		refresh:        false
 		});
 	
 	var pending_applications_panel = new Panel(

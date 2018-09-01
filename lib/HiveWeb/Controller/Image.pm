@@ -21,7 +21,7 @@ sub get_image :Private
 			    && !(grep { $_ eq $c->user()->member_id() } @{ $attachments->{member_id} }));
 		}
 
-	$response->body($want_thumb ? ($image->image() || $image->thumbnail()) : $image->image());
+	$response->body($want_thumb ? ($image->thumbnail() || $image->image()) : $image->image());
 	$response->content_type($image->content_type());
 	$response->header('Cache-Control' => 'max-age=0, must-revalidate');
 	}

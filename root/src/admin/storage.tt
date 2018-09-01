@@ -1,4 +1,7 @@
-<script type="text/javascript" src="[% Catalyst.uri_for('/static/js/jquery.contextmenu.js').dquote %]"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.0/jquery.contextMenu.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.0/jquery.contextMenu.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.0/jquery.ui.position.js"></script>
+
 <div class="row" id="hive-storage">
 	<div class="col-sm-12 panel panel-default u-p-0">
 		<div class="panel-heading">
@@ -101,32 +104,17 @@
 	</div>
 </div>
 
-<ul id="location_menu" class="dropdown-menu" style="display: none" role="menu">
-	<li><a tabindex="-1" href="#" value="location_add_sub">Add Sub-Location</a></li>
-	<li><a tabindex="-1" href="#" value="location_add_slot">Add Slot</a></li>
-	<li><a tabindex="-1" href="#" value="location_delete">Delete this Location</a></li>
-</ul>
-<ul id="slot_menu" class="dropdown-menu" style="display: none" role="menu">
-	<li class="assign"><a tabindex="-1" href="#" value="slot_assign">Assign this Slot</a></li>
-	<li class="fulfil"><a tabindex="-1" href="#" value="slot_fulfil">Fulfil a Request with this Slot</a></li>
-	<li><a tabindex="-1" href="#" value="slot_delete">Delete this Slot</a></li>
-	<li><a tabindex="-1" href="#" value="slot_edit">Edit this Slot</a></li>
-</ul>
-<ul id="request_menu" class="dropdown-menu" style="display: none" role="menu">
-	<li><a tabindex="-1" href="#" value="request_reject">Reject this Request</a></li>
-	<li class="accept" style="display: none"><a tabindex="-1" href="#" value="request_accept">Accept this Request</a></li>
-</ul>
-
 <script type="text/javascript">
-var load_url           = "[% Catalyst.uri_for('/api/admin/storage/list').dquote %]";
-var info_url           = "[% Catalyst.uri_for('/api/admin/storage/info').dquote %]";
-var edit_slot_url      = "[% Catalyst.uri_for('/api/admin/storage/edit_slot').dquote %]";
-var new_loc_url        = "[% Catalyst.uri_for('/api/admin/storage/new_location').dquote %]";
-var slot_assign_url    = "[% Catalyst.uri_for('/api/admin/storage/assign_slot').dquote %]";
-var requests_url       = "[% Catalyst.uri_for('/api/admin/storage/requests').dquote %]";
-var request_decide_url = "[% Catalyst.uri_for('/api/admin/storage/decide_request').dquote %]";
-var member_search_url  = "[% Catalyst.uri_for('/api/admin/members/search').dquote %]";
-var actions            = {};
+var actions = {};
+
+function context_callback(key, options)
+	{
+	var id = $(this).attr("id");
+	if (key in actions)
+		actions[key](id);
+	else
+		alert("Commence action " + key + " on UUID " + id);
+	}
 
 function cancel_request_action()
 	{
@@ -159,7 +147,7 @@ function decide_request()
 	api_json(
 		{
 		what: "Decide request",
-		url: request_decide_url,
+		path: "/admin/storage/decide_request",
 		data: data,
 		success: function ()
 			{
@@ -172,15 +160,14 @@ function view_requests(slot_id)
 	{
 	var $dialogue = $("#request_view");
 
-	$("#request_menu .accept").css("display", (slot_id ? "" : "none"));
 	$dialogue.data("slot_id", (slot_id || null));
 	$dialogue.find("div.modal-body div.notes").css("display", "none");
 
 	api_json(
 		{
 		what: "Load requests",
+		path: "/admin/storage/requests",
 		success_toast: false,
-		url: requests_url,
 		type: "GET",
 		success: function (data)
 			{
@@ -213,28 +200,36 @@ function view_requests(slot_id)
 			html += "</div>";
 			$dialogue.find("div.modal-body div.requests").html(html);
 
-			$dialogue.find("div.modal-body div.requests div.panel").contextMenu(
+			$dialogue.contextMenu(
 				{
-				menuSelector: "#request_menu",
-				menuSelected: function ($invokedOn, $selectedMenu)
+				selector: "div.modal-body div.requests div.panel",
+				build: function()
 					{
-					var $panel = $invokedOn.closest("div.panel"),
-						action   = $selectedMenu.attr("value"),
-						$opanels;
+					var items = {};
 
-					$("div#request_view div.modal-body div.requests").off("show.bs.collapse");
-					$("div#request_view div.modal-body div.requests").off("hide.bs.collapse");
-					cancel_request_action();
-					$panel.removeClass("panel-default").addClass("panel-info").addClass("selected");
-					$opanels = $panel.parent().find("div.panel:not(.selected)");
-					$opanels.find(".collapse").collapse("hide");
-					$panel.find(".collapse").collapse("show");
-					$("div#request_view div.modal-body div.requests").on("show.bs.collapse", cancel_request_action);
-					$("div#request_view div.modal-body div.requests").on("hide.bs.collapse", cancel_request_action);
-					if (action in actions)
-						actions[action]($panel.attr("id"));
-					else
-						alert("Commence action " + action + " on UUID " + id);
+					if ($dialogue.data("slot_id"))
+						items["request_accept"] = { name: "Accept this Request", icon: "fas fa-user-tag" };
+
+					items["request_reject"] = { name: "Reject this Request", icon: "fas fa-user-slash" };
+					return {
+						items: items,
+						callback: function (key, options)
+							{
+							var $this = $(this), $requests = $dialogue.find("div.modal-body div.requests"),
+								$opanels, id = $this.attr("id");
+							$requests.off("show.bs.collapse").off("hide.bs.collapse");
+							cancel_request_action();
+							$this.removeClass("panel-default").addClass("panel-info").addClass("selected");
+							$opanels = $this.parent().find("div.panel:not(.selected)");
+							$opanels.find(".collapse").collapse("hide");
+							$this.find(".collapse").collapse("show");
+							$requests.on("show.bs.collapse", cancel_request_action).on("hide.bs.collapse", cancel_request_action);
+							if (key in actions)
+								actions[key](id);
+							else
+								alert("Commence action " + key + " on UUID " + id);
+							}
+						};
 					}
 				});
 
@@ -306,7 +301,7 @@ actions.slot_unassign = function (slot_id)
 
 	api =
 		{
-		url: slot_assign_url,
+		path: "/admin/storage/assign_slot",
 		what: "Unassign Slot",
 		data:
 			{
@@ -320,9 +315,9 @@ actions.slot_unassign = function (slot_id)
 	};
 actions.slot_edit = function (slot_id)
 	{
-	var $slot = $("div.tree li.selected");
+	var $slot = $("div.tree li.storage-slot[id=" + slot_id + "]");
 	var $dialogue = $("#slot_edit"),
-		val = $slot.find("span").text(),
+		val        = $slot.data("name"),
 		sort_order = $slot.data("sort-order");
 	$dialogue.data("slot_id",     slot_id);
 	$dialogue.data("location_id", null);
@@ -346,7 +341,7 @@ function finish_slot()
 
 	api =
 		{
-		url: edit_slot_url,
+		path: "/admin/storage/edit_slot",
 		what: slot_id ? "Edit Slot" : "Add Slot",
 		data:
 			{
@@ -377,7 +372,7 @@ function finish_slot_assign()
 
 	api =
 		{
-		url: slot_assign_url,
+		path: "/admin/storage/assign_slot",
 		what: "Assign Slot",
 		data:
 			{
@@ -407,7 +402,7 @@ function finish_loc()
 
 	api =
 		{
-		url: new_loc_url,
+		path: "/admin/storage/new_location",
 		what: "Add Location",
 		data:
 			{
@@ -428,7 +423,7 @@ function handle_slot(slot, selected_id)
 	{
 	var html = "<li style=\"display: none\" class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
 		+ (slot.slot_id == selected_id ? " selected" : "")
-		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\">"
+		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\" data-name=\"" + slot.name + "\">"
 		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
 		+ slot.name;
 
@@ -468,7 +463,7 @@ function load_storage()
 			type: "GET",
 			what: "Storage Load",
 			success_toast: false,
-			url: load_url
+			path: "/admin/storage/list",
 			},
 		$tree = $("<div class=\"tree well\" />"),
 		$reqs = $("<div class=\"requests\" />");
@@ -506,56 +501,36 @@ function load_storage()
 					.children("i").removeClass("glyphicon-plus").addClass("glyphicon-minus");
 			$parents.children("ul").children("li").show();
 			});
-		$tree.find("li.storage-location").contextMenu(
+
+		$tree.contextMenu(
 			{
-			menuSelector: "#location_menu",
-			menuSelected: function ($invokedOn, $selectedMenu)
+			selector: 'li.storage-location',
+			callback: context_callback,
+			items:
 				{
-				var id = $invokedOn.closest("li.storage-location").attr("id");
-				var action = $selectedMenu.attr("value");
-				if (action in actions)
-					actions[action](id);
-				else
-					alert("Commence action " + action + " on UUID " + id);
-				},
-			onMenuShow: function($invokedOn)
-				{
-				var $loc = $invokedOn.closest("li.storage-location");
-				$invokedOn.closest("div.tree").find("li").removeClass("selected");
-				$loc.addClass("selected");
+				location_add_sub: { name: "Add Sub-Location", icon: "fas fa-beer" },
+				location_add_slot: { name: "Add Slot", icon: "fas fa-beer" },
+				location_delete: { name: "Delete Location", icon: "fas fa-times" }
 				}
 			});
 
-		$tree.find("li.storage-slot").contextMenu(
+		$tree.contextMenu(
 			{
-			menuSelector: "#slot_menu",
-			menuSelected: function ($invokedOn, $selectedMenu)
+			selector: 'li.storage-slot',
+			build: function ($trigger, e)
 				{
-				var id = $invokedOn.closest("li.storage-slot").attr("id");
-				var action = $selectedMenu.attr("value");
-				if (action in actions)
-					actions[action](id);
-				else
-					alert("Commence action " + action + " on UUID " + id);
-				},
-			onMenuShow: function($invokedOn)
-				{
-				var $assign_a = $("#slot_menu li.assign a"),
-					$slot   = $invokedOn.closest("li.storage-slot"),
-					$fulfil = $("#slot_menu li.fulfil");
+				var items = {};
 
-				if ($slot.hasClass("storage-slot-assigned"))
-					{
-					$assign_a.attr("value", "slot_unassign").text("Unassign This Slot");
-					$fulfil.hide();
-					}
+				if ($trigger.hasClass("storage-slot-assigned"))
+					items["slot_unassign"] = { name: "Unassign Slot", icon: "fa fa-user-slash" };
 				else
 					{
-					$assign_a.attr("value", "slot_assign").text("Assign This Slot");
-					$fulfil.show();
+					items["slot_assign"] = { name: "Assign Slot", icon: "fas fa-user-plus" };
+					items["slot_fulfil"] = { name: "Fulfil a Request with this Slot", icon: "fas fa-user-tag" };
 					}
-				$invokedOn.closest("div.tree").find("li").removeClass("selected");
-				$slot.addClass("selected");
+				items["slot_edit"] = { name: "Edit Slot", icon: "fas fa-pencil" };
+				items["slot_delete"] = { name: "Delete Slot", icon: "fas fa-times" };
+				return { callback: context_callback, items: items };
 				}
 			});
 		};
@@ -570,7 +545,7 @@ function edit_storage_slot(slot_id)
 			{
 			what: "Storage Info",
 			success_toast: false,
-			url: info_url,
+			path: "/admin/storage/info",
 			data: { slot_id: slot_id }
 			};
 
@@ -650,9 +625,11 @@ $(function ()
 	$("div#slot_assign button#finish_slot_assign").click(finish_slot_assign);
 	$("div#slot_assign select").select2(
 		{
+		dropdownParent: $("div#slot_assign"),
+		width: "100%",
 		ajax:
 			{
-			url: member_search_url,
+			url: "/api/admin/members/search",
 			dataType: "json",
 			delay: 250,
 			method: "POST",
