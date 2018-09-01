@@ -24,20 +24,6 @@ function display_access_data(data, $access_panel)
 	$access_panel.find(".panel-body").html(html);
 	}
 
-function display_storage_status_data(data, $panel)
-	{
-	var html = "";
-
-	html += "Pending Requests: " + data.requests + "<br />"
-		+ "Free Slots: " + data.free_slots + "<br />"
-		+ "Occupied Slots: " + data.occupied_slots + "<br />"
-		+ "<br />";
-
-	html += "<div class=\"u-w-100 text-center\"><a href=\"/admin/storage\" class=\"btn btn-primary\">Visit the Storage Admin Area</a></div>";
-
-	$panel.find(".panel-body").html(html);
-	}
-
 function display_pending_applications(data, $panel, odata)
 	{
 	var html = "", i, app, dt, actions;
@@ -204,7 +190,6 @@ function display_pending_applications(data, $panel, odata)
 $(function()
 	{
 	init_panel("access", display_access_data);
-	init_panel("storage_status", display_storage_status_data, 0);
 	init_panel("applications", display_pending_applications, 0);
 
 	$("div.panel.hive-panel-access").on("click", "ol li", function()
