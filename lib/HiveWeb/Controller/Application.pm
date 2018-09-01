@@ -12,7 +12,6 @@ sub index :Path
 	my ($self, $c, $application_id) = @_;
 
 	my $user = $c->user();
-	return if (!$user);
 
 	my $application = $application_id ?
 		$c->model('DB::Application')->find($application_id) :
