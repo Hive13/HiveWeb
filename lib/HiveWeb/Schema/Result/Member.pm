@@ -13,7 +13,6 @@ use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
-__PACKAGE__->table_class('DBIx::Class::ResultSource::View');
 __PACKAGE__->table('members');
 
 __PACKAGE__->add_columns(
