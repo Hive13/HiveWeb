@@ -51,6 +51,14 @@ __PACKAGE__->belongs_to(
 
 __PACKAGE__->meta->make_immutable;
 
+sub sqlt_deploy_hook
+	{
+	my ($self, $sqlt_table) = @_;
+
+	$sqlt_table->add_index(name => 'access_log_member_id_access_time_idx', fields => ['member_id', 'access_time']);
+	$sqlt_table->add_index(name => 'recent', fields => ['access_time']);
+	}
+
 sub TO_JSON
 	{
 	my $self = shift;

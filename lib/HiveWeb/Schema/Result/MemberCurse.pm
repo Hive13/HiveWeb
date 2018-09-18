@@ -14,7 +14,7 @@ __PACKAGE__->table('member_curse');
 
 __PACKAGE__->add_columns(
   'member_curse_id',
-  { data_type => 'uuid', is_foreign_key => 1, is_nullable => 0, size => 16 },
+  { data_type => 'uuid', is_nullable => 0, size => 16 },
   'member_id',
   { data_type => 'uuid', is_foreign_key => 1, is_nullable => 0, size => 16 },
   'curse_id',
