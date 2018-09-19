@@ -18,7 +18,7 @@ __PACKAGE__->add_columns(
   'name',
   { data_type => 'character varying', is_nullable => 0 },
   'html_color',
-  { data_type => 'character', size => 7, is_nullable => 0 },
+  { data_type => 'character', size => 6, is_nullable => 0 },
 );
 
 __PACKAGE__->set_primary_key('color_id');
