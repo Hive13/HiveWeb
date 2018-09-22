@@ -78,6 +78,18 @@ __PACKAGE__->belongs_to(
 	{ member_id => 'member_id' },
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
+__PACKAGE__->might_have(
+	'form',
+	'HiveWeb::Schema::Result::Image',
+	{ 'foreign.image_id' => 'self.form_id' },
+	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
+);
+__PACKAGE__->might_have(
+	'picture',
+	'HiveWeb::Schema::Result::Image',
+	{ 'foreign.image_id' => 'self.picture_id' },
+	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
+);
 
 __PACKAGE__->meta->make_immutable;
 

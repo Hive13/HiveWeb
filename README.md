@@ -10,6 +10,7 @@ The new Hive internal Web
 * libcatalyst-plugin-static-simple-perl
 * libcatalyst-plugin-session-state-cookie-perl
 * libcatalyst-plugin-session-store-dbic-perl
+* libdbix-class-deploymenthandler-perl
 * libcatalyst-view-json-perl
 * libcatalyst-view-tt-perl
 * libcrypt-eksblowfish-perl
