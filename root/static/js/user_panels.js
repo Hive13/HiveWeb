@@ -1,6 +1,6 @@
 function display_storage_data(data)
 	{
-	var i, dt, request, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
+	var i, dt, request, html = "<a href=\"/storage/request\">Request a new spot</a><br /><br />";
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
@@ -48,7 +48,7 @@ function display_storage_data(data)
 
 		api_json(
 			{
-			url: panel_urls.storage_hide,
+			path: "/storage/hide",
 			what: "Relinquish Slot",
 			data: { request_id: id },
 			success: function () { $li.slideUp(); },
@@ -64,7 +64,7 @@ function display_storage_data(data)
 
 		api_json(
 			{
-			url: panel_urls.storage_relinquish,
+			path: "/storage/relinquish",
 			what: "Relinquish Slot",
 			data: { slot_id: id },
 			success: function () { init_panel("storage", display_storage_data, false); }
@@ -124,7 +124,7 @@ function display_application_status(data)
 		{
 		api_json(
 			{
-			url: panel_urls.mark_application_submitted,
+			path: "/application/submit",
 			what: "Mark Application as Submitted",
 			data: { application_id: app_id },
 			success: function () { this.load_panel_data(); },
@@ -142,7 +142,7 @@ function display_application_status(data)
 
 				api_json(
 					{
-					url: panel_urls.application_attach_picture,
+					path: "/application/attach_picture",
 					what: "Attach Picture to Application",
 					data: { application_id: app_id, image_id: image_id },
 					success: function () { pic.hide(function () { this.load_panel_data(); }); }
@@ -157,13 +157,15 @@ $(function()
 	var curse_panel = new Panel(
 		{
 		panel_class:    "curse",
-		panel_function: display_curse_data
+		panel_function: display_curse_data,
+		load_path:      "/curse/list"
 		});
 
 	var storage_panel = new Panel(
 		{
 		panel_class:    "storage",
 		panel_function: display_storage_data,
+		load_path:      "/storage/list",
 		refresh:        false
 		});
 
@@ -171,6 +173,7 @@ $(function()
 		{
 		panel_class:    "application",
 		panel_function: display_application_status,
+		load_path:      "/application/status",
 		refresh:        false
 		});
 	});

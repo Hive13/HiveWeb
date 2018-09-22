@@ -4,36 +4,19 @@
 [%~ IF Catalyst.check_user_roles('board') %]
 <script src="[% Catalyst.uri_for('/static/js/admin_panels.js') %]" type="text/javascript"></script>
 [%~ END %]
-[%~ IF Catalyst.check_user_roles('storage') %]
-<script src="[% Catalyst.uri_for('/static/js/storage_panels.js') %]" type="text/javascript"></script>
+[%~
+	FOREACH group IN Catalyst.user.mgroups;
+		SET fname = '/static/js/' _ group.name _ '_panels.js';
+		TRY;
+			USE File(Catalyst.config.home _ '/root' _ fname);
+			GET '<script src="'
+				_ Catalyst.uri_for(fname)
+				_ '" type="text/javascript"></script>' _ "\n";
+		CATCH File;
+		END;
+	END;
+%]
 [%~ END %]
-[%~ END %]
-<script>
-var panel_urls =
-	{
-	temp: "[% Catalyst.uri_for('/api/temperature/current').dquote %]"
-	, soda: "[% Catalyst.uri_for('/api/soda/status').dquote %]"
-[%~ IF Catalyst.user_exists %]
-	, curse: "[% Catalyst.uri_for('/api/curse/list').dquote %]"
-	, storage: "[% Catalyst.uri_for('/api/storage/list').dquote %]"
-	, storage_relinquish: "[% Catalyst.uri_for('/api/storage/relinquish').dquote %]"
-	, storage_request: "[% Catalyst.uri_for('/storage/request').dquote %]"
-	, storage_hide: "[% Catalyst.uri_for('/api/storage/hide').dquote %]"
-[%~ IF Catalyst.check_user_roles('board') %]
-	, access: "[% Catalyst.uri_for('/api/admin/accesslog/recent').dquote %]"
-	, applications: "[% Catalyst.uri_for('/api/admin/applications/pending').dquote %]"
-[%~ END %]
-[%~ IF Catalyst.check_user_roles('storage')%]
-	, storage_status: "[% Catalyst.uri_for('/api/admin/storage/status').dquote %]"
-[%~ END %]
-[%~ IF Catalyst.check_user_roles('pending_applications') %]
-	, application: "[% Catalyst.uri_for('/api/application/status').dquote %]"
-	, mark_application_submitted: "[% Catalyst.uri_for('/api/application/submit').dquote %]"
-	, application_attach_picture: "[% Catalyst.uri_for('/api/application/attach_picture').dquote %]"
-[%~ END %]
-[%~ END %]
-	};
-</script>
 [%~
 SET panels = [];
 panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info', large => 1 });

@@ -10,10 +10,10 @@ function Panel(args)
 	if ("refresh" in args && !args.refresh)
 		this.refresh = false;
 
-	if ("load_url" in args)
-		this.load_url = args.load_url;
+	if ("load_path" in args)
+		this.load_url = api_base + args.load_path;
 	else
-		this.load_url = panel_urls[this.name];
+		this.load_url = args.load_url;
 
 	if ("load_function" in args)
 		this.load_function = args.load_function;
@@ -116,7 +116,7 @@ $(function()
 		panel_class:    "status",
 		panel_function: display_temp_data,
 		load_function:  temperature_loading,
-		load_url:       panel_urls["temp"]
+		load_path:      "/temperature/current"
 		});
 
 	var soda_panel = new Panel(
@@ -124,7 +124,7 @@ $(function()
 		panel_class:   "status",
 		panel_function: display_soda_data,
 		load_function: soda_loading,
-		load_url:      panel_urls["soda"],
+		load_path:     "/soda/status",
 		refresh:       false,
 		});
 	});
