@@ -95,7 +95,7 @@ END;
 				</div>
 [%~
 			CASE DEFAULT;
-				GET 'Loading ' _ panel.title _ ' ...';
+				GET 'Loading ' _ panel.title _ '...';
 		END;
 %]
 			</div>
