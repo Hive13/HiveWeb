@@ -94,14 +94,8 @@ END;
 					</form>
 				</div>
 [%~
-			CASE 'temp';
-				GET 'Loading temperatures...';
-			CASE 'access';
-				GET 'Loading accesses...';
-			CASE 'curse';
-				GET 'Loading notifications...';
-			CASE 'application';
-				GET 'Loading application status...';
+			CASE DEFAULT;
+				GET 'Loading ' _ panel.title _ ' ...';
 		END;
 %]
 			</div>
