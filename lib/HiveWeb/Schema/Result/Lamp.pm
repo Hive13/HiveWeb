@@ -27,7 +27,7 @@ __PACKAGE__->uuid_columns(qw[ lamp_id ]);
 __PACKAGE__->has_many(
   'bulbs',
   'HiveWeb::Schema::Result::LampBulb',
-  { 'foreign.bulb_id' => 'self.bulb_id' },
+  { 'foreign.lamp_id' => 'self.lamp_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 

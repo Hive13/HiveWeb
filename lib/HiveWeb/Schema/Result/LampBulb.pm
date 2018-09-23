@@ -40,6 +40,13 @@ __PACKAGE__->belongs_to(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+	'bulb_presets',
+	'HiveWeb::Schema::Result::LampBulbPreset',
+	{ 'foreign.bulb_id' => 'self.bulb_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+);
+
 __PACKAGE__->meta->make_immutable;
 
 sub TO_JSON
