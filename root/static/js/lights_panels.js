@@ -9,7 +9,7 @@ function display_lights(data)
 			"<a class=\"btn btn-danger lights-off u-w-100\">Turn Off Lights</a><br />",
 			"<a class=\"btn btn-danger lights-on u-w-100\">Turn On Lights</a><br />",
 			"<a class=\"btn btn-warning lights-load u-w-100\">Load Selected</a><br />",
-			"<a class=\"btn btn-success u-w-100\">Save Current</a><br />",
+			"<a class=\"btn btn-success lights-save u-w-100\">Save Current</a><br />",
 			"<a class=\"btn btn-primary u-w-100\">Edit Current</a><br />",
 		"</div>"
 		].join('');
@@ -60,6 +60,48 @@ function display_lights(data)
 			data: { preset_id: preset_id },
 			success: function () { this.load_panel_data(); }
 			});
+		});
+	$body.find(".lights-save").click(function ()
+		{
+		var application_id = $(this).closest("ul.application").attr("id");
+		var $dialogue =
+			$([
+			"<div class=\"modal fade picture-dialogue\" tabIndex=\"-1\" role=\"dialog\">",
+				"<div class=\"modal-dialog\" role=\"document\">",
+					"<div class=\"modal-content\">",
+						"<div class=\"modal-header\">",
+							"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+							"<h3 class=\"modal-title\">Enter Name</h3>",
+						"</div>",
+						"<div class=\"modal-body u-text-center\">",
+							"<input type=\"text\">",
+						"</div>",
+						"<div class=\"modal-footer\">",
+							"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+							"<button type=\"button\" class=\"btn btn-primary accept\">Save</button>",
+						"</div>",
+					"</div>",
+				"</div>",
+			"</div>"
+			].join(""));
+
+		$dialogue.find("button.accept").click(function ()
+			{
+			var result = $dialogue.find("input").val();
+
+			api_json(
+				{
+				path: "/lights/save",
+				what: "Save Lights Setting",
+				data: { name: result },
+				success: function ()
+					{
+					$dialogue.on("hidden.bs.modal", function () { this.load_panel_data(); }).modal("hide");
+					}
+				});
+			});
+
+		$dialogue.on("shown.bs.modal", function () { $dialogue.find("input").focus(); }).modal("show");
 		});
 	}
 
