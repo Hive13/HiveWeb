@@ -25,6 +25,7 @@ sub status :Local :Args(0)
 	my $out     = $c->stash()->{out};
 	my $current = $c->model('DB::LampPreset')->find({ name => 'current' }) || return;
 	my $configs = [ $c->model('DB::LampPreset')->all() ];
+	my $colors  = [ $c->model('DB::LampColor')->all() ];
 	my $bulb_rs = $current->search_related('bulb_presets', {},
 		{
 		prefetch => { 'bulb' => 'color' },
@@ -54,14 +55,16 @@ sub status :Local :Args(0)
 			}
 		push (@$bulbs,
 			{
-			bulb_id => $bulb->bulb_id(),
-			slot    => $bulb->slot(),
-			state   => $bulb_ps->value(),
+			bulb_id  => $bulb->bulb_id(),
+			slot     => $bulb->slot(),
+			state    => $bulb_ps->value(),
+			color_id => $bulb->color_id(),
 			});
 		}
 
 	$out->{lamps}    = \@lamps;
 	$out->{configs}  = $configs;
+	$out->{colors}   = { map { $_->color_id() => $_ } @$colors };
 	$out->{response} = \1;
 	}
 
