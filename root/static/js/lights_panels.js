@@ -164,7 +164,7 @@ function display_lights(data)
 				{
 				html.push(
 						"<label class=\"u-w-100\" style=\"background-color: #" + colors[lamp.bulbs[j].color_id].html_color + "\">",
-							"<input type=\"checkbox\" " + (lamp.bulbs[j].state ? "checked" : "") + "/>" + colors[lamp.bulbs[j].color_id].name,
+							"<input type=\"checkbox\" id=\"" + lamp.bulbs[j].bulb_id + "\" " + (lamp.bulbs[j].state ? "checked" : "") + "/>" + colors[lamp.bulbs[j].color_id].name,
 						"</label><br />"
 				);
 				}
@@ -198,21 +198,26 @@ function display_lights(data)
 
 		$dialogue.find("button.accept").click(function ()
 			{
-			var result = $dialogue.find("input").val();
+			var result = {};
+			$dialogue.find("input").each(function ()
+				{
+				var $this = $(this);
+				result[$this.attr("id")] = $this.prop("checked");
+				});
 
 			api_json(
 				{
-				path: "/lights/save",
-				what: "Save Lights Setting",
-				data: { name: result },
+				path: "/lights/set",
+				what: "Set Lights",
+				data: { bulbs: result },
 				success: function ()
 					{
-					$dialogue.on("hidden.bs.modal", function () { this.load_panel_data(); }).modal("hide");
+					$dialogue.on("hidden.bs.modal", function () { self.load_panel_data(); }).modal("hide");
 					}
 				});
 			});
 
-		$dialogue.on("shown.bs.modal", function () { $dialogue.find("input").focus(); }).modal("show");
+		$dialogue.modal("show");
 		});
 	}
 
