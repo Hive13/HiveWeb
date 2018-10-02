@@ -25,6 +25,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('bulb_id');
 __PACKAGE__->uuid_columns(qw[ bulb_id lamp_id color_id ]);
+__PACKAGE__->resultset_attributes( { order_by => ['slot'] } );
 
 __PACKAGE__->belongs_to(
   'lamp',

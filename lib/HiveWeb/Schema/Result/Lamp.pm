@@ -30,6 +30,7 @@ __PACKAGE__->has_many(
   { 'foreign.lamp_id' => 'self.lamp_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
+__PACKAGE__->many_to_many('bulb_presets', 'bulbs', 'bulb_presets');
 
 __PACKAGE__->meta->make_immutable;
 

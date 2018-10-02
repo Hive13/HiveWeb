@@ -25,6 +25,35 @@ sub index :Path :Args(0)
 	$c->detach('status');
 	}
 
+sub get_state :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $lamp;
+	my $in  = $c->stash()->{in};
+	my $out = $c->stash()->{out};
+
+	if ($in->{lamp_id})
+		{
+		$lamp = $c->model('DB::Lamp')->find($in->{lamp_id});
+		}
+	else
+		{
+		$lamp = $c->model('DB::Lamp')->find({ 'me.ip_address' => $c->request()->address() });
+		}
+	if (!$lamp)
+		{
+		$out->{data} = 'Could not determine which lamp.';
+		return;
+		}
+
+	my @presets = $lamp
+		->search_related('bulbs', { 'preset.name' => 'current' }, { join => { bulb_presets => 'preset' } })
+		->get_column('bulb_presets.value')->all();
+
+	$out->{states}   = \@presets;
+	$out->{response} = \1;
+	}
+
 sub status :Local :Args(0)
 	{
 	my ($self, $c) = @_;
