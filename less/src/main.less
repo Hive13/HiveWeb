@@ -16,12 +16,12 @@
 	{
 	font-family: "Exo 2", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 18px;
-	
+
 	.navbar-nav .nav-current a
 		{
 		color: #333;
 		}
-	
+
 	a&
 		{
 		height: auto
@@ -37,7 +37,7 @@
 			top: -10px;
 			}
 		}
-	
+
 	@media (min-width: 768px)
 		{
 		.navbar-nav li a
@@ -82,7 +82,7 @@ ol.accesses li.denied
 div.panel.hive-panel-access ol
 	{
 	list-style: none;
-	
+
 	li
 		{
 		cursor: pointer;
@@ -115,25 +115,25 @@ div.panel.hive-panel-access ol
 		{
 		padding: 0;
 		}
-	
+
 	table
 		{
 		table-layout: fixed;
 		width: 100%;
-		
+
 		td
 			{
 			vertical-align: top;
 			padding: 15px;
 			width: 50%;
-			
+
 			h3
 				{
 				margin-top: 10px;
 				text-align: center;
 				text-decoration: underline;
 				}
-			
+
 			div.row > div
 				{
 				margin-top: 10px;
@@ -150,4 +150,30 @@ label.btn img
 	{
 	max-width: 60px;
 	max-height: 60px;
+	}
+
+.has-spinner
+	{
+	.spinner
+		{
+		display: inline-block;
+		opacity: 0;
+		max-width: 0;
+
+		-webkit-transition: opacity 0.25s, max-width 0.45s;
+		-moz-transition: opacity 0.25s, max-width 0.45s;
+		-o-transition: opacity 0.25s, max-width 0.45s;
+		transition: opacity 0.25s, max-width 0.45s;
+		}
+
+	&.active
+		{
+		cursor: progress;
+
+		.spinner
+			{
+			opacity: 1;
+			max-width: 50px;
+			}
+		}
 	}
