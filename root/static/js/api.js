@@ -3,16 +3,10 @@ function loading_icon()
 	return "Loading...<br /><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active u-w-100\"></div></div>";
 	}
 
-function api_json(options, old_data, old_what, old_success)
+function api_json(options)
 	{
 	if (typeof(options) !== "object")
-		options =
-			{
-			url: options,
-			data: old_data,
-			what: old_what,
-			success: old_success
-			};
+		options = {};
 	if (!("type" in options))
 		options.type = "POST";
 	if (!("success_toast" in options))
