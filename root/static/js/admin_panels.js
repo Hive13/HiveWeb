@@ -192,13 +192,15 @@ $(function()
 	var access_panel = new Panel(
 		{
 		panel_class:    "access",
-		panel_function: display_access_data
+		panel_function: display_access_data,
+		load_path:      "/admin/accesslog/recent"
 		});
 	
 	var pending_applications_panel = new Panel(
 		{
 		panel_class:    "applications",
 		panel_function: display_pending_applications,
+		load_path:      "/admin/applications/pending",
 		refresh:        false
 		});
 

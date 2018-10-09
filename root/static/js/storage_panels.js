@@ -18,6 +18,7 @@ $(function()
 		{
 		panel_class:    "storage_status",
 		panel_function: display_storage_status_data,
+		load_path:      "/admin/storage/status",
 		refresh:        false
 		});
 	});

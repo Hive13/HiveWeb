@@ -17,7 +17,17 @@ my $dh = DH->new(
 	script_directory    => "$FindBin::Bin/../dbicdh",
 	databases           => 'PostgreSQL',
 	sql_translator_args => { add_drop_table => 0 },
+	force_overwrite     => 1,
 	});
 
-$dh->prepare_install();
-$dh->install();
+$dh->prepare_deploy();
+
+#$dh->prepare_install();
+
+$dh->prepare_upgrade(
+	{
+	from_version => 1,
+	to_version   => 2,
+	});
+
+#$dh->install();
