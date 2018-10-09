@@ -2,6 +2,7 @@ package HiveWeb::Controller::API::Lights;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
+use IO::Socket::INET;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -9,6 +10,16 @@ BEGIN { extends 'Catalyst::Controller' }
 sub send_updates
 	{
 	my ($self, $c) = shift;
+
+	my $sock = new IO::Socket::INET(
+		PeerAddr => '239.72.49.51',
+		PeerPort => 12595,
+		Proto    => 'udp',
+		Timeout  => 1
+	) or die('Error opening socket.');
+
+	my $data = "light";
+	print $sock $data;
 	}
 
 sub auto :Private
