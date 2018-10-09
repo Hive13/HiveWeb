@@ -56,7 +56,7 @@ function display_lights(data)
 		api_json(
 			{
 			path: "/lights/load",
-			what: "Loah Lights Preset",
+			what: "Load Lights Preset",
 			data: { preset_id: preset_id },
 			success: function () { self.load_panel_data(); }
 			});
