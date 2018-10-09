@@ -154,30 +154,21 @@ label.btn img
 
 .has-spinner
 	{
+	cursor: progress;
+
 	.spinner
 		{
 		display: inline-block;
-		opacity: 0;
-		max-width: 0;
+		max-width: 50px;
 
 		-webkit-transition: opacity 0.25s, max-width 0.45s;
 		-moz-transition: opacity 0.25s, max-width 0.45s;
 		-o-transition: opacity 0.25s, max-width 0.45s;
 		transition: opacity 0.25s, max-width 0.45s;
-		}
 
-	&.active
-		{
-		cursor: progress;
-
-		.spinner
+		&:first-child
 			{
-			opacity: 1;
-			max-width: 50px;
-			&:first-child
-				{
-				padding-right: 0.5em;
-				}
+			padding-right: 0.5em;
 			}
 		}
 	}
