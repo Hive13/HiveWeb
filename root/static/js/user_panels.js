@@ -1,6 +1,6 @@
-function display_storage_data(data, $panel)
+function display_storage_data(data)
 	{
-	var i, dt, request, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
+	var i, dt, request, html = "<a href=\"/storage/request\">Request a new spot</a><br /><br />";
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
@@ -39,23 +39,23 @@ function display_storage_data(data, $panel)
 		}
 
 	html += "<div class=\"u-w-100 text-center\"><a href=\"/member/requests\" class=\"btn btn-info\">View All Requests</a></div>";
-	$panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 
-	$panel.find(".panel-body a.request-hide").click(function()
+	this.$panel.find(".panel-body a.request-hide").click(function()
 		{
 		var $li = $(this).closest("li"),
 			id = $li.attr("id");
 
 		api_json(
 			{
-			url: panel_urls.storage_hide,
+			path: "/storage/hide",
 			what: "Relinquish Slot",
 			data: { request_id: id },
 			success: function () { $li.slideUp(); },
 			success_toast: false
 			});
 		});
-	$panel.find(".panel-body a.relinquish").click(function()
+	this.$panel.find(".panel-body a.relinquish").click(function()
 		{
 		var id = $(this).attr("id");
 
@@ -64,7 +64,7 @@ function display_storage_data(data, $panel)
 
 		api_json(
 			{
-			url: panel_urls.storage_relinquish,
+			path: "/storage/relinquish",
 			what: "Relinquish Slot",
 			data: { slot_id: id },
 			success: function () { init_panel("storage", display_storage_data, false); }
@@ -72,13 +72,13 @@ function display_storage_data(data, $panel)
 		});
 	}
 
-function display_curse_data(data, $curse_panel)
+function display_curse_data(data)
 	{
 	var curse, i, html = "<ol class=\"curses\">", date;
 
 	if (!("curses" in data) || !data.curses.length)
 		{
-		$curse_panel.find(".panel-body").html("You have no notifications!");
+		this.$panel.find(".panel-body").html("You have no notifications!");
 		return;
 		}
 
@@ -93,10 +93,10 @@ function display_curse_data(data, $curse_panel)
 		}
 
 	html += "</ol>";
-	$curse_panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 	}
 
-function display_application_status(data, $panel, odata)
+function display_application_status(data)
 	{
 	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date, $div;
 
@@ -118,21 +118,21 @@ function display_application_status(data, $panel, odata)
 	steps.push("<a href=\"/application\" target=\"_blank\">Review your Application</a>");
 
 	html += "<ul><li>" + steps.join("</li><li>") + "</li></ul>";
-	$panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 
-	$panel.find("a.submitted-form").click(function()
+	this.$panel.find("a.submitted-form").click(function()
 		{
 		api_json(
 			{
-			url: panel_urls.mark_application_submitted,
+			path: "/application/submit",
 			what: "Mark Application as Submitted",
 			data: { application_id: app_id },
-			success: function () { load_panel_data(odata); },
+			success: function () { this.load_panel_data(); },
 			success_toast: false
 			});
 		});
 
-	$panel.find("a.attach-picture").click(function ()
+	this.$panel.find("a.attach-picture").click(function ()
 		{
 		new Picture(
 			{
@@ -142,10 +142,10 @@ function display_application_status(data, $panel, odata)
 
 				api_json(
 					{
-					url: panel_urls.application_attach_picture,
+					path: "/application/attach_picture",
 					what: "Attach Picture to Application",
 					data: { application_id: app_id, image_id: image_id },
-					success: function () { pic.hide(function () { load_panel_data(odata); }); }
+					success: function () { pic.hide(function () { this.load_panel_data(); }); }
 					});
 				}
 			}).show();
@@ -154,7 +154,26 @@ function display_application_status(data, $panel, odata)
 
 $(function()
 	{
-	init_panel("curse", display_curse_data);
-	init_panel("storage", display_storage_data, false);
-	init_panel("application", display_application_status, false);
+	var curse_panel = new Panel(
+		{
+		panel_class:    "curse",
+		panel_function: display_curse_data,
+		load_path:      "/curse/list"
+		});
+
+	var storage_panel = new Panel(
+		{
+		panel_class:    "storage",
+		panel_function: display_storage_data,
+		load_path:      "/storage/list",
+		refresh:        false
+		});
+
+	var application_panel = new Panel(
+		{
+		panel_class:    "application",
+		panel_function: display_application_status,
+		load_path:      "/application/status",
+		refresh:        false
+		});
 	});
