@@ -602,12 +602,18 @@ $(function()
 			return;
 		if (!confirm("Are you sure you want to delete " + badges.length + " badges?"))
 			return;
-		api_json(url, data, "Badge delete", function (data)
+		api_json(
 			{
-			var i;
+			path: "/admin/members/delete_badge",
+			data: data,
+			what: "Badge delete",
+			success: function (data)
+				{
+				var i;
 
-			for (i = 0; i < badges.length; i++)
-				$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
+				for (i = 0; i < badges.length; i++)
+					$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
+				}
 			});
 		return false;
 		});
