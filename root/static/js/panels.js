@@ -116,11 +116,7 @@ $(function()
 		panel_class:    "status",
 		panel_function: display_temp_data,
 		load_function:  temperature_loading,
-<<<<<<< HEAD
-		load_url:       panel_urls["temp"]
-=======
 		load_path:      "/temperature/current"
->>>>>>> master
 		});
 
 	var soda_panel = new Panel(
@@ -128,11 +124,7 @@ $(function()
 		panel_class:   "status",
 		panel_function: display_soda_data,
 		load_function: soda_loading,
-<<<<<<< HEAD
-		load_url:      panel_urls["soda"],
-=======
 		load_path:     "/soda/status",
->>>>>>> master
 		refresh:       false,
 		});
 	});
