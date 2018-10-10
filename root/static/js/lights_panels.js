@@ -26,6 +26,7 @@ function display_lights(data)
 			path: "/lights/off",
 			what: "Turn Off Lights",
 			data: {},
+			button: $(this),
 			success: function () { self.load_panel_data(); }
 			});
 		});
@@ -36,6 +37,7 @@ function display_lights(data)
 			path: "/lights/on",
 			what: "Turn On Lights",
 			data: {},
+			button: $(this),
 			success: function () { self.load_panel_data(); }
 			});
 		});
@@ -58,6 +60,7 @@ function display_lights(data)
 			path: "/lights/load",
 			what: "Load Lights Preset",
 			data: { preset_id: preset_id },
+			button: $(this),
 			success: function () { self.load_panel_data(); }
 			});
 		});
@@ -93,6 +96,7 @@ function display_lights(data)
 				path: "/lights/save",
 				what: "Save Lights Setting",
 				data: { name: result },
+				button: $(this),
 				success: function ()
 					{
 					$dialogue.on("hidden.bs.modal", function () { self.load_panel_data(); }).modal("hide");
@@ -210,6 +214,7 @@ function display_lights(data)
 				path: "/lights/set",
 				what: "Set Lights",
 				data: { bulbs: result },
+				button: $(this),
 				success: function ()
 					{
 					$dialogue.on("hidden.bs.modal", function () { self.load_panel_data(); }).modal("hide");
