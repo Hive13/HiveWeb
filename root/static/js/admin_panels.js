@@ -105,6 +105,7 @@ function display_pending_applications(data, $panel, odata)
 				path: "/admin/applications/finalize",
 				what: "Finalize Application",
 				data: { application_id: application_id, result: result },
+				button: $(this),
 				success: function ()
 					{
 					$dialogue.on("hidden.bs.modal", function () { this.load_panel_data(); }).modal("hide");
