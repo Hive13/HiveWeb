@@ -51,6 +51,7 @@ function disable_2fa()
 		url: "/api/member/two_factor",
 		data: { enable: false },
 		what: "Disable Two-Factor Authentication",
+		button: $("button#disable_2fa"),
 		success: function()
 			{
 			$("#totp_dialogue").modal("hide");
@@ -73,6 +74,7 @@ function enable_totp()
 			code:   code
 			},
 		what: "Enable Two-Factor Authentication",
+		button: $("button#enable_totp"),
 		success: function()
 			{
 			$dialogue.modal("hide");
