@@ -575,18 +575,12 @@ $(function()
 	$edit_dialogue.find("button#finish_edit").click(save_member);
 	$edit_dialogue.find("div#badges select").change(function ()
 		{
-		var $this = $(this);
-
-		if ($this.find("option:selected").length > 0)
-			$edit_dialogue.find("img.delete").removeClass("icon-disabled");
-		else
-			$edit_dialogue.find("img.delete").addClass("icon-disabled");
+		$edit_dialogue.find("img.delete").toggleClass("icon-disabled", $(this).find("option:selected").length <= 0);
 		return false;
 		});
 	$edit_dialogue.find("div#badges img.delete").click(function()
 		{
 		var badges = [];
-		var url = "[% Catalyst.uri_for('/api/admin/members/delete_badge') %]";
 		var data =
 			{
 			member_id: $edit_dialogue.data("member_id"),
