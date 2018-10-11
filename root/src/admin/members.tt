@@ -331,7 +331,6 @@
 </div>
 
 <script type="text/javascript">
-var load_url   = "[% Catalyst.uri_for('/api/admin/members').dquote %]";
 var order      = "lname";
 var dir        = "ASC";
 var all_groups = [];
@@ -816,7 +815,7 @@ function load_members()
 		{
 		what: "Member load",
 		success_toast: false,
-		url: load_url,
+		path: "/admin/members",
 		data: params
 		};
 
@@ -927,7 +926,7 @@ function badge_save()
 	var badge_number = $div.find("input#badge_number").val();
 	var api =
 		{
-		url: "[% Catalyst.uri_for('/api/admin/members/add_badge').dquote %]",
+		path: "/admin/members/add_badge",
 		data:
 			{
 			badge_number: badge_number,
@@ -980,7 +979,6 @@ function save_password()
 
 	var password  = $this.find("input#password1").val();
 	var password2 = $this.find("input#password2").val();
-	var url = "[% Catalyst.uri_for('/api/admin/members/password') %]";
 	var data =
 		{
 		member_id: member_id,
@@ -1001,7 +999,7 @@ function save_password()
 
 	api_json(
 		{
-		url: url,
+		path: "/admin/members/password",
 		data: data,
 		what: "Password update",
 		button: $(this),
@@ -1212,7 +1210,7 @@ function curse(member_id)
 
 		api_json(
 			{
-			url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
+			path:    "/admin/curses/cast",
 			data:    data,
 			what:    "Curse Cast",
 			button:  $ok,
