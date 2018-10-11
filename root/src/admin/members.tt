@@ -61,8 +61,8 @@
 							<div class="panel-body">
 								<div class="badge-select">
 									<select size="2" multiple="multiple"></select><br />
-									<img title="Add" class="add icon" src="/static/icons/add.png" />
-									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
+									<button title="Add Badge" class="btn btn-xs btn-success add"><span class="fas fa-plus"></span></button>
+									<button title="Delete Badge" class="btn btn-xs btn-danger delete" disabled><span class="fas fa-minus"></span></button>
 								</div>
 								<div id="badge_edit" class="u-mw-100" style="display: none">
 									<input type="number" id="badge_number" class="u-mw-100" /><br />
@@ -570,14 +570,14 @@ $(function()
 	$("div#password_dialogue button#finish_pass").click(save_password);
 
 	$edit_dialogue.find("input#different_paypal").click(paypal_checkbox);
-	$edit_dialogue.find("div#badges img.add").click(function () { badge_edit(undefined) });
+	$edit_dialogue.find("div#badges button.add").click(function () { badge_edit(undefined) });
 	$edit_dialogue.find("button#finish_edit").click(save_member);
 	$edit_dialogue.find("div#badges select").change(function ()
 		{
-		$edit_dialogue.find("img.delete").toggleClass("icon-disabled", $(this).find("option:selected").length <= 0);
+		$edit_dialogue.find("button.delete").attr("disabled", $(this).find("option:selected").length <= 0);
 		return false;
 		});
-	$edit_dialogue.find("div#badges img.delete").click(function()
+	$edit_dialogue.find("div#badges button.delete").click(function()
 		{
 		var badges = [];
 		var data =
@@ -600,6 +600,7 @@ $(function()
 			path: "/admin/members/delete_badge",
 			data: data,
 			what: "Badge delete",
+			$icon: $(this).find("span.fas"),
 			success: function (data)
 				{
 				var i;
@@ -919,9 +920,7 @@ function load_members()
 function badge_save()
 	{
 	var $dialogue    = $("#edit_dialogue");
-	var $sdiv        = $dialogue.find("div.badge-select");
 	var $div         = $dialogue.find("#badge_edit");
-	var badge_id     = $div.data("badge_id");
 	var member_id    = $dialogue.data("member_id");
 	var badge_number = $div.find("input#badge_number").val();
 	var api =
@@ -955,7 +954,7 @@ function badge_edit_hide()
 
 	$div.css("display", "none");
 	$sdiv.css("opacity", "1");
-	$sdiv.find("img.icon").removeClass("icon-disabled").prop("disabled", false);
+	$sdiv.find("button").prop("disabled", false);
 	}
 
 function badge_edit(badge_id)
@@ -969,7 +968,7 @@ function badge_edit(badge_id)
 	$edit.val("");
 	$div.css("display", "");
 	$sdiv.css("opacity", "0.5");
-	$sdiv.find("img.icon").addClass("icon-disabled").prop("disabled", true);
+	$sdiv.find("button").prop("disabled", true);
 	$edit.focus();
 	}
 
