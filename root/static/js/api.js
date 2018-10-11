@@ -8,11 +8,9 @@ function api_json(options)
 	var $button, spinner_html;
 
 	if (typeof(options) !== "object")
-		options = {};
-	if (!("type" in options))
-		options.type = "POST";
-	if (!("success_toast" in options))
-		options.success_toast = true;
+		return;
+
+	options = $.extend({ type: "POST", success_toast: true }, options);
 
 	if ("path" in options)
 		options.url = api_base + options.path;
