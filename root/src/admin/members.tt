@@ -66,8 +66,8 @@
 								</div>
 								<div id="badge_edit" class="u-mw-100" style="display: none">
 									<input type="number" id="badge_number" class="u-mw-100" /><br />
-									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
-									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
+									<button title="OK" class="btn btn-xs btn-success ok"><span class="fas fa-check"></span></button>
+									<button title="Cancel" class="btn btn-xs btn-danger cancel"><span class="fas fa-times"></span></button>
 								</div>
 							</div>
 						</div>
@@ -625,8 +625,8 @@ $(function()
 			return false;
 			}
 		});
-	$badge_edit.find("img.cancel").click(badge_edit_hide);
-	$badge_edit.find("img.ok").click(badge_save);
+	$badge_edit.find("button.cancel").click(badge_edit_hide);
+	$badge_edit.find("button.ok").click(badge_save);
 
 	$("div.search input").keydown(function()
 		{
@@ -932,6 +932,7 @@ function badge_save()
 			member_id:    member_id
 			},
 		what: "Badge Add",
+		$icon: $(this).find("span.fas"),
 		success: function (data)
 			{
 			var $option = $("<option />")
