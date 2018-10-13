@@ -5,7 +5,7 @@ function loading_icon()
 
 function api_json(options)
 	{
-	var $button, $icon, spinner_html, classes, i;
+	var $button, $icon, $el, spinner_html, classes, i;
 
 	if (typeof(options) !== "object")
 		return;
@@ -17,12 +17,9 @@ function api_json(options)
 
 	if ("button" in options)
 		{
-		if (typeof(options.button) === "object")
-			{
-			$button = options.button;
-			spinner_html = "<span class=\"spinner\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
-			$button.addClass("has-spinner").attr("disabled", true).prepend(spinner_html);
-			}
+		$button = options.button;
+		spinner_html = "<span class=\"spinner\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
+		$button.addClass("has-spinner").attr("disabled", true).prepend(spinner_html);
 		}
 
 	if ("$icon" in options)
@@ -37,6 +34,13 @@ function api_json(options)
 				$icon.removeClass(classes[i]);
 			}
 		$icon.addClass("fas fa-spinner fa-spin has-spinner").attr("disabled", true);
+		}
+
+	if ("$el" in options)
+		{
+		$el = options.$el;
+		spinner_html = $el.html();
+		$el.html("<span class=\"fas fa-spinner fa-spin has-spinner\"></span>");
 		}
 
 	$.ajax(
@@ -54,6 +58,8 @@ function api_json(options)
 				$button.removeClass("has-spinner").attr("disabled", false).find("span.spinner").remove();
 			if ($icon)
 				$icon.attr("class", classes.join(" ")).attr("disabled", false);
+			if ($el)
+				$el.html(spinner_html);
 			if (!data.response)
 				{
 				$.toast(
@@ -93,6 +99,8 @@ function api_json(options)
 				$button.removeClass("has-spinner").attr("disabled", false).find("span.spinner").remove();
 			if ($icon)
 				$icon.attr("class", classes.join(" ")).attr("disabled", false);
+			if ($el)
+				$el.html(spinner_html);
 			if (options.failure)
 				options.failure();
 			}
