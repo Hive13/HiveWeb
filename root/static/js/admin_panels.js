@@ -24,9 +24,9 @@ function display_access_data(data)
 	this.$panel.find(".panel-body").html(html);
 	}
 
-function display_pending_applications(data, $panel, odata)
+function display_pending_applications(data)
 	{
-	var html = "", i, app, dt, actions;
+	var html = "", i, app, dt, actions, self = this;
 
 	for (i = 0; i < data.app_info.length; i++)
 		{
@@ -105,9 +105,10 @@ function display_pending_applications(data, $panel, odata)
 				path: "/admin/applications/finalize",
 				what: "Finalize Application",
 				data: { application_id: application_id, result: result },
+				button: $(this),
 				success: function ()
 					{
-					$dialogue.on("hidden.bs.modal", function () { this.load_panel_data(); }).modal("hide");
+					$dialogue.on("hidden.bs.modal", function () { self.load_panel_data(); }).modal("hide");
 					}
 				});
 			});
@@ -128,6 +129,7 @@ function display_pending_applications(data, $panel, odata)
 	this.$panel.find("a.attach-picture").click(function ()
 		{
 		var application_id = $(this).closest("ul.application").attr("id");
+
 		new Picture(
 			{
 			accept: function(pic)
@@ -139,7 +141,8 @@ function display_pending_applications(data, $panel, odata)
 					path: "/application/attach_picture",
 					what: "Attach Picture to Application",
 					data: { application_id: application_id, image_id: image_id },
-					success: function () { pic.hide(function () { this.load_panel_data(); }); }
+					button: pic.$dialogue.find("button.accept-picture"),
+					success: function () { pic.hide(function () { self.load_panel_data(); }); }
 					});
 				}
 			}).show();
@@ -155,15 +158,19 @@ function display_pending_applications(data, $panel, odata)
 			prevent_deletes: true
 			}).show();
 		});
-	this.$panel.find("a.accept-picture").click(function ()
+	this.$panel.find("a.accept-picture").click(function accept_picture()
 		{
-		var application_id = $(this).closest("ul.application").attr("id");
+		var $this = $(this), application_id = $this.closest("ul.application").attr("id");
+
+		$this.off("click");
 		api_json(
 			{
 			path: "/admin/applications/attach_picture_to_member",
 			what: "Attach Picture to Member Profile",
 			data: { application_id: application_id },
-			success: function () { this.load_panel_data(); }
+			$el: $this,
+			success: function () { self.load_panel_data(); },
+			failure: function () { $this.click(accept_picture); }
 			});
 		});
 	this.$panel.find("a.upload-signed-form").click(function ()
@@ -180,7 +187,8 @@ function display_pending_applications(data, $panel, odata)
 					path: "/application/attach_form",
 					what: "Attach Form to Application",
 					data: { application_id: application_id, image_id: image_id },
-					success: function () { pic.hide(function () { this.load_panel_data(); }); }
+					button: pic.$dialogue.find("button.accept-picture"),
+					success: function () { pic.hide(function () { self.load_panel_data(); }); }
 					});
 				}
 			}).show();
@@ -195,7 +203,7 @@ $(function()
 		panel_function: display_access_data,
 		load_path:      "/admin/accesslog/recent"
 		});
-	
+
 	var pending_applications_panel = new Panel(
 		{
 		panel_class:    "applications",

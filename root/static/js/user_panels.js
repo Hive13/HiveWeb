@@ -1,6 +1,6 @@
 function display_storage_data(data)
 	{
-	var i, dt, request, html = "<a href=\"/storage/request\">Request a new spot</a><br /><br />";
+	var self = this, i, dt, request, html = "<a href=\"/storage/request\">Request a new spot</a><br /><br />";
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
@@ -41,33 +41,39 @@ function display_storage_data(data)
 	html += "<div class=\"u-w-100 text-center\"><a href=\"/member/requests\" class=\"btn btn-info\">View All Requests</a></div>";
 	this.$panel.find(".panel-body").html(html);
 
-	this.$panel.find(".panel-body a.request-hide").click(function()
+	this.$panel.find(".panel-body a.request-hide").click(function request_hide()
 		{
-		var $li = $(this).closest("li"),
+		var $this, $li = $this.closest("li"),
 			id = $li.attr("id");
 
+		$this.off("click");
 		api_json(
 			{
 			path: "/storage/hide",
 			what: "Relinquish Slot",
 			data: { request_id: id },
+			$el: $this,
 			success: function () { $li.slideUp(); },
+			failure: function () { $this.click(request_hide); },
 			success_toast: false
 			});
 		});
-	this.$panel.find(".panel-body a.relinquish").click(function()
+	this.$panel.find(".panel-body a.relinquish").click(function relinquish()
 		{
-		var id = $(this).attr("id");
+		var $this = $(this), id = $(this).attr("id");
 
 		if (!confirm("If you want a slot back, you'll have to submit another request.  Click Cancel if you still have belongings in this spot.  Are you sure?"))
 			return;
+		$this.off("click");
 
 		api_json(
 			{
 			path: "/storage/relinquish",
 			what: "Relinquish Slot",
 			data: { slot_id: id },
-			success: function () { init_panel("storage", display_storage_data, false); }
+			$el: $this,
+			success: function () { self.load_panel_data(); },
+			failure: function () { $this.click(relinquish); }
 			});
 		});
 	}
@@ -120,14 +126,19 @@ function display_application_status(data)
 	html += "<ul><li>" + steps.join("</li><li>") + "</li></ul>";
 	this.$panel.find(".panel-body").html(html);
 
-	this.$panel.find("a.submitted-form").click(function()
+	this.$panel.find("a.submitted-form").click(function submitted_form()
 		{
+		var $this = $(this);
+
+		$this.off("click");
 		api_json(
 			{
 			path: "/application/submit",
 			what: "Mark Application as Submitted",
 			data: { application_id: app_id },
-			success: function () { this.load_panel_data(); },
+			$el: $this,
+			success: function () { self.load_panel_data(); },
+			failure: function () { $this.click(submitted_form); },
 			success_toast: false
 			});
 		});
@@ -145,7 +156,8 @@ function display_application_status(data)
 					path: "/application/attach_picture",
 					what: "Attach Picture to Application",
 					data: { application_id: app_id, image_id: image_id },
-					success: function () { pic.hide(function () { this.load_panel_data(); }); }
+					button: pic.$dialogue.find("button.accept-picture"),
+					success: function () { pic.hide(function () { self.load_panel_data(); }); }
 					});
 				}
 			}).show();

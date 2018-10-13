@@ -149,6 +149,7 @@ function decide_request()
 		what: "Decide request",
 		path: "/admin/storage/decide_request",
 		data: data,
+		button: $dialogue.find("div.modal-body button.btn-success"),
 		success: function ()
 			{
 			$dialogue.modal("hide");
@@ -350,6 +351,7 @@ function finish_slot()
 			name:        name,
 			sort_order:  sort_order,
 			},
+		button: $dialogue.find("button#finish_slot"),
 		success: function()
 			{
 			$dialogue.modal("hide");
@@ -379,6 +381,7 @@ function finish_slot_assign()
 			slot_id:   slot_id,
 			member_id: member_id
 			},
+		button: $dialogue.find("button#finish_slot_assign"),
 		success: function()
 			{
 			$dialogue.modal("hide");
@@ -409,6 +412,7 @@ function finish_loc()
 			parent_id: parent_id,
 			name:      name
 			},
+		button: $dialogue.find("button#finish_loc"),
 		success: function()
 			{
 			$dialogue.modal("hide");
