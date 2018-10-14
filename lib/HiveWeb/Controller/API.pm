@@ -64,7 +64,7 @@ sub begin :Private
 		{
 		$c->stash()->{in} = $c->req()->body_data();
 		}
-	$c->stash()->{out} = {};
+	$c->stash()->{out} = { response => \0 };
 	$c->stash()->{view} = $c->view('JSON');
 	}
 
@@ -95,7 +95,6 @@ sub access :Local
 
 	if (!defined($device))
 		{
-		$out->{response} = \0;
 		$out->{error}    = 'Cannot find device.';
 		$c->response()->status(400)
 			if ($data->{http});
@@ -107,7 +106,6 @@ sub access :Local
 
 	if ($device->min_version() > $version || $version > $device->max_version())
 		{
-		$out->{response} = \0;
 		$out->{error}    = 'Invalid version for device.';
 		$c->response()->status(403)
 			if ($data->{http});
@@ -123,7 +121,6 @@ sub access :Local
 		$out->{new_nonce} = uc(unpack('H*', $new_nonce));
 		if ($nonce ne $exp_nonce && $operation ne 'get_nonce')
 			{
-			$out->{response}    = \0;
 			$out->{nonce_valid} = \0;
 			$out->{error}       = 'Invalid nonce.';
 			$c->response()->status(403)
@@ -136,7 +133,6 @@ sub access :Local
 	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))
 		{
-		$out->{response} = JSON->false();
 		$out->{error} = 'Invalid checksum.';
 		$c->response()->status(400)
 			if ($data->{http});

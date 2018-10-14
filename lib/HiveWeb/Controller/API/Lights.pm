@@ -22,13 +22,6 @@ sub send_updates
 	print $sock $data;
 	}
 
-sub auto :Private
-	{
-	my ($self, $c) = @_;
-
-	$c->stash()->{out}->{response} = \0;
-	}
-
 sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
