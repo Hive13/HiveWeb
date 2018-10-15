@@ -18,7 +18,6 @@ sub list :Local :Args(0)
 	my ($self, $c) = @_;
 
 	my $out = $c->stash()->{out};
-	$out->{response} = \0;
 
 	my $root_location = $c->model('DB::StorageLocation')->find({ parent_id => undef }) || die $!;
 	my $request_count = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
@@ -33,7 +32,6 @@ sub status :Local :Args(0)
 	my ($self, $c) = @_;
 
 	my $out = $c->stash()->{out};
-	$out->{response} = \0;
 
 	my $request_count   = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
 	my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef })->count();
@@ -70,7 +68,6 @@ sub decide_request :Local :Args(0)
 	my $request    = $c->model('DB::StorageRequest')->find($in->{request_id});
 	my $slot;
 
-	$out->{response} = \0;
 	if (!$request)
 		{
 		$out->{data} = "Could not find request \"$in->{request_id}\".";
@@ -154,8 +151,7 @@ sub edit_slot :Local :Args(0)
 	my $data        = {};
 	my $slot;
 
-	$out->{response} = \0;
-	$out->{data}     = $slot_id ? 'Could not edit slot.' : 'Could not add slot.';
+	$out->{data} = $slot_id ? 'Could not edit slot.' : 'Could not add slot.';
 
 	if (!$location_id && !$slot_id)
 		{
@@ -209,8 +205,7 @@ sub new_location :Local :Args(0)
 	my $parent_id = $in->{parent_id};
 	my $parent;
 
-	$out->{response} = \0;
-	$out->{data}     = 'Could not add location.';
+	$out->{data} = 'Could not add location.';
 	if (!$name)
 		{
 		$out->{data} = 'You must provide a name.';
@@ -244,8 +239,7 @@ sub assign_slot :Local :Args(0)
 	my $slot      = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id });
 	my $member;
 
-	$out->{response} = \0;
-	$out->{data}     = 'Could not assign slot.';
+	$out->{data} = 'Could not assign slot.';
 	if (!$slot)
 		{
 		$out->{data} = 'You must provide a valid slot.';
