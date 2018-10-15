@@ -6,7 +6,6 @@ use IO::Socket::INET;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-
 sub send_updates
 	{
 	my ($self, $c) = shift;
