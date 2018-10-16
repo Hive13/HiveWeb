@@ -12,7 +12,6 @@ extends 'DBIx::Class::Core';
 use Text::Markdown 'markdown';
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
-__PACKAGE__->table_class("DBIx::Class::ResultSource::View");
 __PACKAGE__->table("curse");
 
 __PACKAGE__->add_columns(

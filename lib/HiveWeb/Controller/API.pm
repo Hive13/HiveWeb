@@ -16,7 +16,7 @@ sub begin :Private
 		{
 		$c->stash()->{in} = $c->req()->body_data();
 		}
-	$c->stash()->{out} = {};
+	$c->stash()->{out} = { response => \0 };
 	$c->stash()->{view} = $c->view('JSON');
 	}
 

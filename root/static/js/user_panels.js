@@ -1,6 +1,6 @@
-function display_storage_data(data, $panel)
+function display_storage_data(data)
 	{
-	var i, dt, request, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
+	var self = this, i, dt, request, html = "<a href=\"/storage/request\">Request a new spot</a><br /><br />";
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
@@ -39,46 +39,52 @@ function display_storage_data(data, $panel)
 		}
 
 	html += "<div class=\"u-w-100 text-center\"><a href=\"/member/requests\" class=\"btn btn-info\">View All Requests</a></div>";
-	$panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 
-	$panel.find(".panel-body a.request-hide").click(function()
+	this.$panel.find(".panel-body a.request-hide").click(function request_hide()
 		{
-		var $li = $(this).closest("li"),
+		var $this, $li = $this.closest("li"),
 			id = $li.attr("id");
 
+		$this.off("click");
 		api_json(
 			{
-			url: panel_urls.storage_hide,
+			path: "/storage/hide",
 			what: "Relinquish Slot",
 			data: { request_id: id },
+			$el: $this,
 			success: function () { $li.slideUp(); },
+			failure: function () { $this.click(request_hide); },
 			success_toast: false
 			});
 		});
-	$panel.find(".panel-body a.relinquish").click(function()
+	this.$panel.find(".panel-body a.relinquish").click(function relinquish()
 		{
-		var id = $(this).attr("id");
+		var $this = $(this), id = $(this).attr("id");
 
 		if (!confirm("If you want a slot back, you'll have to submit another request.  Click Cancel if you still have belongings in this spot.  Are you sure?"))
 			return;
+		$this.off("click");
 
 		api_json(
 			{
-			url: panel_urls.storage_relinquish,
+			path: "/storage/relinquish",
 			what: "Relinquish Slot",
 			data: { slot_id: id },
-			success: function () { init_panel("storage", display_storage_data, false); }
+			$el: $this,
+			success: function () { self.load_panel_data(); },
+			failure: function () { $this.click(relinquish); }
 			});
 		});
 	}
 
-function display_curse_data(data, $curse_panel)
+function display_curse_data(data)
 	{
 	var curse, i, html = "<ol class=\"curses\">", date;
 
 	if (!("curses" in data) || !data.curses.length)
 		{
-		$curse_panel.find(".panel-body").html("You have no notifications!");
+		this.$panel.find(".panel-body").html("You have no notifications!");
 		return;
 		}
 
@@ -93,68 +99,23 @@ function display_curse_data(data, $curse_panel)
 		}
 
 	html += "</ol>";
-	$curse_panel.find(".panel-body").html(html);
-	}
-
-function display_application_status(data, $panel, odata)
-	{
-	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date, $div;
-
-
-	if (!data.has_picture)
-		steps.push("<a class=\"anchor-style attach-picture\">Attach your picture</a> to the application or get a Hive Officer to do it for you.");
-
-	if (data.has_form)
-		steps.push("Your signed form has been received.");
-	else if (!data.submitted_form_at)
-		steps.push("<a href=\"/application/print\" target=\"_blank\">Print out your application</a>, sign it, and turn it into the Completed Paperwork tray near the main entrance to the Hive.  <a class=\"anchor-style submitted-form\">Click here if you have already turned it in.</a>");
-	else
-		{
-		date = new Date(data.submitted_form_at);
-		steps.push("You submitted your form on " + date.toLocaleDateString() + ".  <a href=\"/application/print\" target=\"_blank\">Print it out again.</a>");
-		}
-
-	steps.push("Keep attending meetings and get to know the membership.");
-	steps.push("<a href=\"/application\" target=\"_blank\">Review your Application</a>");
-
-	html += "<ul><li>" + steps.join("</li><li>") + "</li></ul>";
-	$panel.find(".panel-body").html(html);
-
-	$panel.find("a.submitted-form").click(function()
-		{
-		api_json(
-			{
-			url: panel_urls.mark_application_submitted,
-			what: "Mark Application as Submitted",
-			data: { application_id: app_id },
-			success: function () { load_panel_data(odata); },
-			success_toast: false
-			});
-		});
-
-	$panel.find("a.attach-picture").click(function ()
-		{
-		new Picture(
-			{
-			accept: function (pic)
-				{
-				var image_id = pic.get_image_id();
-
-				api_json(
-					{
-					url: panel_urls.application_attach_picture,
-					what: "Attach Picture to Application",
-					data: { application_id: app_id, image_id: image_id },
-					success: function () { pic.hide(function () { load_panel_data(odata); }); }
-					});
-				}
-			}).show();
-		});
+	this.$panel.find(".panel-body").html(html);
 	}
 
 $(function()
 	{
-	init_panel("curse", display_curse_data);
-	init_panel("storage", display_storage_data, false);
-	init_panel("application", display_application_status, false);
+	var curse_panel = new Panel(
+		{
+		panel_class:    "curse",
+		panel_function: display_curse_data,
+		load_path:      "/curse/list"
+		});
+
+	var storage_panel = new Panel(
+		{
+		panel_class:    "storage",
+		panel_function: display_storage_data,
+		load_path:      "/storage/list",
+		refresh:        false
+		});
 	});

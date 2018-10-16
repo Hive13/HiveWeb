@@ -9,38 +9,36 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-use Net::SMTP;
-
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
-__PACKAGE__->table("storage_slot");
+__PACKAGE__->table('storage_slot');
 
 __PACKAGE__->add_columns(
-  "slot_id",
-  { data_type => "uuid", is_nullable => 0, size => 16 },
-  "name",
-  { data_type => "character varying", is_nullable => 0, size => 32 },
-  "member_id",
-  { data_type => "uuid", is_nullable => 1 },
-  "location_id",
-  { data_type => "uuid", is_nullable => 0 },
-  "sort_order",
-  { data_type => "integer", is_nullable => 0, default_value => 1000 },
+  'slot_id',
+  { data_type => 'uuid', is_nullable => 0, size => 16 },
+  'name',
+  { data_type => 'character varying', is_nullable => 0, size => 32 },
+  'member_id',
+  { data_type => 'uuid', is_nullable => 1 },
+  'location_id',
+  { data_type => 'uuid', is_nullable => 0 },
+  'sort_order',
+  { data_type => 'integer', is_nullable => 0, default_value => 1000 },
 );
 
-__PACKAGE__->set_primary_key("slot_id");
-__PACKAGE__->uuid_columns("slot_id");
+__PACKAGE__->set_primary_key('slot_id');
+__PACKAGE__->uuid_columns('slot_id');
 __PACKAGE__->resultset_attributes( { order_by => ['sort_order', 'name'] } );
 
 __PACKAGE__->belongs_to(
-  "member",
-  "HiveWeb::Schema::Result::Member",
-  { "foreign.member_id" => "self.member_id" },
+  'member',
+  'HiveWeb::Schema::Result::Member',
+  { 'foreign.member_id' => 'self.member_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 __PACKAGE__->belongs_to(
-  "location",
-  "HiveWeb::Schema::Result::StorageLocation",
-  { "foreign.location_id" => "self.location_id" },
+  'location',
+  'HiveWeb::Schema::Result::StorageLocation',
+  { 'foreign.location_id' => 'self.location_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -110,7 +108,7 @@ sub hierarchy
 	my $location = $self->location();
 	while ($location)
 		{
-		$lname = " $sep $lname"
+		$lname = ' $sep $lname'
 			if ($lname);
 		$lname = $location->name() . $lname;
 		$location = $location->parent();

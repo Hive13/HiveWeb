@@ -1,54 +1,66 @@
-function load_panel_data(data)
+
+function Panel(args)
 	{
-	if ("load_function" in data)
-		data.load_function(data.$panel);
+	this.refresh = true;
+	this.name    = args.panel_class;
+	this.$panel  = $(".hive-panel-" + this.name);
+	this.display = args.panel_function;
+	this.timeout = 60000;
+
+	if ("refresh" in args && !args.refresh)
+		this.refresh = false;
+
+	if ("load_path" in args)
+		this.load_url = api_base + args.load_path;
 	else
-		data.$panel.find(".panel-body").html(loading_icon());
-	api_json(
+		this.load_url = args.load_url;
+
+	if ("load_function" in args)
+		this.load_function = args.load_function;
+	else
+		this.load_function = this.default_load_function;
+
+	if ("ldata" in args)
+		this.ldata = args.ldata;
+
+	this.load_panel_data();
+	}
+
+Panel.prototype.default_load_function = function ()
+	{
+	this.$panel.find("div.panel-body").html(loading_icon());
+	};
+
+Panel.prototype.load_panel_data = function()
+	{
+	var panel = this;
+	var api =
 		{
 		type:          "GET",
-		url:           data.load_url,
-		what:          "Load " + data.panel_class,
+		url:           this.load_url,
+		what:          "Load " + this.name,
 		success_toast: false,
 		success:       function(rdata)
 			{
-			data.panel_function(rdata, data.$panel, data);
-			if (data.refresh)
-				setTimeout(function() { load_panel_data(data); }, 60000);
+			panel.display(rdata);
+			if (panel.refresh)
+				setTimeout(function() { panel.load_panel_data(); }, panel.timeout);
 			}
-		});
-	}
-function init_panel(panel_class, panel_function, refresh)
-	{
-	var $panel = $(".hive-panel-" + panel_class), i;
+		};
 
-	if (refresh !== false)
-		refresh = true;
-
-	if (typeof(panel_function) === "object")
+	if (this.ldata)
 		{
-		for (i = 0; i < panel_function.length; i++)
-			load_panel_data(panel_function[i]);
+		api.data = this.ldata();
+		api.type = "POST";
 		}
-	else
-		{
-		if (!$panel.length || !panel_function || !(panel_class in panel_urls))
-			return;
 
-		load_panel_data(
-			{
-			$panel:         $panel,
-			panel_class:    panel_class,
-			panel_function: panel_function,
-			refresh:        refresh,
-			load_url:       panel_urls[panel_class]
-			});
-		}
+	this.load_function();
+	api_json(api);
 	}
 
-function display_temp_data(data, $temp_panel)
+function display_temp_data(data)
 	{
-	var $temp_div = $temp_panel.find("h3.temperature + div"), html = "";
+	var $temp_div = this.$panel.find("h3.temperature + div"), html = "";
 
 	for (i = 0; i < data.temps.length; i++)
 		{
@@ -58,9 +70,9 @@ function display_temp_data(data, $temp_panel)
 	$temp_div.html(html);
 	}
 
-function display_soda_data(data, $temp_panel)
+function display_soda_data(data)
 	{
-	var $temp_div = $temp_panel.find("h3.soda + div"), html = "<div class=\"row\">", i, soda;
+	var $temp_div = this.$panel.find("h3.soda + div"), html = "<div class=\"row\">", i, soda;
 
 	for (i = 0; i < data.sodas.length; i++)
 		{
@@ -77,14 +89,14 @@ function display_soda_data(data, $temp_panel)
 	$temp_div.html(html);
 	}
 
-function temperature_loading($panel)
+function temperature_loading()
 	{
-	$panel.find("h3.temperature + div").html(loading_icon());
+	this.$panel.find("h3.temperature + div").html(loading_icon());
 	}
 
 function soda_loading($panel)
 	{
-	$panel.find("h3.soda + div").html(loading_icon());
+	this.$panel.find("h3.soda + div").html(loading_icon());
 	}
 
 $(function()
@@ -99,23 +111,20 @@ $(function()
 		+ "</td></tr></table>"
 	);
 
-	init_panel("status",
-		[
-			{
-			$panel: $panel,
-			load_function: temperature_loading,
-			load_url: panel_urls["temp"],
-			refresh: true,
-			panel_function: display_temp_data,
-			panel_class: "Temperatures"
-			},
-			{
-			$panel: $panel,
-			load_function: soda_loading,
-			load_url: panel_urls["soda"],
-			refresh: false,
-			panel_function: display_soda_data,
-			panel_class: "Soda Status"
-			}
-		]);
+	var temp_panel = new Panel(
+		{
+		panel_class:    "status",
+		panel_function: display_temp_data,
+		load_function:  temperature_loading,
+		load_path:      "/temperature/current"
+		});
+
+	var soda_panel = new Panel(
+		{
+		panel_class:   "status",
+		panel_function: display_soda_data,
+		load_function: soda_loading,
+		load_path:     "/soda/status",
+		refresh:       false,
+		});
 	});

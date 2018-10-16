@@ -105,24 +105,30 @@ Picture.prototype.load_image = function(image_id)
 	if (!this.show_icons)
 		return;
 
-	$rotateL = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function ()
+	$rotateL = $("<span />").addClass("fas").addClass("fa-chevron-circle-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function rotate_left ()
 		{
+		var $this = $(this);
+
+		$this.off("click");
 		api_json(
 			{
 			what:    "Rotate Photo",
 			path:    "/image/rotate",
+			$icon:   $this,
 			data:    { image_id: image_id, degrees: 270 },
-			success: function() { self.load_image(image_id); }
+			success: function() { self.load_image(image_id); },
+			failure: function() { $this.click(rotate_left) },
 			});
 		});
 
-	$rotate = $("<span />").addClass("glyphicon").addClass("glyphicon-chevron-right").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Clockwise").click(function ()
+	$rotate = $("<span />").addClass("fas").addClass("fa-chevron-circle-right").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Clockwise").click(function ()
 		{
 		api_json(
 			{
 			what:    "Rotate Photo",
 			path:    "/image/rotate",
 			data:    { image_id: image_id, degrees: 90 },
+			$icon:   $(this),
 			success: function() { self.load_image(image_id); }
 			});
 		});

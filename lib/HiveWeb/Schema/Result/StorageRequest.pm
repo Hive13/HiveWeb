@@ -25,7 +25,7 @@ __PACKAGE__->add_columns(
     original      => { default_value => \'now()' },
 	},
   'notes',
-  { data_type => 'text', is_nullable => 0 },
+  { data_type => 'text', is_nullable => 1 },
   'status',
   { data_type => 'character varying', is_nullable => 0, default_value => 'requested' },
   'slot_id',

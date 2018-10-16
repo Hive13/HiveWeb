@@ -1,4 +1,4 @@
-function display_storage_status_data(data, $panel)
+function display_storage_status_data(data)
 	{
 	var html = "";
 
@@ -9,7 +9,16 @@ function display_storage_status_data(data, $panel)
 
 	html += "<div class=\"u-w-100 text-center\"><a href=\"/admin/storage\" class=\"btn btn-primary\">Visit the Storage Admin Area</a></div>";
 
-	$panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 	}
 
-$(function() { init_panel("storage_status", display_storage_status_data, 0); });
+$(function()
+	{
+	var storage_admin_panel = new Panel(
+		{
+		panel_class:    "storage_status",
+		panel_function: display_storage_status_data,
+		load_path:      "/admin/storage/status",
+		refresh:        false
+		});
+	});

@@ -10,7 +10,6 @@ sub auto :Private
 	my ($self, $c)   = @_;
 	my $in           = $c->stash()->{in};
 	my $out          = $c->stash()->{out};
-	$out->{response} = \0;
 
 	return 1
 		if (!exists($in->{application_id}));

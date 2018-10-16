@@ -21,8 +21,7 @@ sub index :Path
 
 	if (!defined($device))
 		{
-		$out->{response} = \0;
-		$out->{error}    = 'Cannot find device.';
+		$out->{data} = 'Cannot find device.';
 		$c->response()->status(400)
 			if ($data->{http});
 		return;
@@ -33,8 +32,7 @@ sub index :Path
 
 	if ($device->min_version() > $version || $version > $device->max_version())
 		{
-		$out->{response} = \0;
-		$out->{error}    = 'Invalid version for device.';
+		$out->{data} = 'Invalid version for device.';
 		$c->response()->status(403)
 			if ($data->{http});
 		return;
@@ -49,9 +47,8 @@ sub index :Path
 		$out->{new_nonce} = uc(unpack('H*', $new_nonce));
 		if ($nonce ne $exp_nonce && $operation ne 'get_nonce')
 			{
-			$out->{response}    = \0;
 			$out->{nonce_valid} = \0;
-			$out->{error}       = 'Invalid nonce.';
+			$out->{data}        = 'Invalid nonce.';
 			$c->response()->status(403)
 				if ($data->{http});
 			return;
@@ -62,21 +59,19 @@ sub index :Path
 	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))
 		{
-		$out->{response} = \0;
-		$out->{error}    = 'Invalid checksum.';
+		$out->{data} = 'Invalid checksum.';
 		$c->response()->status(400)
 			if ($data->{http});
 		return;
 		}
 
-	$out->{response}        = \1;
 	$out->{random_response} = $data->{random_response};
 
 	$c->detach($operation)
 		if ($self->can($operation));
 
 	$out->{response} = \0;
-	$out->{error}    = 'Invalid operation.';
+	$out->{error} = 'Invalid operation.';
 	$c->response()->status(400)
 		if ($data->{http});
 	}
@@ -97,16 +92,16 @@ sub access
 
 	if (!$item)
 		{
-		$out->{error}  = 'Cannot find item ' . $item_name;
+		$out->{error} = 'Cannot find item ' . $item_name;
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
 		}
+	$out->{response} = \1;
 	
 	if ($device->search_related('device_items', { item_id => $item->item_id() })->count() < 1)
 		{
-		$out->{access} = \0;
-		$out->{error}  = "Device not authorized for " . $item;
+		$out->{error} = "Device not authorized for " . $item;
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
@@ -141,16 +136,17 @@ sub access
 
 sub vend :Private
 	{
-	my ($self, $c) = @_;
-	my $stash      = $c->stash();
-	my $out        = $stash->{out};
-	my $device     = $stash->{device};
-	my $data       = $stash->{in}->{data};
-	my $badge      = $c->model('DB::Badge')->find({ badge_number => $data->{badge} });
-	my $member     = $badge ? $badge->member() : undef;
-	my $vend       = 0;
-	$out->{error}  = 'Cannot find member associated with this badge.';
-	$out->{vend}   = \$vend;
+	my ($self, $c)   = @_;
+	my $stash        = $c->stash();
+	my $out          = $stash->{out};
+	my $device       = $stash->{device};
+	my $data         = $stash->{in}->{data};
+	my $badge        = $c->model('DB::Badge')->find({ badge_number => $data->{badge} });
+	my $member       = $badge ? $badge->member() : undef;
+	my $vend         = 0;
+	$out->{error}    = 'Cannot find member associated with this badge.';
+	$out->{vend}     = \$vend;
+	$out->{response} = \1;
 
 	if ($member)
 		{
@@ -178,8 +174,7 @@ sub log :Private
 
 	if (!$item)
 		{
-		$out->{response} = \0;
-		$out->{error}    = "Unknown item " . $iname;
+		$out->{error} = "Unknown item " . $iname;
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
@@ -190,8 +185,7 @@ sub log :Private
 
 	if ($d_i->count() < 1)
 		{
-		$out->{response} = \0;
-		$out->{error}    = "Device not authorized for " . $iname;
+		$out->{error} = "Device not authorized for " . $iname;
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
@@ -209,8 +203,7 @@ sub log :Private
 		}
 	else
 		{
-		$out->{response} = \0;
-		$out->{error}    = 'Could not log temperature.';
+		$out->{error} = 'Could not log temperature.';
 		}
 	}
 

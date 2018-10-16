@@ -13,7 +13,6 @@ use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
-__PACKAGE__->table_class('DBIx::Class::ResultSource::View');
 __PACKAGE__->table('members');
 
 __PACKAGE__->add_columns(
@@ -26,7 +25,7 @@ __PACKAGE__->add_columns(
 	'email',
 	{ data_type => 'citext', is_nullable => 1 },
 	'paypal_email',
-	{ data_type => 'varchar', is_nullable => 1, size => 255 },
+	{ data_type => 'citext', is_nullable => 1 },
 	'phone',
 	{ data_type => 'bigint', is_nullable => 1 },
 	'encrypted_password',
@@ -62,7 +61,7 @@ __PACKAGE__->add_columns(
 __PACKAGE__->uuid_columns('member_id');
 __PACKAGE__->set_primary_key('member_id');
 __PACKAGE__->add_unique_constraint('index_members_on_email', ['email']);
-__PACKAGE__->add_unique_constraint('members_member_id_key', ['member_id']);
+__PACKAGE__->add_unique_constraint('members_handle_key', ['handle']);
 
 __PACKAGE__->has_many
 	(
@@ -170,6 +169,14 @@ __PACKAGE__->has_many
 
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 __PACKAGE__->many_to_many('curses', 'member_curses', 'curse');
+
+sub sqlt_deploy_hook
+	{
+	my ($self, $sqlt_table) = @_;
+
+	$sqlt_table->add_index(name => 'members_fname_lname_idx', fields => ['fname', 'lname']);
+	$sqlt_table->add_index(name => 'members_lname_fname_idx', fields => ['lname', 'fname']);
+	}
 
 sub TO_JSON
 	{

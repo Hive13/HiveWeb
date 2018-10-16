@@ -12,7 +12,6 @@ sub auto :Private
 	my $in           = $c->stash()->{in};
 	my $out          = $c->stash()->{out};
 	my $user         = $c->user();
-	$out->{response} = \0;
 
 	return if (!$user);
 
@@ -29,7 +28,7 @@ sub auto :Private
 
 	if (!$application || ($application->member_id() ne $user->member_id() && !$c->check_user_roles('board')))
 		{
-		$out->{response} = 'Cannot find application.';
+		$out->{data} = 'Cannot find application.';
 		return;
 		}
 
@@ -94,15 +93,14 @@ sub attach_picture :Local :Args(0)
 	my $out          = $c->stash()->{out};
 	my $in           = $c->stash()->{in};
 	my $application  = $c->stash()->{application};
-	$out->{response} = \1;
 
 	my $image = $c->model('DB::Image')->find($in->{image_id});
 	if (!$image || !$image->can_view($c->user()))
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Cannot find that image.';
+		$out->{data} = 'Cannot find that image.';
 		return;
 		}
+	$out->{response} = \1;
 
 	try
 		{
