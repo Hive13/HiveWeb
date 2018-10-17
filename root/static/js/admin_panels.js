@@ -77,13 +77,39 @@ function display_pending_applications(data)
 							"<h3 class=\"modal-title\">Select Result</h3>",
 						"</div>",
 						"<div class=\"modal-body u-text-center\">",
-							"<select>",
-								"<option value=\"\" selected>(Select one)</option>",
-								"<option value=\"accepted\">Accepted</option>",
-								"<option value=\"rejected\">Rejected</option>",
-								"<option value=\"withdrew\">Withdrew</option>",
-								"<option value=\"expired\">Expired</option>",
-							"</select>",
+							"<div class=\"panel panel-success u-text-center\">",
+								"<div class=\"panel-heading\">",
+									"<h4>Disposition</h4>",
+								"</div>",
+								"<div class=\"panel-body\">",
+									"<select>",
+										"<option value=\"\" selected>(Select one)</option>",
+										"<option value=\"accepted\">Accepted</option>",
+										"<option value=\"rejected\">Rejected</option>",
+										"<option value=\"withdrew\">Withdrew</option>",
+										"<option value=\"expired\">Expired</option>",
+									"</select>",
+								"</div>",
+							"</div>",
+							"<div class=\"u-w-100 panel panel-info\">",
+								"<div class=\"panel-heading\">",
+									"<h4>Actions</h4>",
+								"</div>",
+								"<div class=\"panel-body u-text-left\">",
+									"<label class=\"one-line\">",
+										"<input type=\"checkbox\" name=\"remove_from_group\" checked />",
+										"Remove person from <code>pending_applications</code> group",
+									"</label><br />",
+									"<label class=\"one-line action-hide action-accepted\">",
+										"<input type=\"checkbox\" name=\"add_to_members\" checked />",
+										"Add person to <code>members</code> group",
+									"</label><br />",
+									"<label class=\"one-line action-hide action-accepted\">",
+										"<input type=\"checkbox\" name=\"add_soda_credit\" checked />",
+										"Give person one soda credit",
+									"</label><br />",
+								"</div>",
+							"</div>",
 						"</div>",
 						"<div class=\"modal-footer\">",
 							"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
@@ -94,17 +120,36 @@ function display_pending_applications(data)
 			"</div>"
 			].join(""));
 
-		$dialogue.find("select").change(function () { $dialogue.find("button.accept").attr("disabled", !$(this).val()); });
+		$dialogue.find("label.action-hide").css("display", "none");
+
+		$dialogue.find("select").change(function ()
+			{
+			var val = $(this).val();
+			$("label.action-hide").css("display", "none");
+			if (val)
+				$("label.action-" + val).css("display", "");
+			$dialogue.find("button.accept").attr("disabled", !val);
+			});
 
 		$dialogue.find("button.accept").click(function ()
 			{
-			var result = $dialogue.find("select").val();
+			var data =
+				{
+				application_id: application_id,
+				result:         $dialogue.find("select").val(),
+				actions:        []
+				};
+
+			$dialogue.find("label:visible input[type=checkbox]:checked").each(function ()
+				{
+				data.actions.push($(this).attr("name"));
+				});
 
 			api_json(
 				{
 				path: "/admin/applications/finalize",
 				what: "Finalize Application",
-				data: { application_id: application_id, result: result },
+				data: data,
 				button: $(this),
 				success: function ()
 					{
