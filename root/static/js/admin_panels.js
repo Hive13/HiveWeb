@@ -133,13 +133,23 @@ function display_pending_applications(data)
 
 		$dialogue.find("button.accept").click(function ()
 			{
-			var result = $dialogue.find("select").val();
+			var data =
+				{
+				application_id: application_id,
+				result:         $dialogue.find("select").val(),
+				actions:        []
+				};
+
+			$dialogue.find("label:visible input[type=checkbox]:checked").each(function ()
+				{
+				data.actions.push($(this).attr("name"));
+				});
 
 			api_json(
 				{
 				path: "/admin/applications/finalize",
 				what: "Finalize Application",
-				data: { application_id: application_id, result: result },
+				data: data,
 				button: $(this),
 				success: function ()
 					{
