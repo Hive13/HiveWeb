@@ -37,9 +37,29 @@ sub status :Local :Args(0)
 	my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef })->count();
 	my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef } })->count();
 
+	my @types;
+	my $type_rs = $c->model('DB::StorageSlotType');
+	while (my $type = $type_rs->next())
+		{
+		my $type_id = $type->type_id();
+		my $request_count   = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } , type_id => $type_id })->count();
+		my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef, type_id => $type_id })->count();
+		my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef }, type_id => $type_id })->count();
+		push(@types,
+			{
+			name           => $type->name(),
+			type_id        => $type_id,
+			can_request    => $type->can_request() ? \1 : \0,
+			requests       => $request_count,
+			free_slots     => $available_slots,
+			occupied_slots => $occupied_slots,
+			});
+		}
+
 	$out->{free_slots}     = $available_slots;
 	$out->{occupied_slots} = $occupied_slots;
 	$out->{requests}       = $request_count;
+	$out->{types}          = \@types;
 	$out->{response}       = \1;
 	}
 
