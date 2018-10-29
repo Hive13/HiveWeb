@@ -159,17 +159,20 @@ function decide_request()
 	}
 function view_requests(slot_id)
 	{
-	var $dialogue = $("#request_view");
+	var $dialogue = $("#request_view"), data = {};
 
 	$dialogue.data("slot_id", (slot_id || null));
 	$dialogue.find("div.modal-body div.notes").css("display", "none");
+	if (slot_id)
+		data.type_id = $("div.tree li.storage-slot[id=" + slot_id + "]").data("type-id");
 
 	api_json(
 		{
 		what: "Load requests",
 		path: "/admin/storage/requests",
+		data: data,
 		success_toast: false,
-		type: "GET",
+		type: "POST",
 		success: function (data)
 			{
 			var i, j, slot, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"false\" id=\"request_list\">";
@@ -427,7 +430,7 @@ function handle_slot(slot, selected_id)
 	{
 	var html = "<li style=\"display: none\" class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
 		+ (slot.slot_id == selected_id ? " selected" : "")
-		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\" data-name=\"" + slot.name + "\">"
+		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\" data-name=\"" + slot.name + "\" data-type-id=\"" + slot.type_id + "\">"
 		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
 		+ slot.name;
 

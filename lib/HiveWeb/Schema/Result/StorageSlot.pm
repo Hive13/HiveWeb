@@ -88,6 +88,7 @@ sub TO_JSON
 		member      => $self->member(),
 		location_id => $self->location_id(),
 		sort_order  => $self->sort_order(),
+		type_id     => $self->type_id(),
 		};
 	}
 
@@ -104,6 +105,8 @@ sub TO_FULL_JSON
 		location_id => $self->location_id(),
 		location    => $self->location(),
 		sort_order  => $self->sort_order(),
+		type_id     => $self->type_id(),
+		type        => $self->type(),
 		};
 	}
 
