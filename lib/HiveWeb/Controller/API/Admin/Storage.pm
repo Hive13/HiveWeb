@@ -45,9 +45,17 @@ sub status :Local :Args(0)
 
 sub requests :Local :Args(0)
 	{
-	my ($self, $c)  = @_;
-	my $out         = $c->stash()->{out};
-	my $requests_rs = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } });
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+	my $in         = $c->stash()->{in};
+	my $search     = { status => { not_in => ['accepted', 'rejected'] } };
+
+	if ($in->{type_id})
+		{
+		$search->{type_id} = $in->{type_id};
+		}
+
+	my $requests_rs = $c->model('DB::StorageRequest')->search($search);
 	my @requests;
 
 	while (my $request = $requests_rs->next())
