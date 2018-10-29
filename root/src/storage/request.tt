@@ -1,6 +1,14 @@
 <div class="row">
 	<div class="col-xs-12 col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
 		<form method="post">
+			<label>
+				Storage Type Requested:
+				<select name="type_id">
+					[%~ FOREACH option IN types %]
+					<option value="[% option.type_id.dquote %]">[% option.name %]</option>
+					[%~ END %]
+				</select>
+			</label>
 			<textarea name="notes" rows="5" class="u-w-100">[% vals.notes %]</textarea><br />
 			<div class="alert alert-info">
 				Please include any notes.  For your third slot, this must include why two spots aren't enough and how long you foresee needing a third slot.
