@@ -21,6 +21,8 @@ __PACKAGE__->add_columns(
   { data_type => 'uuid', is_nullable => 1 },
   'location_id',
   { data_type => 'uuid', is_nullable => 0 },
+	'type_id',
+  { data_type => 'uuid', is_nullable => 0, is_foreign_key => 1 },
   'sort_order',
   { data_type => 'integer', is_nullable => 0, default_value => 1000 },
 );
@@ -40,6 +42,12 @@ __PACKAGE__->belongs_to(
   'HiveWeb::Schema::Result::StorageLocation',
   { 'foreign.location_id' => 'self.location_id' },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+__PACKAGE__->belongs_to(
+  'type',
+  'HiveWeb::Schema::Result::StorageSlotType',
+  { 'foreign.type_id' => 'self.type_id' },
+  { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
 __PACKAGE__->meta->make_immutable;

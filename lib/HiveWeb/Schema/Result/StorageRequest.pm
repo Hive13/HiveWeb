@@ -45,6 +45,12 @@ __PACKAGE__->add_columns(
 		is_nullable   => 0,
 		default_value => 'f',
 	},
+	'type_id',
+	{
+		data_type      => 'uuid',
+		is_nullable    => 0,
+		is_foreign_key => 1,
+	},
 );
 
 __PACKAGE__->set_primary_key('request_id');
@@ -67,6 +73,12 @@ __PACKAGE__->belongs_to(
   'HiveWeb::Schema::Result::StorageSlot',
   { 'foreign.slot_id' => 'self.slot_id' },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+__PACKAGE__->belongs_to(
+  'type',
+  'HiveWeb::Schema::Result::StorageSlotType',
+  { 'foreign.type_id' => 'self.type_id' },
+  { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
 __PACKAGE__->meta->make_immutable;
