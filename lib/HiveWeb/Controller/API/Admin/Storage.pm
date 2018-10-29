@@ -156,6 +156,7 @@ sub edit_slot :Local :Args(0)
 	my $name        = $in->{name};
 	my $location_id = $in->{location_id};
 	my $slot_id     = $in->{slot_id};
+	my $type_id     = $in->{type_id};
 	my $data        = {};
 	my $slot;
 
@@ -166,9 +167,9 @@ sub edit_slot :Local :Args(0)
 		$out->{data} = 'You must provide either a slot or a location.';
 		return;
 		}
-	if (!$slot_id && !$name)
+	if (!$slot_id && (!$name || !$type_id))
 		{
-		$out->{data} = 'You must provide a name for a new slot.';
+		$out->{data} = 'You must provide a name and type for a new slot.';
 		return;
 		}
 	if ($slot_id && !($slot = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id })))
@@ -181,6 +182,11 @@ sub edit_slot :Local :Args(0)
 		$out->{data} = 'Invalid parent specified.';
 		return;
 		}
+	if ($type_id && !($c->model('DB::StorageSlotType')->find($type_id)))
+		{
+		$out->{data} = 'Invalid type specified.';
+		return;
+		}
 
 	$data->{name}        = $name
 		if ($name);
@@ -188,6 +194,8 @@ sub edit_slot :Local :Args(0)
 		if (exists($in->{sort_order}) && defined($in->{sort_order}));
 	$data->{location_id} = $location_id
 		if ($location_id);
+	$data->{type_id} = $type_id
+		if ($type_id);
 
 	if ($slot)
 		{

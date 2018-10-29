@@ -29,6 +29,15 @@
 				</label>
 				<br />
 				<label>
+					Type:
+					<select id="type_id">
+						[%~ FOREACH type IN types %]
+						<option value="[% type.type_id.dquote %]">[% type.name %]</option>
+						[%~ END %]
+					</select>
+				</label>
+				<br />
+				<label>
 					Sort Order:
 					<input type="number" size="5" id="slot_sort_order" />
 				</label>
@@ -323,7 +332,8 @@ actions.slot_edit = function (slot_id)
 	var $slot = $("div.tree li.storage-slot[id=" + slot_id + "]");
 	var $dialogue = $("#slot_edit"),
 		val        = $slot.data("name"),
-		sort_order = $slot.data("sort-order");
+		sort_order = $slot.data("sort-order"),
+		type_id    = $slot.data("type-id");
 	$dialogue.data("slot_id",     slot_id);
 	$dialogue.data("location_id", null);
 
@@ -331,6 +341,7 @@ actions.slot_edit = function (slot_id)
 	$dialogue.find("div.modal-header h3").text("Edit Slot");
 	$dialogue.modal("show");
 	$dialogue.find("input#slot_sort_order").val(sort_order);
+	$dialogue.find("select#type_id").val(type_id);
 	$dialogue.find("input#slot_name").val(val).focus();
 	};
 
@@ -340,6 +351,7 @@ function finish_slot()
 	var slot_id = $dialogue.data("slot_id"), location_id = $dialogue.data("location_id");
 	var name = $dialogue.find("input#slot_name").val();
 	var sort_order = $dialogue.find("input#slot_sort_order").val();
+	var type_id = $dialogue.find("select#type_id").val();
 
 	if (!slot_id && !location_id)
 		return;
@@ -354,6 +366,7 @@ function finish_slot()
 			slot_id:     slot_id,
 			name:        name,
 			sort_order:  sort_order,
+			type_id:     type_id
 			},
 		button: $dialogue.find("button#finish_slot"),
 		success: function()
