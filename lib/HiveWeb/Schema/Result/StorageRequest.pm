@@ -97,6 +97,7 @@ sub TO_JSON
 		decided_at     => $self->decided_at(),
 		decision_notes => $self->decision_notes(),
 		hidden         => $self->hidden() ? \1 : \0,
+		type_id        => $self->type_id(),
 		};
 	}
 
@@ -131,6 +132,8 @@ sub TO_FULL_JSON
 		created_at  => $self->created_at(),
 		notes       => $self->notes(),
 		hidden      => $self->hidden() ? \1 : \0,
+		type_id     => $self->type_id(),
+		type        => $self->type(),
 		};
 	}
 
