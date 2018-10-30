@@ -26,8 +26,8 @@ $dh->prepare_deploy();
 
 $dh->prepare_upgrade(
 	{
-	from_version => 1,
-	to_version   => 2,
+	from_version => 2,
+	to_version   => 3,
 	});
 
 #$dh->install();

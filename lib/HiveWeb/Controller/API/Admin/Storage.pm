@@ -37,17 +37,45 @@ sub status :Local :Args(0)
 	my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef })->count();
 	my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef } })->count();
 
+	my @types;
+	my $type_rs = $c->model('DB::StorageSlotType');
+	while (my $type = $type_rs->next())
+		{
+		my $type_id = $type->type_id();
+		my $request_count   = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } , type_id => $type_id })->count();
+		my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef, type_id => $type_id })->count();
+		my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef }, type_id => $type_id })->count();
+		push(@types,
+			{
+			name           => $type->name(),
+			type_id        => $type_id,
+			can_request    => $type->can_request() ? \1 : \0,
+			requests       => $request_count,
+			free_slots     => $available_slots,
+			occupied_slots => $occupied_slots,
+			});
+		}
+
 	$out->{free_slots}     = $available_slots;
 	$out->{occupied_slots} = $occupied_slots;
 	$out->{requests}       = $request_count;
+	$out->{types}          = \@types;
 	$out->{response}       = \1;
 	}
 
 sub requests :Local :Args(0)
 	{
-	my ($self, $c)  = @_;
-	my $out         = $c->stash()->{out};
-	my $requests_rs = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } });
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+	my $in         = $c->stash()->{in};
+	my $search     = { status => { not_in => ['accepted', 'rejected'] } };
+
+	if ($in->{type_id})
+		{
+		$search->{type_id} = $in->{type_id};
+		}
+
+	my $requests_rs = $c->model('DB::StorageRequest')->search($search);
 	my @requests;
 
 	while (my $request = $requests_rs->next())
@@ -148,6 +176,7 @@ sub edit_slot :Local :Args(0)
 	my $name        = $in->{name};
 	my $location_id = $in->{location_id};
 	my $slot_id     = $in->{slot_id};
+	my $type_id     = $in->{type_id};
 	my $data        = {};
 	my $slot;
 
@@ -158,9 +187,9 @@ sub edit_slot :Local :Args(0)
 		$out->{data} = 'You must provide either a slot or a location.';
 		return;
 		}
-	if (!$slot_id && !$name)
+	if (!$slot_id && (!$name || !$type_id))
 		{
-		$out->{data} = 'You must provide a name for a new slot.';
+		$out->{data} = 'You must provide a name and type for a new slot.';
 		return;
 		}
 	if ($slot_id && !($slot = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id })))
@@ -173,6 +202,11 @@ sub edit_slot :Local :Args(0)
 		$out->{data} = 'Invalid parent specified.';
 		return;
 		}
+	if ($type_id && !($c->model('DB::StorageSlotType')->find($type_id)))
+		{
+		$out->{data} = 'Invalid type specified.';
+		return;
+		}
 
 	$data->{name}        = $name
 		if ($name);
@@ -180,6 +214,8 @@ sub edit_slot :Local :Args(0)
 		if (exists($in->{sort_order}) && defined($in->{sort_order}));
 	$data->{location_id} = $location_id
 		if ($location_id);
+	$data->{type_id} = $type_id
+		if ($type_id);
 
 	if ($slot)
 		{

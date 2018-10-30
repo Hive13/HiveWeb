@@ -29,6 +29,15 @@
 				</label>
 				<br />
 				<label>
+					Type:
+					<select id="type_id">
+						[%~ FOREACH type IN types %]
+						<option value="[% type.type_id.dquote %]">[% type.name %]</option>
+						[%~ END %]
+					</select>
+				</label>
+				<br />
+				<label>
 					Sort Order:
 					<input type="number" size="5" id="slot_sort_order" />
 				</label>
@@ -159,17 +168,20 @@ function decide_request()
 	}
 function view_requests(slot_id)
 	{
-	var $dialogue = $("#request_view");
+	var $dialogue = $("#request_view"), data = {};
 
 	$dialogue.data("slot_id", (slot_id || null));
 	$dialogue.find("div.modal-body div.notes").css("display", "none");
+	if (slot_id)
+		data.type_id = $("div.tree li.storage-slot[id=" + slot_id + "]").data("type-id");
 
 	api_json(
 		{
 		what: "Load requests",
 		path: "/admin/storage/requests",
+		data: data,
 		success_toast: false,
-		type: "GET",
+		type: "POST",
 		success: function (data)
 			{
 			var i, j, slot, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"false\" id=\"request_list\">";
@@ -179,12 +191,13 @@ function view_requests(slot_id)
 				request = data.requests[i];
 				rdate = new Date(request.created_at);
 
-				html += "<div class=\"panel panel-default\" id=\"" + request.request_id + "\">"
-					+ "<div class=\"panel-heading\" role=\"tab\" id=\"heading_" + request.request_id + "\">"
+				html += "<div class=\"panel panel-default\" id=\"" + request.request_id + "\" data-parent=\"#request_list\" aria-expanded=\"false\" aria-controls=\"body_" + request.request_id + "\">"
+					+ "<div class=\"panel-heading anchor-style\" role=\"tab\" id=\"heading_" + request.request_id + "\" data-toggle=\"collapse\" href=\"#body_" + request.request_id + "\">"
 					+ "<h4 class=\"panel-title\">"
-					+ "<a role=\"button\" data-toggle=\"collapse\" data-parent=\"#request_list\" href=\"#body_" + request.request_id + "\" aria-expanded=\"false\" aria-controls=\"body_" + request.request_id + "\">"
-					+ request.member.fname + " " + request.member.lname + " - " + rdate.toLocaleDateString() + " " + rdate.toLocaleTimeString() + " - " + request.other_slots.length + " other " + (request.other_slots.length == 1 ? "slot" : "slots") + " assigned"
-					+ "</a></h4></div>"
+					+ request.member.fname + " " + request.member.lname + " - " + rdate.toLocaleDateString() + " " + rdate.toLocaleTimeString() + " - " + request.other_slots.length + " other " + (request.other_slots.length == 1 ? "slot" : "slots") + " assigned</h4>";
+				if (!slot_id)
+					html += "Requesting: " + request.type.name;
+				html += "</div>"
 					+ "<div id=\"body_" + request.request_id + "\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"heading_" + request.request_id + "\">"
 					+ "<div class=\"panel-body\">"
 					+ request.notes
@@ -319,7 +332,8 @@ actions.slot_edit = function (slot_id)
 	var $slot = $("div.tree li.storage-slot[id=" + slot_id + "]");
 	var $dialogue = $("#slot_edit"),
 		val        = $slot.data("name"),
-		sort_order = $slot.data("sort-order");
+		sort_order = $slot.data("sort-order"),
+		type_id    = $slot.data("type-id");
 	$dialogue.data("slot_id",     slot_id);
 	$dialogue.data("location_id", null);
 
@@ -327,6 +341,7 @@ actions.slot_edit = function (slot_id)
 	$dialogue.find("div.modal-header h3").text("Edit Slot");
 	$dialogue.modal("show");
 	$dialogue.find("input#slot_sort_order").val(sort_order);
+	$dialogue.find("select#type_id").val(type_id);
 	$dialogue.find("input#slot_name").val(val).focus();
 	};
 
@@ -336,6 +351,7 @@ function finish_slot()
 	var slot_id = $dialogue.data("slot_id"), location_id = $dialogue.data("location_id");
 	var name = $dialogue.find("input#slot_name").val();
 	var sort_order = $dialogue.find("input#slot_sort_order").val();
+	var type_id = $dialogue.find("select#type_id").val();
 
 	if (!slot_id && !location_id)
 		return;
@@ -350,6 +366,7 @@ function finish_slot()
 			slot_id:     slot_id,
 			name:        name,
 			sort_order:  sort_order,
+			type_id:     type_id
 			},
 		button: $dialogue.find("button#finish_slot"),
 		success: function()
@@ -427,7 +444,7 @@ function handle_slot(slot, selected_id)
 	{
 	var html = "<li style=\"display: none\" class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
 		+ (slot.slot_id == selected_id ? " selected" : "")
-		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\" data-name=\"" + slot.name + "\">"
+		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\" data-name=\"" + slot.name + "\" data-type-id=\"" + slot.type_id + "\">"
 		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
 		+ slot.name;
 
