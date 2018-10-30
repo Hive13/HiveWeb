@@ -119,7 +119,7 @@ sub hierarchy
 	my $location = $self->location();
 	while ($location)
 		{
-		$lname = ' $sep $lname'
+		$lname = " $sep $lname"
 			if ($lname);
 		$lname = $location->name() . $lname;
 		$location = $location->parent();
