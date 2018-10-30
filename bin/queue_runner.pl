@@ -78,6 +78,38 @@ while (my $action = $queue->next())
 				base_url => $config->{base_url},
 				};
 			}
+		elsif ($type eq 'storage.request')
+			{
+			my $request = $schema->resultset('StorageRequest')->find($action->row_id());
+			if (!$request)
+				{
+				warn 'Cannot find referenced request ' . $action->row_id();
+				return;
+				}
+			$message->{to} = [];
+			my $users = $schema->resultset('MemberMgroup')->search(
+				{
+				'mgroup.name' => 'storage',
+				},
+				{
+				join     => 'mgroup',
+				prefetch => 'member',
+				});
+
+			while (my $user = $users->next())
+				{
+				my $member = $user->member();
+				push(@{ $message->{to} }, { $member->email() => $member->fname() . ' ' . $member->lname() });
+				}
+
+			$message->{temp_plain} = $mail_config->{requested_slot}->{temp_plain};
+			$message->{subject}    = $mail_config->{requested_slot}->{subject};
+			$message->{stash}      =
+				{
+				request  => $request,
+				base_url => $config->{base_url},
+				};
+			}
 		elsif ($type eq 'password.reset')
 			{
 			my $member = $schema->resultset('Member')->find($action->row_id());
@@ -115,20 +147,45 @@ while (my $action = $queue->next())
 				|| die "Authentication failed!\n";
 			}
 
-		my $body      = $c->view('TT')->render($c, $message->{temp_plain}, $message->{stash});
-		my $to_header = '<' . $message->{to} . '>';
-		$to_header    = '"' . $message->{to_name} . '" ' . $to_header
-			if (exists($message->{to_name}));
+		if (ref($message->{to}) ne 'ARRAY')
+			{
+			if (exists($message->{to_name}))
+				{
+				$message->{to} = [ { $message->{to} => $message->{to_name} } ];
+				}
+			else
+				{
+				$message->{to} = [ $message->{to} ];
+				}
+			}
 
-		$smtp->mail('<' . $message->{from} . ">\n");
-		$smtp->to('<' . $message->{to} . ">\n");
-		$smtp->data();
-		$smtp->datasend('From: "' . $message->{from_name} . '" <' . $message->{from} . ">\n");
-		$smtp->datasend('To: ' . $to_header . "\n");
-		$smtp->datasend('Subject: ' . $message->{subject} . "\n");
-		$smtp->datasend("\n");
-		$smtp->datasend($body . "\n");
-		$smtp->dataend();
+		my $body = $c->view('TT')->render($c, $message->{temp_plain}, $message->{stash});
+
+		foreach my $to (@{ $message->{to} })
+			{
+			my $to_env;
+			my $to_header;
+			if (ref($to) eq 'HASH')
+				{
+				$to_env = (keys(%$to))[0];
+				$to_header = '"' . (values(%$to))[0] . '" <' . $to_env . '>';
+				}
+			else
+				{
+				$to_env = $to;
+				$to_header = '<' . $to . '>';
+				}
+
+			$smtp->mail('<' . $message->{from} . ">\n");
+			$smtp->to('<' . $to_env . ">\n");
+			$smtp->data();
+			$smtp->datasend('From: "' . $message->{from_name} . '" <' . $message->{from} . ">\n");
+			$smtp->datasend('To: ' . $to_header . "\n");
+			$smtp->datasend('Subject: ' . $message->{subject} . "\n");
+			$smtp->datasend("\n");
+			$smtp->datasend($body . "\n");
+			$smtp->dataend();
+			}
 		$smtp->quit();
 		$action->delete();
 		});

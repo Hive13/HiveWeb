@@ -42,6 +42,11 @@
 			temp_plain => 'email/assigned_slot_plain.tt',
 			subject    => 'Storage Slot assigned at Hive13',
 			},
+		requested_slot =>
+			{
+			temp_plain => 'email/requested_slot_plain.tt',
+			subject    => 'Storage Slot requested at Hive13',
+			},
 		},
 	priorities =>
 		{
@@ -52,6 +57,7 @@
 		'application.update'         => 60,
 		'password.reset'             => 1,
 		'storage.assign'             => 100,
+		'storage.request'            => 100,
 		},
 	application =>
 		{
