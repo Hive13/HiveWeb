@@ -363,6 +363,23 @@ actions.slot_edit = function (slot_id)
 	$dialogue.find("select#type_id").val(type_id);
 	$dialogue.find("input#slot_name").val(val);
 	};
+actions.slot_delete = function (slot_id)
+	{
+	var api;
+
+	if (!confirm("Are you sure?"))
+		return;
+
+	api =
+		{
+		path: "/admin/storage/delete_slot",
+		what: "Delete Slot",
+		data: { slot_id: slot_id },
+		success: load_storage
+		};
+
+	api_json(api);
+	};
 
 function finish_slot()
 	{
