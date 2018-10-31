@@ -84,7 +84,12 @@
 			<div class="modal-body">
 				<label>
 					Name:
-					<input type="text" size="30" />
+					<input type="text" id="loc_name" size="30" />
+				</label>
+				<br />
+				<label>
+					Sort Order:
+					<input type="number" size="5" id="loc_sort_order" />
 				</label>
 			</div>
 			<div class="modal-footer">
@@ -277,6 +282,19 @@ actions.request_accept = function (request_id)
 	$body.find("div.notes").css("display", "");
 	$body.find("textarea").val("");
 	};
+actions.location_edit = function (location_id)
+	{
+	var $location = $("div.tree li.storage-location[id=" + location_id + "]");
+	var $dialogue = $("#loc_edit");
+
+	$dialogue.data("location_id", location_id);
+	$dialogue.data("parent_id",   $location.data("parent-id"));
+	$dialogue.find("button.btn-primary").text("Edit Location");
+	$dialogue.find("div.modal-header h3").text("Edit Location");
+	$dialogue.find("input#loc_sort_order").val($location.data("sort-order"));
+	$dialogue.find("input#loc_name").val($location.data("name"));
+	$dialogue.modal("show");
+	};
 actions.location_add_slot = function (location_id)
 	{
 	var $dialogue = $("#slot_edit");
@@ -298,7 +316,8 @@ actions.location_add_sub = function (location_id)
 	$dialogue.find("button.btn-primary").text("Add Location");
 	$dialogue.find("div.modal-header h3").text("Add Location");
 	$dialogue.modal("show");
-	$dialogue.find("input").val("");
+	$dialogue.find("input#loc_name").val("");
+	$dialogue.find("input#loc_sort_order").val("1000");
 	};
 actions.slot_assign = function (slot_id)
 	{
@@ -342,7 +361,7 @@ actions.slot_edit = function (slot_id)
 	$dialogue.modal("show");
 	$dialogue.find("input#slot_sort_order").val(sort_order);
 	$dialogue.find("select#type_id").val(type_id);
-	$dialogue.find("input#slot_name").val(val).focus();
+	$dialogue.find("input#slot_name").val(val);
 	};
 
 function finish_slot()
@@ -415,19 +434,22 @@ function finish_loc()
 		$dialogue   = $("#loc_edit"),
 		parent_id   = $dialogue.data("parent_id"),
 		location_id = $dialogue.data("location_id"),
-		name        = $dialogue.find("input").val();
+		name        = $dialogue.find("input#loc_name").val(),
+		sort_order  = $dialogue.find("input#loc_sort_order").val();
 
 	if (!parent_id && !location_id)
 		return;
 
 	api =
 		{
-		path: "/admin/storage/new_location",
-		what: "Add Location",
+		path: "/admin/storage/edit_location",
+		what: location_id ? "Edit Location" : "Add Location",
 		data:
 			{
-			parent_id: parent_id,
-			name:      name
+			location_id: location_id,
+			parent_id:   parent_id,
+			name:        name,
+			sort_order:  sort_order
 			},
 		button: $dialogue.find("button#finish_loc"),
 		success: function()
@@ -459,8 +481,9 @@ function handle_location(loc, show_depth, selected_id)
 	{
 	var i, ret = "<li class=\"storage-location"
 		+ (loc.location_id == selected_id ? " selected" : "")
-		+ "\" " + (((show_depth) > 0) ? "" : "style=\"display: none\" ")
-		+ "id=\"" + loc.location_id + "\"><span><i class=\"glyphicon"
+		+ "\" " + (((show_depth) > 0) ? "" : "style=\"display: none\"")
+		+ " data-sort-order=\"" + loc.sort_order + "\" data-name=\"" + loc.name + "\" data-parent-id=\"" + loc.parent_id + "\""
+		+ " id=\"" + loc.location_id + "\"><span><i class=\"glyphicon"
 		+ (((show_depth - 1) > 0) ? " glyphicon-minus" : " glyphicon-plus")
 		+ "\"></i>" + loc.name + "</span><ul>";
 
@@ -529,6 +552,7 @@ function load_storage()
 			callback: context_callback,
 			items:
 				{
+				location_edit: { name: "Edit Location", icon: "fas fa-pencil" },
 				location_add_sub: { name: "Add Sub-Location", icon: "fas fa-beer" },
 				location_add_slot: { name: "Add Slot", icon: "fas fa-beer" },
 				location_delete: { name: "Delete Location", icon: "fas fa-times" }
@@ -638,8 +662,8 @@ $(function ()
 			})
 		;
 
-	$("div#slot_edit").on("shown.bs.modal", function() { $(this).find("input").focus();	});
-	$("div#loc_edit").on("shown.bs.modal", function() { $(this).find("input").focus();	});
+	$("div#slot_edit").on("shown.bs.modal", function() { $(this).find("input").first().focus(); });
+	$("div#loc_edit").on("shown.bs.modal", function() { $(this).find("input").first().focus(); });
 
 	$("div#slot_edit button#finish_slot").click(finish_slot);
 	$("div#loc_edit button#finish_loc").click(finish_loc);
