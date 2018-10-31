@@ -59,6 +59,7 @@ sub TO_JSON
 		location_id => $self->location_id(),
 		parent_id   => $self->parent_id(),
 		name        => $self->name(),
+		sort_order  => $self->sort_order(),
 		children    => \@children,
 		slots       => \@slots,
 		};
@@ -80,6 +81,7 @@ sub TO_FULL_JSON
 		location_id => $self->location_id(),
 		parent_id   => $self->parent_id(),
 		name        => $self->name(),
+		sort_order  => $self->sort_order(),
 		children    => \@ochildren,
 		slots       => \@slots,
 		};
