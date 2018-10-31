@@ -231,6 +231,28 @@ sub edit_slot :Local :Args(0)
 	$out->{slot_id}  = $slot->slot_id();
 	}
 
+sub delete_slot :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	my $slot_id = $in->{slot_id};
+	my $slot;
+
+	$out->{data} = 'Could not delete slot.';
+
+	if (!$slot_id || !($slot = $c->model('DB::StorageSlot')->find($slot_id)))
+		{
+		$out->{data} = 'Invalid slot specified.';
+		return;
+		}
+
+	$slot->delete() || die $!;
+	$out->{data} = 'Slot deleted.';
+	$out->{response} = \1;
+	}
+
 sub edit_location :Local :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -276,6 +298,34 @@ sub edit_location :Local :Args(0)
 
 	$out->{response}    = \1;
 	$out->{location_id} = $location->location_id();
+	}
+
+sub delete_location :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in          = $c->stash()->{in};
+	my $out         = $c->stash()->{out};
+	my $location_id = $in->{location_id};
+	my $location;
+
+	$out->{data} = 'Could not delete location.';
+
+	if (!$location_id || !($location = $c->model('DB::StorageLocation')->find($location_id)))
+		{
+		$out->{data} = 'Invalid slot specified.';
+		return;
+		}
+
+	if ($location->children()->count() || $location->slots()->count())
+		{
+		$out->{data} = 'This location still has children.';
+		return;
+		}
+
+	$location->delete() || die $!;
+	$out->{data} = 'Location deleted.';
+	$out->{response} = \1;
 	}
 
 sub assign_slot :Local :Args(0)
@@ -357,17 +407,6 @@ sub assign_slot :Local :Args(0)
 		$out->{data}     = 'Could not assign slot.';
 		};
 	}
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

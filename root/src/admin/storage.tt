@@ -295,6 +295,19 @@ actions.location_edit = function (location_id)
 	$dialogue.find("input#loc_name").val($location.data("name"));
 	$dialogue.modal("show");
 	};
+actions.location_delete = function (location_id)
+	{
+	if (!confirm("Are you sure?"))
+		return;
+
+	api_json(
+		{
+		path: "/admin/storage/delete_location",
+		what: "Delete Location",
+		data: { location_id: location_id },
+		success: load_storage
+		});
+	};
 actions.location_add_slot = function (location_id)
 	{
 	var $dialogue = $("#slot_edit");
@@ -327,12 +340,10 @@ actions.slot_assign = function (slot_id)
 	};
 actions.slot_unassign = function (slot_id)
 	{
-	var api;
-
 	if (!confirm("Are you sure?"))
 		return;
 
-	api =
+	api_json(
 		{
 		path: "/admin/storage/assign_slot",
 		what: "Unassign Slot",
@@ -342,9 +353,7 @@ actions.slot_unassign = function (slot_id)
 			member_id: null
 			},
 		success: load_storage
-		};
-
-	api_json(api);
+		});
 	};
 actions.slot_edit = function (slot_id)
 	{
@@ -363,19 +372,30 @@ actions.slot_edit = function (slot_id)
 	$dialogue.find("select#type_id").val(type_id);
 	$dialogue.find("input#slot_name").val(val);
 	};
+actions.slot_delete = function (slot_id)
+	{
+	if (!confirm("Are you sure?"))
+		return;
+
+	api_json(
+		{
+		path: "/admin/storage/delete_slot",
+		what: "Delete Slot",
+		data: { slot_id: slot_id },
+		success: load_storage
+		});
+	};
 
 function finish_slot()
 	{
-	var api, $dialogue = $("#slot_edit");
-	var slot_id = $dialogue.data("slot_id"), location_id = $dialogue.data("location_id");
-	var name = $dialogue.find("input#slot_name").val();
-	var sort_order = $dialogue.find("input#slot_sort_order").val();
-	var type_id = $dialogue.find("select#type_id").val();
+	var $dialogue = $("#slot_edit"),
+		slot_id     = $dialogue.data("slot_id"),
+		location_id = $dialogue.data("location_id");
 
 	if (!slot_id && !location_id)
 		return;
 
-	api =
+	api_json(
 		{
 		path: "/admin/storage/edit_slot",
 		what: slot_id ? "Edit Slot" : "Add Slot",
@@ -383,9 +403,9 @@ function finish_slot()
 			{
 			location_id: location_id,
 			slot_id:     slot_id,
-			name:        name,
-			sort_order:  sort_order,
-			type_id:     type_id
+			name:        $dialogue.find("input#slot_name").val(),
+			sort_order:  $dialogue.find("input#slot_sort_order").val(),
+			type_id:     $dialogue.find("select#type_id").val()
 			},
 		button: $dialogue.find("button#finish_slot"),
 		success: function()
@@ -393,22 +413,19 @@ function finish_slot()
 			$dialogue.modal("hide");
 			load_storage();
 			}
-		};
-
-	api_json(api);
+		});
 	}
 
 function finish_slot_assign()
 	{
-	var api,
-		$dialogue = $("#slot_assign"),
-		slot_id   = $dialogue.data("slot_id"),
-		member_id = $dialogue.find("select").val();
+	var $dialogue = $("#slot_assign"),
+		slot_id     = $dialogue.data("slot_id"),
+		member_id   = $dialogue.find("select").val();
 
 	if (!slot_id && !member_id)
 		return;
 
-	api =
+	api_json(
 		{
 		path: "/admin/storage/assign_slot",
 		what: "Assign Slot",
@@ -423,15 +440,12 @@ function finish_slot_assign()
 			$dialogue.modal("hide");
 			load_storage();
 			}
-		};
-
-	api_json(api);
+		});
 	}
 
 function finish_loc()
 	{
-	var api,
-		$dialogue   = $("#loc_edit"),
+	var $dialogue = $("#loc_edit"),
 		parent_id   = $dialogue.data("parent_id"),
 		location_id = $dialogue.data("location_id"),
 		name        = $dialogue.find("input#loc_name").val(),
@@ -440,7 +454,7 @@ function finish_loc()
 	if (!parent_id && !location_id)
 		return;
 
-	api =
+	api_json(
 		{
 		path: "/admin/storage/edit_location",
 		what: location_id ? "Edit Location" : "Add Location",
@@ -457,9 +471,7 @@ function finish_loc()
 			$dialogue.modal("hide");
 			load_storage();
 			}
-		};
-
-	api_json(api);
+		});
 	}
 
 function handle_slot(slot, selected_id)
