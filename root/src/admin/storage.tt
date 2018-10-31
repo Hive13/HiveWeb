@@ -282,6 +282,19 @@ actions.request_accept = function (request_id)
 	$body.find("div.notes").css("display", "");
 	$body.find("textarea").val("");
 	};
+actions.location_edit = function (location_id)
+	{
+	var $location = $("div.tree li.storage-location[id=" + location_id + "]");
+	var $dialogue = $("#loc_edit");
+
+	$dialogue.data("location_id", location_id);
+	$dialogue.data("parent_id",   $location.data("parent-id"));
+	$dialogue.find("button.btn-primary").text("Edit Location");
+	$dialogue.find("div.modal-header h3").text("Edit Location");
+	$dialogue.find("input#loc_sort_order").val($location.data("sort-order"));
+	$dialogue.find("input#loc_name").val($location.data("name"));
+	$dialogue.modal("show");
+	};
 actions.location_add_slot = function (location_id)
 	{
 	var $dialogue = $("#slot_edit");
@@ -539,6 +552,7 @@ function load_storage()
 			callback: context_callback,
 			items:
 				{
+				location_edit: { name: "Edit Location", icon: "fas fa-pencil" },
 				location_add_sub: { name: "Add Sub-Location", icon: "fas fa-beer" },
 				location_add_slot: { name: "Add Slot", icon: "fas fa-beer" },
 				location_delete: { name: "Delete Location", icon: "fas fa-times" }
