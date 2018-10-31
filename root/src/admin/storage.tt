@@ -469,7 +469,7 @@ function handle_location(loc, show_depth, selected_id)
 	var i, ret = "<li class=\"storage-location"
 		+ (loc.location_id == selected_id ? " selected" : "")
 		+ "\" " + (((show_depth) > 0) ? "" : "style=\"display: none\"")
-		+ " data-sort-order=\"" + loc.sort_order + "\" data-name=\"" + loc.name + "\""
+		+ " data-sort-order=\"" + loc.sort_order + "\" data-name=\"" + loc.name + "\" data-parent-id=\"" + loc.parent_id + "\""
 		+ " id=\"" + loc.location_id + "\"><span><i class=\"glyphicon"
 		+ (((show_depth - 1) > 0) ? " glyphicon-minus" : " glyphicon-plus")
 		+ "\"></i>" + loc.name + "</span><ul>";
