@@ -84,7 +84,12 @@
 			<div class="modal-body">
 				<label>
 					Name:
-					<input type="text" size="30" />
+					<input type="text" id="loc_name" size="30" />
+				</label>
+				<br />
+				<label>
+					Sort Order:
+					<input type="number" size="5" id="loc_sort_order" />
 				</label>
 			</div>
 			<div class="modal-footer">
@@ -298,7 +303,8 @@ actions.location_add_sub = function (location_id)
 	$dialogue.find("button.btn-primary").text("Add Location");
 	$dialogue.find("div.modal-header h3").text("Add Location");
 	$dialogue.modal("show");
-	$dialogue.find("input").val("");
+	$dialogue.find("input#loc_name").val("");
+	$dialogue.find("input#loc_sort_order").val("1000");
 	};
 actions.slot_assign = function (slot_id)
 	{
@@ -415,19 +421,22 @@ function finish_loc()
 		$dialogue   = $("#loc_edit"),
 		parent_id   = $dialogue.data("parent_id"),
 		location_id = $dialogue.data("location_id"),
-		name        = $dialogue.find("input").val();
+		name        = $dialogue.find("input#loc_name").val(),
+		sort_order  = $dialogue.find("input#loc_sort_order").val();
 
 	if (!parent_id && !location_id)
 		return;
 
 	api =
 		{
-		path: "/admin/storage/new_location",
-		what: "Add Location",
+		path: "/admin/storage/edit_location",
+		what: location_id ? "Edit Location" : "Add Location",
 		data:
 			{
-			parent_id: parent_id,
-			name:      name
+			location_id: location_id,
+			parent_id:   parent_id,
+			name:        name,
+			sort_order:  sort_order
 			},
 		button: $dialogue.find("button#finish_loc"),
 		success: function()

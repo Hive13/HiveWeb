@@ -231,37 +231,51 @@ sub edit_slot :Local :Args(0)
 	$out->{slot_id}  = $slot->slot_id();
 	}
 
-sub new_location :Local :Args(0)
+sub edit_location :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $in        = $c->stash()->{in};
-	my $out       = $c->stash()->{out};
-	my $name      = $in->{name};
-	my $parent_id = $in->{parent_id};
-	my $parent;
+	my $location;
+	my $in   = $c->stash()->{in};
+	my $out  = $c->stash()->{out};
+	my $data =
+		{
+		name        => $in->{name},
+		parent_id   => $in->{parent_id},
+		sort_order  => $in->{sort_order},
+		location_id => $in->{location_id},
+		};
 
-	$out->{data} = 'Could not add location.';
-	if (!$name)
+	if ($data->{location_id} && !($location = $c->model('DB::StorageLocation')->find($data->{location_id})))
 		{
-		$out->{data} = 'You must provide a name.';
+		$out->{data} = 'Could not find location.';
 		return;
 		}
-	if (!$parent_id)
+	if (!$data->{location_id} && (!$data->{parent_id} || !$data->{name}))
 		{
-		$out->{data} = 'You must provide a parent location.';
+		$out->{data} = 'You must provide a name and a parent for a new location.';
 		return;
 		}
-	elsif (!($parent = $c->model('DB::StorageLocation')->find({ location_id => $parent_id })))
+	if ($data->{parent_id} && !$c->model('DB::StorageLocation')->find({ location_id => $data->{parent_id} }))
 		{
 		$out->{data} = 'Invalid parent specified.';
 		return;
 		}
 
-	my $location = $c->model('DB::StorageLocation')->create({ name => $name, parent_id => $parent_id }) || die $!;
-	$out->{response}     = \1;
-	$out->{data}         = 'Location added.';
-	$out->{location_id}  = $location->location_id();
+	$out->{data} = $data->{location_id} ? 'Could not edit location.' : 'Could not add location.';
+	if ($data->{location_id})
+		{
+		$location->update($data) || die $!;
+		$out->{data} = 'Location updated.';
+		}
+	else
+		{
+		$location    = $c->model('DB::StorageLocation')->create($data) || die $!;
+		$out->{data} = 'Location added.';
+		}
+
+	$out->{response}    = \1;
+	$out->{location_id} = $location->location_id();
 	}
 
 sub assign_slot :Local :Args(0)
