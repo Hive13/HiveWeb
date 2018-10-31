@@ -235,9 +235,9 @@ sub delete_slot :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $in          = $c->stash()->{in};
-	my $out         = $c->stash()->{out};
-	my $slot_id     = $in->{slot_id};
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	my $slot_id = $in->{slot_id};
 	my $slot;
 
 	$out->{data} = 'Could not delete slot.';
@@ -298,6 +298,34 @@ sub edit_location :Local :Args(0)
 
 	$out->{response}    = \1;
 	$out->{location_id} = $location->location_id();
+	}
+
+sub delete_location :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in          = $c->stash()->{in};
+	my $out         = $c->stash()->{out};
+	my $location_id = $in->{location_id};
+	my $location;
+
+	$out->{data} = 'Could not delete location.';
+
+	if (!$location_id || !($location = $c->model('DB::StorageLocation')->find($location_id)))
+		{
+		$out->{data} = 'Invalid slot specified.';
+		return;
+		}
+
+	if ($location->children()->count() || $location->slots()->count())
+		{
+		$out->{data} = 'This location still has children.';
+		return;
+		}
+
+	$location->delete() || die $!;
+	$out->{data} = 'Location deleted.';
+	$out->{response} = \1;
 	}
 
 sub assign_slot :Local :Args(0)
