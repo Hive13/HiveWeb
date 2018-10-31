@@ -348,7 +348,7 @@ actions.slot_edit = function (slot_id)
 	$dialogue.modal("show");
 	$dialogue.find("input#slot_sort_order").val(sort_order);
 	$dialogue.find("select#type_id").val(type_id);
-	$dialogue.find("input#slot_name").val(val).focus();
+	$dialogue.find("input#slot_name").val(val);
 	};
 
 function finish_slot()
@@ -647,8 +647,8 @@ $(function ()
 			})
 		;
 
-	$("div#slot_edit").on("shown.bs.modal", function() { $(this).find("input").focus();	});
-	$("div#loc_edit").on("shown.bs.modal", function() { $(this).find("input").focus();	});
+	$("div#slot_edit").on("shown.bs.modal", function() { $(this).find("input").first().focus(); });
+	$("div#loc_edit").on("shown.bs.modal", function() { $(this).find("input").first().focus(); });
 
 	$("div#slot_edit button#finish_slot").click(finish_slot);
 	$("div#loc_edit button#finish_loc").click(finish_loc);
