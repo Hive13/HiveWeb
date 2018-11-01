@@ -194,14 +194,7 @@ $(function()
 		panel_class:    "heatmap",
 		panel_function: display_heatmap_data,
 		refresh:        false,
+		load_path:      "/heatmap",
 		ldata:          function () { return { scale: heatmap_scale }; }
-		});
-
-	var application_panel = new Panel(
-		{
-		panel_class:    "application",
-		panel_function: display_application_status,
-		load_path:      "/application/status",
-		refresh:        false
 		});
 	});
