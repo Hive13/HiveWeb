@@ -66,8 +66,6 @@ sub edit :Local :Args(0)
 	my $name      = $in->{name};
 	my $mgroup;
 
-	$out->{response} = \0;
-
 	if ($mgroup_id)
 		{
 		$mgroup = $c->model('DB::MGroup')->find({ mgroup_id => $mgroup_id });
@@ -142,19 +140,6 @@ sub edit :Local :Args(0)
 		$out->{data} = "Could not update group.";
 		};
 	}
-
-=encoding utf8
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

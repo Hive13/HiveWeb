@@ -61,13 +61,13 @@
 							<div class="panel-body">
 								<div class="badge-select">
 									<select size="2" multiple="multiple"></select><br />
-									<img title="Add" class="add icon" src="/static/icons/add.png" />
-									<img title="Delete" class="delete icon icon-disabled" src="/static/icons/delete.png" />
+									<button title="Add Badge" class="btn btn-xs btn-success add"><span class="fas fa-plus"></span></button>
+									<button title="Delete Badge" class="btn btn-xs btn-danger delete" disabled><span class="fas fa-minus"></span></button>
 								</div>
 								<div id="badge_edit" class="u-mw-100" style="display: none">
 									<input type="number" id="badge_number" class="u-mw-100" /><br />
-									<img title="OK" class="ok icon" src="[% Catalyst.uri_for('/static/icons/check.png').dquote %]" />
-									<img title="Cancel" class="cancel icon" src="[% Catalyst.uri_for('/static/icons/cancel.png').dquote %]" />
+									<button title="OK" class="btn btn-xs btn-success ok"><span class="fas fa-check"></span></button>
+									<button title="Cancel" class="btn btn-xs btn-danger cancel"><span class="fas fa-times"></span></button>
 								</div>
 							</div>
 						</div>
@@ -331,7 +331,6 @@
 </div>
 
 <script type="text/javascript">
-var load_url   = "[% Catalyst.uri_for('/api/admin/members').dquote %]";
 var order      = "lname";
 var dir        = "ASC";
 var all_groups = [];
@@ -571,22 +570,16 @@ $(function()
 	$("div#password_dialogue button#finish_pass").click(save_password);
 
 	$edit_dialogue.find("input#different_paypal").click(paypal_checkbox);
-	$edit_dialogue.find("div#badges img.add").click(function () { badge_edit(undefined) });
+	$edit_dialogue.find("div#badges button.add").click(function () { badge_edit(undefined) });
 	$edit_dialogue.find("button#finish_edit").click(save_member);
 	$edit_dialogue.find("div#badges select").change(function ()
 		{
-		var $this = $(this);
-
-		if ($this.find("option:selected").length > 0)
-			$edit_dialogue.find("img.delete").removeClass("icon-disabled");
-		else
-			$edit_dialogue.find("img.delete").addClass("icon-disabled");
+		$edit_dialogue.find("button.delete").attr("disabled", $(this).find("option:selected").length <= 0);
 		return false;
 		});
-	$edit_dialogue.find("div#badges img.delete").click(function()
+	$edit_dialogue.find("div#badges button.delete").click(function()
 		{
 		var badges = [];
-		var url = "[% Catalyst.uri_for('/api/admin/members/delete_badge') %]";
 		var data =
 			{
 			member_id: $edit_dialogue.data("member_id"),
@@ -602,12 +595,19 @@ $(function()
 			return;
 		if (!confirm("Are you sure you want to delete " + badges.length + " badges?"))
 			return;
-		api_json(url, data, "Badge delete", function (data)
+		api_json(
 			{
-			var i;
+			path: "/admin/members/delete_badge",
+			data: data,
+			what: "Badge delete",
+			$icon: $(this).find("span.fas"),
+			success: function (data)
+				{
+				var i;
 
-			for (i = 0; i < badges.length; i++)
-				$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
+				for (i = 0; i < badges.length; i++)
+					$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
+				}
 			});
 		return false;
 		});
@@ -625,8 +625,8 @@ $(function()
 			return false;
 			}
 		});
-	$badge_edit.find("img.cancel").click(badge_edit_hide);
-	$badge_edit.find("img.ok").click(badge_save);
+	$badge_edit.find("button.cancel").click(badge_edit_hide);
+	$badge_edit.find("button.ok").click(badge_save);
 
 	$("div.search input").keydown(function()
 		{
@@ -816,7 +816,7 @@ function load_members()
 		{
 		what: "Member load",
 		success_toast: false,
-		url: load_url,
+		path: "/admin/members",
 		data: params
 		};
 
@@ -920,20 +920,19 @@ function load_members()
 function badge_save()
 	{
 	var $dialogue    = $("#edit_dialogue");
-	var $sdiv        = $dialogue.find("div.badge-select");
 	var $div         = $dialogue.find("#badge_edit");
-	var badge_id     = $div.data("badge_id");
 	var member_id    = $dialogue.data("member_id");
 	var badge_number = $div.find("input#badge_number").val();
 	var api =
 		{
-		url: "[% Catalyst.uri_for('/api/admin/members/add_badge').dquote %]",
+		path: "/admin/members/add_badge",
 		data:
 			{
 			badge_number: badge_number,
 			member_id:    member_id
 			},
 		what: "Badge Add",
+		$icon: $(this).find("span.fas"),
 		success: function (data)
 			{
 			var $option = $("<option />")
@@ -956,7 +955,7 @@ function badge_edit_hide()
 
 	$div.css("display", "none");
 	$sdiv.css("opacity", "1");
-	$sdiv.find("img.icon").removeClass("icon-disabled").prop("disabled", false);
+	$sdiv.find("button").prop("disabled", false);
 	}
 
 function badge_edit(badge_id)
@@ -970,7 +969,7 @@ function badge_edit(badge_id)
 	$edit.val("");
 	$div.css("display", "");
 	$sdiv.css("opacity", "0.5");
-	$sdiv.find("img.icon").addClass("icon-disabled").prop("disabled", true);
+	$sdiv.find("button").prop("disabled", true);
 	$edit.focus();
 	}
 
@@ -980,7 +979,6 @@ function save_password()
 
 	var password  = $this.find("input#password1").val();
 	var password2 = $this.find("input#password2").val();
-	var url = "[% Catalyst.uri_for('/api/admin/members/password') %]";
 	var data =
 		{
 		member_id: member_id,
@@ -1001,9 +999,10 @@ function save_password()
 
 	api_json(
 		{
-		url: url,
+		path: "/admin/members/password",
 		data: data,
 		what: "Password update",
+		button: $(this),
 		success: function (data) { $this.modal("hide"); }
 		});
 	}
@@ -1035,6 +1034,7 @@ function save_member()
 		path: "/admin/members/edit",
 		data: data,
 		what: member_id ? "Member edit" : "Member add",
+		button: $(this),
 		success: function (data) { $this.modal("hide"); }
 		});
 	}
@@ -1210,9 +1210,10 @@ function curse(member_id)
 
 		api_json(
 			{
-			url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
+			path:    "/admin/curses/cast",
 			data:    data,
 			what:    "Curse Cast",
+			button:  $ok,
 			success: function () { $dialogue.modal("hide"); }
 			});
 		});

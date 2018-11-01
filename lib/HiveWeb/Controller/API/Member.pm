@@ -4,13 +4,6 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-sub auto :Private
-	{
-	my ($self, $c)   = @_;
-	my $out          = $c->stash()->{out};
-	$out->{response} = \0;
-	}
-
 sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -38,8 +31,7 @@ sub find :Local :Args(0)
 
 	if (!$member)
 		{
-		$out->{response} = \0;
-		$out->{error}    = 'Cannot find user.';
+		$out->{error} = 'Cannot find user.';
 		return;
 		}
 	$out->{response} = \1;

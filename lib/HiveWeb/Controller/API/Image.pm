@@ -30,7 +30,6 @@ sub upload :Local :Args(0)
 
 	if (!$image)
 		{
-		$out->{response} = \0;
 		$out->{data}     = 'Cannot find image data.';
 		return;
 		}

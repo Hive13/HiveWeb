@@ -351,6 +351,7 @@ function save_group()
 		url: url,
 		data: data,
 		what: what,
+		button: $(this),
 		success: function (data) { $this.modal("hide"); }
 		});
 	}
@@ -473,6 +474,7 @@ function curse_group(mgroup_id)
 			url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
 			data:    data,
 			what:    "Curse Cast",
+			button:  $ok,
 			success: function () { $this.modal("hide"); }
 			});
 		});

@@ -6,7 +6,6 @@ use IO::Socket::INET;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-
 sub send_updates
 	{
 	my ($self, $c) = shift;
@@ -20,13 +19,6 @@ sub send_updates
 
 	my $data = "light";
 	print $sock $data;
-	}
-
-sub auto :Private
-	{
-	my ($self, $c) = @_;
-
-	$c->stash()->{out}->{response} = \0;
 	}
 
 sub index :Path :Args(0)

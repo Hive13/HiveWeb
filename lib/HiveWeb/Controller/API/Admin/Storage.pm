@@ -18,7 +18,6 @@ sub list :Local :Args(0)
 	my ($self, $c) = @_;
 
 	my $out = $c->stash()->{out};
-	$out->{response} = \0;
 
 	my $root_location = $c->model('DB::StorageLocation')->find({ parent_id => undef }) || die $!;
 	my $request_count = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
@@ -33,23 +32,50 @@ sub status :Local :Args(0)
 	my ($self, $c) = @_;
 
 	my $out = $c->stash()->{out};
-	$out->{response} = \0;
 
 	my $request_count   = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
 	my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef })->count();
 	my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef } })->count();
 
+	my @types;
+	my $type_rs = $c->model('DB::StorageSlotType');
+	while (my $type = $type_rs->next())
+		{
+		my $type_id = $type->type_id();
+		my $request_count   = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } , type_id => $type_id })->count();
+		my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef, type_id => $type_id })->count();
+		my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef }, type_id => $type_id })->count();
+		push(@types,
+			{
+			name           => $type->name(),
+			type_id        => $type_id,
+			can_request    => $type->can_request() ? \1 : \0,
+			requests       => $request_count,
+			free_slots     => $available_slots,
+			occupied_slots => $occupied_slots,
+			});
+		}
+
 	$out->{free_slots}     = $available_slots;
 	$out->{occupied_slots} = $occupied_slots;
 	$out->{requests}       = $request_count;
+	$out->{types}          = \@types;
 	$out->{response}       = \1;
 	}
 
 sub requests :Local :Args(0)
 	{
-	my ($self, $c)  = @_;
-	my $out         = $c->stash()->{out};
-	my $requests_rs = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } });
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+	my $in         = $c->stash()->{in};
+	my $search     = { status => { not_in => ['accepted', 'rejected'] } };
+
+	if ($in->{type_id})
+		{
+		$search->{type_id} = $in->{type_id};
+		}
+
+	my $requests_rs = $c->model('DB::StorageRequest')->search($search);
 	my @requests;
 
 	while (my $request = $requests_rs->next())
@@ -70,7 +96,6 @@ sub decide_request :Local :Args(0)
 	my $request    = $c->model('DB::StorageRequest')->find($in->{request_id});
 	my $slot;
 
-	$out->{response} = \0;
 	if (!$request)
 		{
 		$out->{data} = "Could not find request \"$in->{request_id}\".";
@@ -151,20 +176,20 @@ sub edit_slot :Local :Args(0)
 	my $name        = $in->{name};
 	my $location_id = $in->{location_id};
 	my $slot_id     = $in->{slot_id};
+	my $type_id     = $in->{type_id};
 	my $data        = {};
 	my $slot;
 
-	$out->{response} = \0;
-	$out->{data}     = $slot_id ? 'Could not edit slot.' : 'Could not add slot.';
+	$out->{data} = $slot_id ? 'Could not edit slot.' : 'Could not add slot.';
 
 	if (!$location_id && !$slot_id)
 		{
 		$out->{data} = 'You must provide either a slot or a location.';
 		return;
 		}
-	if (!$slot_id && !$name)
+	if (!$slot_id && (!$name || !$type_id))
 		{
-		$out->{data} = 'You must provide a name for a new slot.';
+		$out->{data} = 'You must provide a name and type for a new slot.';
 		return;
 		}
 	if ($slot_id && !($slot = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id })))
@@ -177,6 +202,11 @@ sub edit_slot :Local :Args(0)
 		$out->{data} = 'Invalid parent specified.';
 		return;
 		}
+	if ($type_id && !($c->model('DB::StorageSlotType')->find($type_id)))
+		{
+		$out->{data} = 'Invalid type specified.';
+		return;
+		}
 
 	$data->{name}        = $name
 		if ($name);
@@ -184,6 +214,8 @@ sub edit_slot :Local :Args(0)
 		if (exists($in->{sort_order}) && defined($in->{sort_order}));
 	$data->{location_id} = $location_id
 		if ($location_id);
+	$data->{type_id} = $type_id
+		if ($type_id);
 
 	if ($slot)
 		{
@@ -199,38 +231,101 @@ sub edit_slot :Local :Args(0)
 	$out->{slot_id}  = $slot->slot_id();
 	}
 
-sub new_location :Local :Args(0)
+sub delete_slot :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $in        = $c->stash()->{in};
-	my $out       = $c->stash()->{out};
-	my $name      = $in->{name};
-	my $parent_id = $in->{parent_id};
-	my $parent;
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	my $slot_id = $in->{slot_id};
+	my $slot;
 
-	$out->{response} = \0;
-	$out->{data}     = 'Could not add location.';
-	if (!$name)
+	$out->{data} = 'Could not delete slot.';
+
+	if (!$slot_id || !($slot = $c->model('DB::StorageSlot')->find($slot_id)))
 		{
-		$out->{data} = 'You must provide a name.';
+		$out->{data} = 'Invalid slot specified.';
 		return;
 		}
-	if (!$parent_id)
+
+	$slot->delete() || die $!;
+	$out->{data} = 'Slot deleted.';
+	$out->{response} = \1;
+	}
+
+sub edit_location :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $location;
+	my $in   = $c->stash()->{in};
+	my $out  = $c->stash()->{out};
+	my $data =
 		{
-		$out->{data} = 'You must provide a parent location.';
+		name        => $in->{name},
+		parent_id   => $in->{parent_id},
+		sort_order  => $in->{sort_order},
+		location_id => $in->{location_id},
+		};
+
+	if ($data->{location_id} && !($location = $c->model('DB::StorageLocation')->find($data->{location_id})))
+		{
+		$out->{data} = 'Could not find location.';
 		return;
 		}
-	elsif (!($parent = $c->model('DB::StorageLocation')->find({ location_id => $parent_id })))
+	if (!$data->{location_id} && (!$data->{parent_id} || !$data->{name}))
+		{
+		$out->{data} = 'You must provide a name and a parent for a new location.';
+		return;
+		}
+	if ($data->{parent_id} && !$c->model('DB::StorageLocation')->find({ location_id => $data->{parent_id} }))
 		{
 		$out->{data} = 'Invalid parent specified.';
 		return;
 		}
 
-	my $location = $c->model('DB::StorageLocation')->create({ name => $name, parent_id => $parent_id }) || die $!;
-	$out->{response}     = \1;
-	$out->{data}         = 'Location added.';
-	$out->{location_id}  = $location->location_id();
+	$out->{data} = $data->{location_id} ? 'Could not edit location.' : 'Could not add location.';
+	if ($data->{location_id})
+		{
+		$location->update($data) || die $!;
+		$out->{data} = 'Location updated.';
+		}
+	else
+		{
+		$location    = $c->model('DB::StorageLocation')->create($data) || die $!;
+		$out->{data} = 'Location added.';
+		}
+
+	$out->{response}    = \1;
+	$out->{location_id} = $location->location_id();
+	}
+
+sub delete_location :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in          = $c->stash()->{in};
+	my $out         = $c->stash()->{out};
+	my $location_id = $in->{location_id};
+	my $location;
+
+	$out->{data} = 'Could not delete location.';
+
+	if (!$location_id || !($location = $c->model('DB::StorageLocation')->find($location_id)))
+		{
+		$out->{data} = 'Invalid slot specified.';
+		return;
+		}
+
+	if ($location->children()->count() || $location->slots()->count())
+		{
+		$out->{data} = 'This location still has children.';
+		return;
+		}
+
+	$location->delete() || die $!;
+	$out->{data} = 'Location deleted.';
+	$out->{response} = \1;
 	}
 
 sub assign_slot :Local :Args(0)
@@ -244,8 +339,7 @@ sub assign_slot :Local :Args(0)
 	my $slot      = $c->model('DB::StorageSlot')->find({ slot_id => $slot_id });
 	my $member;
 
-	$out->{response} = \0;
-	$out->{data}     = 'Could not assign slot.';
+	$out->{data} = 'Could not assign slot.';
 	if (!$slot)
 		{
 		$out->{data} = 'You must provide a valid slot.';
@@ -313,17 +407,6 @@ sub assign_slot :Local :Args(0)
 		$out->{data}     = 'Could not assign slot.';
 		};
 	}
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 
