@@ -1,0 +1,14 @@
+Hello Storage Admin,
+
+A request has been submitted for a storage slot.
+
+Requestor: [% request.member.fname %] [% request.member.lname %]
+Type: [% request.type.name %]
+
+Notes:
+[% request.notes %]
+
+Thank you,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

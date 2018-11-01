@@ -618,39 +618,24 @@ sub search :Local :Args(0)
 			});
 		}
 
-	my $members_rs = $c->model('DB::Member')->search(
+	my @members    = $c->model('DB::Member')->search(
 		{
 		-and => $names,
 		},
 		{
-		order_by => $order
-		});
-	my $count      = $members_rs->count();
-	my @members    = $members_rs->search({},
-		{
-		rows => 10,
-		page => $page,
+		select       => ['member_id', 'fname', 'lname'],
+		rows         => 10,
+		page         => $page,
+		result_class => 'DBIx::Class::ResultClass::HashRefInflator',
+		order_by     => $order,
 		});
 
 	$out->{members}  = \@members;
-	$out->{count}    = $count;
+	$out->{count}    = scalar(@members);
 	$out->{page}     = $page;
 	$out->{per_page} = 10;
 	$out->{response} = \1;
 	}
-
-=encoding utf8
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 
