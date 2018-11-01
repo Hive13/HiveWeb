@@ -13,27 +13,16 @@
 		SET phone = '';
 	END;
 ~%]
-<style type="text/css">
-table.register th
-	{
-	text-align: right;
-	}
-table.register label
-	{
-	cursor: pointer;
-	}
-table.register span.error
-	{
-	color: #ff0000;
-	background-color: #EEEEEE;
-	}
-table.register td.paypal
-	{
-	font-size: 10px;
-	padding-bottom: 5px;
-	}
-</style>
 <script>
+function show_2fa(enabled)
+	{
+	var $td = $("tr#two_factor > td");
+
+	if (enabled)
+		$td.html("Two-Factor Authentication is set up.<br /><button class=\"btn btn-danger\" id=\"disable_2fa\">Disable Two-Factor Authentication</button>");
+	else
+		$td.html("Two-Factor Authentication is not set up.<br /><button class=\"btn btn-success\" id=\"enable_2fa\">Enable Two-Factor Authentication</button>");
+	}
 function do_checkbox()
 	{
 	var checked    = $("input#different_paypal").prop("checked");
@@ -45,16 +34,90 @@ function do_checkbox()
 		$paypal_tr.css("display", "none");
 	}
 
+function enable_2fa()
+	{
+	var $dialogue = $("#totp_dialogue");
+	$dialogue.modal("show");
+	return false;
+	}
+
+function disable_2fa()
+	{
+	if (!confirm("Are you sure?"))
+		return;
+
+	api_json(
+		{
+		url: "/api/member/two_factor",
+		data: { enable: false },
+		what: "Disable Two-Factor Authentication",
+		button: $("button#disable_2fa"),
+		success: function()
+			{
+			$("#totp_dialogue").modal("hide");
+			show_2fa(false);
+			}
+		});
+	return false;
+	}
+
+function enable_totp()
+	{
+	var $dialogue = $("#totp_dialogue");
+	var code = $dialogue.find("input#test_code").val();
+	api_json(
+		{
+		url: "/api/member/two_factor",
+		data:
+			{
+			enable: true,
+			code:   code
+			},
+		what: "Enable Two-Factor Authentication",
+		button: $("button#enable_totp"),
+		success: function()
+			{
+			$dialogue.modal("hide");
+			show_2fa(true);
+			}
+		});
+	}
+
 $(function()
 	{
+	var $tr = $("tr#two_factor");
 	$("input#different_paypal").click(do_checkbox);
 	do_checkbox();
+
+	$tr.on("click", "button#enable_2fa", enable_2fa);
+	$tr.on("click", "button#disable_2fa", disable_2fa);
+	$("button#enable_totp").click(enable_totp);
+	show_2fa([% GET vals.totp_secret ? 'true' : 'false' %]);
 	});
 </script>
+<div class="modal fade" id="totp_dialogue" tabIndex="-1" role="dialog" aria-labelledby="totp_label">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button>
+				<h3 class="modal-title" id="totp_label">Add Two-Factor Authentication</h3>
+			</div>
+			<div class="modal-body u-text-center">
+				Please scan this code and enter a code into the box below.<br />
+				<img src="[% Catalyst.uri_for('/member/totp_qrcode').dquote %]" /><br />
+				<input type="text" id="test_code" size="6" maxlength="6" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary" id="enable_totp">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
 <div class="row">
-	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info" style="text-align: center; padding: 20px;">
+	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info u-text-center u-p-2">
 		<form method="post">
-			<table class="register" style="margin-left: auto; margin-right: auto; position: relative;">
+			<table class="hive-profile-table">
 				<tr>
 					<th><label for="fname">First Name:</label></th>
 					<td><input type="text" name="fname" id="fname" maxlength="255" value="[% vals.fname %]" /></td>
@@ -100,7 +163,7 @@ $(function()
 					</td>
 				</tr>
 				<tr>
-					<td colspan="2" class="paypal">
+					<td colspan="2" class="smaller">
 						<input type="checkbox" name="different_paypal" id="different_paypal"
 							[%~ IF vals.paypal_email.defined =%]
 								checked
@@ -122,7 +185,7 @@ $(function()
 					</td>
 				</tr>
 				<tr class="paypal_tr">
-					<td colspan="2" class="paypal">Leave blank if you do not use PayPal.</td>
+					<td colspan="2" class="smaller">Leave blank if you do not use PayPal.</td>
 					<td></td>
 				</tr>
 				<tr>
@@ -155,9 +218,14 @@ $(function()
 		[%~ END; %]
 				<tr>
 					<td colspan="2">
-						<input type="submit" value="[% submit %]" class="btn btn-lg btn-block btn-success" style="margin-top: 10px;" />
+						<input type="submit" value="[% submit %]" class="btn btn-lg btn-block btn-success u-mt-1" />
 					</td>
 				</tr>
+				[%~ IF !show_pass %]
+				<tr id="two_factor">
+					<td colspan="2" class="u-text-center bg-primary u-p-2"></td>
+				</tr>
+				[%~ END %]
 			</table>
 		</form>
 	</div>

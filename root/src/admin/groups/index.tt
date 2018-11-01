@@ -1,5 +1,5 @@
 <div class="row">
-	<div class="col-sm-12 panel panel-default" style="padding: 0;">
+	<div class="col-sm-12 panel panel-default u-p-0">
 		<div class="panel-heading">
 				<button type="button" class="pull-right btn btn-success" aria-label="New Group" title="New Group" id="new_group"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></button>
 			<h3>Groups</h3>
@@ -73,7 +73,7 @@
 						<input type="text" size="30" id="group_name" />
 					</label>
 				</div>
-				<select id="group_members" style="width: 100%; min-height: 100px;" multiple="multiple"></select>
+				<select id="group_members" class="u-w-100" style="min-height: 100px;" multiple="multiple"></select>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -351,6 +351,7 @@ function save_group()
 		url: url,
 		data: data,
 		what: what,
+		button: $(this),
 		success: function (data) { $this.modal("hide"); }
 		});
 	}
@@ -473,6 +474,7 @@ function curse_group(mgroup_id)
 			url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
 			data:    data,
 			what:    "Curse Cast",
+			button:  $ok,
 			success: function () { $this.modal("hide"); }
 			});
 		});

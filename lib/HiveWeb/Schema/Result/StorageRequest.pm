@@ -25,7 +25,7 @@ __PACKAGE__->add_columns(
     original      => { default_value => \'now()' },
 	},
   'notes',
-  { data_type => 'text', is_nullable => 0 },
+  { data_type => 'text', is_nullable => 1 },
   'status',
   { data_type => 'character varying', is_nullable => 0, default_value => 'requested' },
   'slot_id',
@@ -44,6 +44,12 @@ __PACKAGE__->add_columns(
 		data_type     => 'boolean',
 		is_nullable   => 0,
 		default_value => 'f',
+	},
+	'type_id',
+	{
+		data_type      => 'uuid',
+		is_nullable    => 0,
+		is_foreign_key => 1,
 	},
 );
 
@@ -68,6 +74,12 @@ __PACKAGE__->belongs_to(
   { 'foreign.slot_id' => 'self.slot_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
+__PACKAGE__->belongs_to(
+  'type',
+  'HiveWeb::Schema::Result::StorageSlotType',
+  { 'foreign.type_id' => 'self.type_id' },
+  { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
+);
 
 __PACKAGE__->meta->make_immutable;
 
@@ -85,6 +97,7 @@ sub TO_JSON
 		decided_at     => $self->decided_at(),
 		decision_notes => $self->decision_notes(),
 		hidden         => $self->hidden() ? \1 : \0,
+		type_id        => $self->type_id(),
 		};
 	}
 
@@ -119,6 +132,8 @@ sub TO_FULL_JSON
 		created_at  => $self->created_at(),
 		notes       => $self->notes(),
 		hidden      => $self->hidden() ? \1 : \0,
+		type_id     => $self->type_id(),
+		type        => $self->type(),
 		};
 	}
 

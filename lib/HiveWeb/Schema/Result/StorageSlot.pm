@@ -9,89 +9,71 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-use Net::SMTP;
-
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
-__PACKAGE__->table("storage_slot");
+__PACKAGE__->table('storage_slot');
 
 __PACKAGE__->add_columns(
-  "slot_id",
-  { data_type => "uuid", is_nullable => 0, size => 16 },
-  "name",
-  { data_type => "character varying", is_nullable => 0, size => 32 },
-  "member_id",
-  { data_type => "uuid", is_nullable => 1 },
-  "location_id",
-  { data_type => "uuid", is_nullable => 0 },
-  "sort_order",
-  { data_type => "integer", is_nullable => 0, default_value => 1000 },
+  'slot_id',
+  { data_type => 'uuid', is_nullable => 0, size => 16 },
+  'name',
+  { data_type => 'character varying', is_nullable => 0, size => 32 },
+  'member_id',
+  { data_type => 'uuid', is_nullable => 1 },
+  'location_id',
+  { data_type => 'uuid', is_nullable => 0 },
+	'type_id',
+  { data_type => 'uuid', is_nullable => 0, is_foreign_key => 1 },
+  'sort_order',
+  { data_type => 'integer', is_nullable => 0, default_value => 1000 },
 );
 
-__PACKAGE__->set_primary_key("slot_id");
-__PACKAGE__->uuid_columns("slot_id");
+__PACKAGE__->set_primary_key('slot_id');
+__PACKAGE__->uuid_columns('slot_id');
 __PACKAGE__->resultset_attributes( { order_by => ['sort_order', 'name'] } );
 
 __PACKAGE__->belongs_to(
-  "member",
-  "HiveWeb::Schema::Result::Member",
-  { "foreign.member_id" => "self.member_id" },
+  'member',
+  'HiveWeb::Schema::Result::Member',
+  { 'foreign.member_id' => 'self.member_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 __PACKAGE__->belongs_to(
-  "location",
-  "HiveWeb::Schema::Result::StorageLocation",
-  { "foreign.location_id" => "self.location_id" },
+  'location',
+  'HiveWeb::Schema::Result::StorageLocation',
+  { 'foreign.location_id' => 'self.location_id' },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+__PACKAGE__->belongs_to(
+  'type',
+  'HiveWeb::Schema::Result::StorageSlotType',
+  { 'foreign.type_id' => 'self.type_id' },
+  { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
 __PACKAGE__->meta->make_immutable;
 
 sub assign
 	{
-	my ($self, $member_id, $c) = @_;
-	my $config   = $c->config()->{email};
-	my $schema   = $self->result_source()->schema();
-	my $template = $config->{assigned_slot};
+	my ($self, $member_id, $assigning_member_id) = @_;
+	my $schema = $self->result_source()->schema();
 
 	return
-		if (!$member_id || !$c);
+		if (!$member_id || !$assigning_member_id);
 	$member_id = $member_id->member_id()
 		if (ref($member_id));
+	$assigning_member_id = $assigning_member_id->member_id()
+		if (ref($assigning_member_id));
 
-	my $member = $schema->resultset('Member')->find($member_id)
-		|| die 'Invalid Member.';
-
-	my $to     = $member->email();
-	my $from   = $config->{from};
-	my $stash  =
+	$schema->txn_do(sub
 		{
-		member => $member,
-		slot   => $self,
-		};
-
-	my $body = $c->view('TT')->render($c, $template->{temp_plain}, $stash);
-
-	my $smtp = Net::SMTP->new(%{$config->{'Net::SMTP'}});
-	die "Could not connect to server\n"
-		if !$smtp;
-
-	if (exists($config->{auth}))
-		{
-		$smtp->auth($from, $config->{auth})
-			|| die "Authentication failed!\n";
-		}
-
-	$smtp->mail('<' . $from . ">\n");
-	$smtp->to('<' . $to . ">\n");
-	$smtp->data();
-	$smtp->datasend('From: "' . $config->{from_name} . '" <' . $from . ">\n");
-	$smtp->datasend('To: "' . $member->fname() . ' ' . $member->lname() . '" <' . $to . ">\n");
-	$smtp->datasend('Subject: ' . $template->{subject} . "\n");
-	$smtp->datasend("\n");
-	$smtp->datasend($body . "\n");
-	$smtp->dataend();
-	$smtp->quit();
-	$self->update({ member_id => $member_id }) || die $!;
+		$schema->resultset('Action')->create(
+			{
+			action_type       => 'storage.assign',
+			queuing_member_id => $assigning_member_id,
+			row_id            => $self->slot_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		$self->update({ member_id => $member_id }) || die $!;
+		});
 	}
 
 sub TO_JSON
@@ -103,8 +85,10 @@ sub TO_JSON
 		slot_id     => $self->slot_id(),
 		name        => $self->name(),
 		member_id   => $self->member_id(),
+		member      => $self->member(),
 		location_id => $self->location_id(),
 		sort_order  => $self->sort_order(),
+		type_id     => $self->type_id(),
 		};
 	}
 
@@ -121,6 +105,8 @@ sub TO_FULL_JSON
 		location_id => $self->location_id(),
 		location    => $self->location(),
 		sort_order  => $self->sort_order(),
+		type_id     => $self->type_id(),
+		type        => $self->type(),
 		};
 	}
 

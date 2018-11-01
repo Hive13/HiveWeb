@@ -1,0 +1,129 @@
+[%~
+	SET other_edit    = 1;
+	SET contact_phone = '';
+	SET zip           = '';
+	SET new           = application.defined('application_id');
+	IF application.contact_phone;
+		SET contact_phone = '(' _ application.contact_phone.substr(0, 3) _ ') ' _ application.contact_phone.substr(3, 3) _ '-' _ application.contact_phone.substr(6);
+	END;
+	IF application.zip;
+		SET zip = application.zip.trim.substr(0, 5);
+		IF application.trim.zip.length > 5;
+			SET zip = zip _ '-' _ application.zip.trim.substr(5);
+		END;
+	END;
+~%]
+
+<script type="text/javascript">
+var picture;
+
+$(function ()
+	{
+	var $t = $("table#application");
+	picture = new Picture(
+		{
+		$image_div: $t.find("div.photo"),
+		accept:     true,
+		image_id:   [% GET application.picture_id ? '"' _ application.picture_id.dquote _ '"' : 'undefined'; %]
+		});
+
+	$t.closest("form").submit(function()
+		{
+		var image_id = picture.get_image_id();
+
+		if (image_id)
+			$(this).append($("<input>",
+				{
+				type: "hidden",
+				name: "picture_id",
+				value: image_id
+				}));
+		});
+	});
+</script>
+
+[%~ BLOCK column; DEFAULT type='text' value=application.$column maxlength=255 required=0 %]
+<tr
+[%~ IF class; =%]
+	class="[% class %]"
+[%~ END ~%]
+>
+	<th><label for="[% column %]">[% title %]:</label></th>
+	<td>
+		[%~
+		IF other && !other_edit;
+			GET value;
+		ELSE;
+		~%]
+		<input type="[% type %]" name="[% column %]" id="[% column %]" maxlength="[% maxlength %]" size="[% (maxlength < 30) ? maxlength : 30 %]" value="[% value %]"
+			[%~
+			IF required;
+				GET ' required';
+			END;
+			IF pattern;
+				GET ' pattern="' _ pattern _ '"';
+			END;
+			=%]
+		/>
+		[%~
+		END;
+		~%]
+	</td>
+	<td>
+		[%~
+		IF message.$column.defined;
+			GET '<span class="error">' _ message.$column _ '</span>';
+		END;
+		~%]
+	</td>
+</tr>
+[%~ END %]
+
+<div class="row">
+	<div class="col-xs-12 col-md-6 col-md-offset-3 bg-info u-text-center u-p-2">
+		<form method="post">
+			<table class="hive-profile-table" id="application">
+				[%~ IF other %]
+				<tr>
+					<td colspan="2" class="center">
+						<h2>Application for [% application.member.fname %] [% application.member.lname %]</h2>
+						Submitted [% application.created_at.strftime('%D %r') %]<br />
+						Last updated [% application.updated_at.strftime('%D %r') %]
+					</td>
+				</tr>
+				[%~ END %]
+				[% INCLUDE column column='address1' title='Address Line 1' required=1 %]
+				[% INCLUDE column column='address2' title='Address Line 2' %]
+				[% INCLUDE column column='city' title='City' required=1 %]
+				[% INCLUDE column column='state' title='State' maxlength=2 required=1 pattern='[a-zA-Z]{2}' %]
+				[% INCLUDE column column='zip' title='Zip Code' maxlength=10 value=zip required=1 pattern='\d{5}(?=-?\d{4})?' %]
+				[% INCLUDE column column='contact_name' title='Emergency Contact Name' %]
+				[% INCLUDE column column='contact_phone' title='Emergency Contact Phone' value=contact_phone %]
+				<tr>
+					<td colspan="2" class="center">
+						[%~ IF other %]
+						<h4>Member Photo</h4>
+						[%~ END %]
+						<div class="photo">
+						</div>
+						[%~ IF !other %]
+						Attach a photo of yourself for our records.
+						If you do not have a photo, you may submit this application anyways, but you'll have to have a Hive Officer take your picture before your application can be fully processed.
+						[%~ END %]
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" class="center">
+						[%~
+						IF message.error.defined;
+							GET '<span class="error">' _ message.error _ '</span><br />';
+						END;
+						%]
+						<input type="submit" value="[% new ? 'Apply for Membership!' : 'Update' %]" />
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+[%~ # vim:set filetype=tt2html: ~%]

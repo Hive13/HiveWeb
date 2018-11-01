@@ -17,10 +17,9 @@ use Catalyst::Runtime 5.80;
 #                 directory
 
 use Catalyst qw/
-	-Debug
 	ConfigLoader
 	Static::Simple
-	
+
 	Authentication
 	Authorization::ACL
 	Authorization::Roles
@@ -110,7 +109,23 @@ __PACKAGE__->config
 	);
 
 __PACKAGE__->setup();
-__PACKAGE__->deny_access_unless("/api/admin", ['board']);
-__PACKAGE__->deny_access_unless("/admin",     ['board']);
-__PACKAGE__->deny_access_unless('/storage',   sub { return shift->user_exists(); });
+__PACKAGE__->allow_access(       '/auto');
+__PACKAGE__->allow_access(       '/end');
+__PACKAGE__->allow_access(       '/index');
+__PACKAGE__->allow_access(       '/login');
+__PACKAGE__->allow_access(       '/logout');
+__PACKAGE__->allow_access(       '/member/register');
+__PACKAGE__->allow_access(       '/api/begin');
+__PACKAGE__->allow_access(       '/api/end');
+__PACKAGE__->allow_access(       '/api/access');
+__PACKAGE__->allow_access(       '/api/soda/status');
+__PACKAGE__->allow_access(       '/api/temperature/current');
+__PACKAGE__->allow_access(       '/api/lights/get_state');
+__PACKAGE__->deny_access_unless( '/api/admin',                ['board']);
+__PACKAGE__->allow_access_if_any('/admin/auto',               ['board', 'storage']);
+__PACKAGE__->allow_access_if_any('/admin/storage',            ['board', 'storage']);
+__PACKAGE__->allow_access_if_any('/api/admin/storage',        ['board', 'storage']);
+__PACKAGE__->allow_access_if_any('/api/admin/members/search', ['board', 'storage']);
+__PACKAGE__->deny_access_unless( '/admin',                    ['board']);
+__PACKAGE__->deny_access_unless( '/',                  sub { return shift->user_exists(); });
 1;

@@ -34,6 +34,7 @@ sub current :Local :Args(0)
 			{
 			order_by => { -desc => 'create_time' },
 			rows     => 1,
+			prefetch => 'item',
 			})->first();
 		push (@$temps, $temp)
 			if ($temp);
@@ -44,22 +45,7 @@ sub current :Local :Args(0)
 		$c->stash()->{out}->{temps}    = $temps;
 		$c->stash()->{out}->{response} = \1;
 		}
-	else
-		{
-		$c->stash()->{out}->{response} = \0;
-		}
 	}
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

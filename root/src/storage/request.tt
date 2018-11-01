@@ -1,22 +1,15 @@
-<style type="text/css">
-table.register th
-	{
-	text-align: right;
-	}
-table.register label
-	{
-	cursor: pointer;
-	}
-table.register span.error
-	{
-	color: #ff0000;
-	background-color: #EEEEEE;
-	}
-</style>
 <div class="row">
 	<div class="col-xs-12 col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
 		<form method="post">
-			<textarea name="notes" rows="5" style="width: 100%">[% vals.notes %]</textarea><br />
+			<label>
+				Storage Type Requested:
+				<select name="type_id">
+					[%~ FOREACH option IN types %]
+					<option value="[% option.type_id.dquote %]">[% option.name %]</option>
+					[%~ END %]
+				</select>
+			</label>
+			<textarea name="notes" rows="5" class="u-w-100">[% vals.notes %]</textarea><br />
 			<div class="alert alert-info">
 				Please include any notes.  For your third slot, this must include why two spots aren't enough and how long you foresee needing a third slot.
 			</div>

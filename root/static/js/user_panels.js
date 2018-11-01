@@ -1,6 +1,6 @@
-function display_storage_data(data, $panel)
+function display_storage_data(data)
 	{
-	var i, dt, request, html = "<a href=\"" + panel_urls.storage_request + "\">Request a new spot</a><br /><br />";
+	var self = this, i, dt, request, html = "<a href=\"/storage/request\">Request a new spot</a><br /><br />";
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
@@ -39,46 +39,52 @@ function display_storage_data(data, $panel)
 		}
 
 	html += "<div class=\"u-w-100 text-center\"><a href=\"/member/requests\" class=\"btn btn-info\">View All Requests</a></div>";
-	$panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 
-	$panel.find(".panel-body a.request-hide").click(function()
+	this.$panel.find(".panel-body a.request-hide").click(function request_hide()
 		{
-		var $li = $(this).closest("li"),
+		var $this, $li = $this.closest("li"),
 			id = $li.attr("id");
 
+		$this.off("click");
 		api_json(
 			{
-			url: panel_urls.storage_hide,
+			path: "/storage/hide",
 			what: "Relinquish Slot",
 			data: { request_id: id },
+			$el: $this,
 			success: function () { $li.slideUp(); },
+			failure: function () { $this.click(request_hide); },
 			success_toast: false
 			});
 		});
-	$panel.find(".panel-body a.relinquish").click(function()
+	this.$panel.find(".panel-body a.relinquish").click(function relinquish()
 		{
-		var id = $(this).attr("id");
+		var $this = $(this), id = $(this).attr("id");
 
 		if (!confirm("If you want a slot back, you'll have to submit another request.  Click Cancel if you still have belongings in this spot.  Are you sure?"))
 			return;
+		$this.off("click");
 
 		api_json(
 			{
-			url: panel_urls.storage_relinquish,
+			path: "/storage/relinquish",
 			what: "Relinquish Slot",
 			data: { slot_id: id },
-			success: function () { init_panel("storage", display_storage_data, false); }
+			$el: $this,
+			success: function () { self.load_panel_data(); },
+			failure: function () { $this.click(relinquish); }
 			});
 		});
 	}
 
-function display_curse_data(data, $curse_panel)
+function display_curse_data(data)
 	{
 	var curse, i, html = "<ol class=\"curses\">", date;
 
 	if (!("curses" in data) || !data.curses.length)
 		{
-		$curse_panel.find(".panel-body").html("You have no notifications!");
+		this.$panel.find(".panel-body").html("You have no notifications!");
 		return;
 		}
 
@@ -91,13 +97,25 @@ function display_curse_data(data, $curse_panel)
 			+ curse.issuing_member.fname + " " + curse.issuing_member.lname + "\">";
 		html += "<h5>" + curse.curse.display_name + "</h5>" + curse.curse.notification + "</li>";
 		}
-	
+
 	html += "</ol>";
-	$curse_panel.find(".panel-body").html(html);
+	this.$panel.find(".panel-body").html(html);
 	}
 
 $(function()
 	{
-	init_panel("curse", display_curse_data);
-	init_panel("storage", display_storage_data, false);
+	var curse_panel = new Panel(
+		{
+		panel_class:    "curse",
+		panel_function: display_curse_data,
+		load_path:      "/curse/list"
+		});
+
+	var storage_panel = new Panel(
+		{
+		panel_class:    "storage",
+		panel_function: display_storage_data,
+		load_path:      "/storage/list",
+		refresh:        false
+		});
 	});

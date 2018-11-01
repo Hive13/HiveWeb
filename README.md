@@ -8,8 +8,9 @@ The new Hive internal Web
 * libcatalyst-plugin-authorization-acl-perl
 * libcatalyst-plugin-configloader-perl
 * libcatalyst-plugin-static-simple-perl
-* libcatalyst-session-state-cookie-perl
-* libcatalyst-session-store-dbic-perl
+* libcatalyst-plugin-session-state-cookie-perl
+* libcatalyst-plugin-session-store-dbic-perl
+* libdbix-class-deploymenthandler-perl
 * libcatalyst-view-json-perl
 * libcatalyst-view-tt-perl
 * libcrypt-eksblowfish-perl
@@ -19,3 +20,10 @@ The new Hive internal Web
 * libjson-perl
 * libmath-round-perl
 * libtext-markdown-perl
+* libpdf-api2-perl
+* libimage-magick-perl
+* libconvert-base32-perl
+* libimager-qrcode-perl
+* libauthen-oath-perl
+* cssmin
+* node-less
