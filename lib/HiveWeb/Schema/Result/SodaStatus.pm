@@ -30,9 +30,9 @@ __PACKAGE__->uuid_columns('soda_id');
 __PACKAGE__->resultset_attributes( { order_by => ['slot_number'] } );
 
 __PACKAGE__->belongs_to(
-  "soda_type",
-  "HiveWeb::Schema::Result::SodaType",
-  { "foreign.soda_type_id" => "self.soda_type_id" },
+  'soda_type',
+  'HiveWeb::Schema::Result::SodaType',
+  { 'foreign.soda_type_id' => 'self.soda_type_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 

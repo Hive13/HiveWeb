@@ -2,7 +2,6 @@ package HiveWeb::Controller::Root;
 use Moose;
 use namespace::autoclean;
 
-use Net::SMTP;
 use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller' }
@@ -14,6 +13,15 @@ sub auto :Private
 	my ($self, $c) = @_;
 
 	my $toast = $c->stash()->{auto_toast} = [];
+	if (my $f = $c->flash()->{auto_toast})
+		{
+		push(@$toast, $f);
+		}
+
+	delete($c->session()->{need_2fa})
+		if (!$c->user());
+	$c->detach('/two_factor')
+		if ($c->session()->{need_2fa} && $c->request()->path() ne 'two_factor' && $c->request()->path() ne 'logout' && $c->request()->path() ne 'login');
 
 	if (my $user = $c->user())
 		{
@@ -96,6 +104,36 @@ sub blocked_by_curse :Local :Args(0)
 	$c->stash()->{template} = 'blocked_by_curse.tt';
 	}
 
+sub two_factor :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	$c->response()->redirect('/')
+		if (!$c->session()->{need_2fa});
+
+	$c->stash()->{template} = 'two_factor.tt';
+	return
+		if ($c->request()->method() eq 'GET');
+
+	my $code = $c->request()->params()->{code};
+	if (!$code)
+		{
+		$c->stash()->{msg} = 'You must enter a Two-Factor Authentication code to continue.';
+		return;
+		}
+
+	if (!$c->user()->check_2fa($code))
+		{
+		$c->stash()->{msg} = 'That code is not correct.  Please enter a valid Two-Factor Authentication code to continue.';
+		return;
+		}
+
+	delete($c->session()->{need_2fa});
+	my $return = $c->flash()->{return} || $c->uri_for('/');
+	$c->clear_flash();
+	$c->response()->redirect($return);
+	}
+
 sub login :Local
 	{
 	my ($self, $c) = @_;
@@ -138,6 +176,12 @@ sub login :Local
 		}) || die $!;
 	if ($user)
 		{
+		if ($user->totp_secret())
+			{
+			$c->session()->{need_2fa} = 1;
+			$c->detach('/two_factor');
+			}
+
 		my $return = $c->flash()->{return} || $c->uri_for('/');
 		$c->clear_flash();
 		$c->response()->redirect($return);
@@ -186,41 +230,12 @@ sub forgot :Local
 
 	if ($member)
 		{
-		$c->log()->debug('Sending mail.');
-
-		my $config = $c->config()->{email};
-		my $forgot = $config->{forgot};
-		my $token  = $member->create_related('reset_tokens', { valid => 1 });
-		my $to     = $member->email();
-		my $from   = $config->{from};
-		my $stash  =
+		$c->model('DB::Action')->create(
 			{
-			token  => $token,
-			member => $member,
-			};
-
-		my $body = $c->view('TT')->render($c, $forgot->{temp_plain}, $stash);
-
-		my $smtp = Net::SMTP->new(%{$config->{'Net::SMTP'}});
-		die "Could not connect to server\n"
-			if !$smtp;
-
-		if (exists($config->{auth}))
-			{
-			$smtp->auth($from, $config->{auth})
-				|| die "Authentication failed!\n";
-			}
-
-		$smtp->mail('<' . $from . ">\n");
-		$smtp->to('<' . $to . ">\n");
-		$smtp->data();
-		$smtp->datasend('From: "' . $config->{from_name} . '" <' . $from . ">\n");
-		$smtp->datasend('To: "' . $member->fname() . ' ' . $member->lname() . '" <' . $to . ">\n");
-		$smtp->datasend('Subject: ' . $forgot->{subject} . "\n");
-		$smtp->datasend("\n");
-		$smtp->datasend($body . "\n");
-		$smtp->dataend();
-		$smtp->quit();
+			queuing_member_id => $member->member_id(),
+			action_type       => 'password.reset',
+			row_id            => $member->member_id(),
+			});
 		}
 
 	$stash->{email}    = $email;
@@ -281,7 +296,7 @@ sub access_denied :Private
 		}
 	else
 		{
-		$c->flash()->{return} = $c->uri_for($c->action());
+		$c->flash()->{return} = $c->request()->uri() . '';
 		$c->detach('/login');
 		}
 	}
@@ -295,17 +310,6 @@ sub default :Path
 	}
 
 sub end : ActionClass('RenderView') {}
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

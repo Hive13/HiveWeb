@@ -1,44 +1,39 @@
 <script src="[% Catalyst.uri_for('/static/js/panels.js') %]" type="text/javascript"></script>
-[%~ IF Catalyst.user_exists %]
-<script src="[% Catalyst.uri_for('/static/js/user_panels.js') %]" type="text/javascript"></script>
-[%~ IF Catalyst.check_user_roles('board') %]
-<script src="[% Catalyst.uri_for('/static/js/admin_panels.js') %]" type="text/javascript"></script>
-[%~ END %]
-[%~ END %]
-<script>
-var panel_urls =
-	{
-	temp: "[% Catalyst.uri_for('/api/temperature/current').dquote %]"
-	, soda: "[% Catalyst.uri_for('/api/soda/status').dquote %]"
-[%~ IF Catalyst.user_exists %]
-	, curse: "[% Catalyst.uri_for('/api/curse/list').dquote %]"
-	, storage: "[% Catalyst.uri_for('/api/storage/list').dquote %]"
-	, storage_relinquish: "[% Catalyst.uri_for('/api/storage/relinquish').dquote %]"
-	, storage_request: "[% Catalyst.uri_for('/storage/request').dquote %]"
-	, storage_hide: "[% Catalyst.uri_for('/api/storage/hide').dquote %]"
-[%~ IF Catalyst.check_user_roles('board') %]
-	, access: "[% Catalyst.uri_for('/api/admin/accesslog/recent').dquote %]"
-[%~ IF Catalyst.check_user_roles('storage')%]
-	, storage_status: "[% Catalyst.uri_for('/api/admin/storage/status').dquote %]"
-[%~ END %]
-[%~ END %]
-[%~ END %]
-	};
-</script>
-[%~ 
+[%~
+IF Catalyst.user_exists;
+	GET '<script src="' _ Catalyst.uri_for('/static/js/user_panels.js') _ '" type="text/javascript"></script>' _ "\n";
+	IF Catalyst.check_user_roles('board');
+		GET '<script src="' _ Catalyst.uri_for('/static/js/admin_panels.js') _ '" type="text/javascript"></script>' _ "\n";
+	END;
+	FOREACH group IN Catalyst.user.mgroups;
+		SET fname = '/static/js/' _ group.name _ '_panels.js';
+		TRY;
+			USE File(Catalyst.config.home _ '/root' _ fname);
+			GET '<script src="'
+				_ Catalyst.uri_for(fname)
+				_ '" type="text/javascript"></script>' _ "\n";
+		CATCH File;
+		END;
+	END;
+END;
 SET panels = [];
 panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info', large => 1 });
 IF Catalyst.user_exists;
+	IF Catalyst.check_user_roles('pending_applications');
+		panels.push({ name => 'application', title => 'Application Status', style => 'panel-warning' });
+	END;
 	panels.push({ name => 'soda', title => 'Soda Credits', style => 'panel-default', credits => Catalyst.user.vend_credits || 0 });
-END;
-IF Catalyst.user_exists;
 	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
 	panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
 	IF Catalyst.check_user_roles('board');
+		panels.push({ name => 'applications' style => 'panel-info', title => 'Pending Applications' });
 		panels.push({ name => 'access' style => 'panel-primary', title => 'Recent Accesses' });
-		IF Catalyst.check_user_roles('storage');
-			panels.push({ name => 'storage_status' style => 'panel-info', title => 'Storage Overview' });
-		END;
+	END;
+	IF Catalyst.check_user_roles('storage');
+		panels.push({ name => 'storage_status' style => 'panel-info', title => 'Storage Overview' });
+	END;
+	IF Catalyst.check_user_roles('lights');
+		panels.push({ name => 'lights' style => 'panel-warning', title => 'Light Control' });
 	END;
 END;
 SET panel_style  = 'col-xs-12 col-sm-10 col-lg-6 col-sm-offset-1 col-lg-offset-3';
@@ -73,7 +68,7 @@ END;
 					s
 				[%~ END =%]
 				remaining.
-				<div class="col-sm-10 col-sm-offset-1 alert alert-info" style="margin-top: 10px; text-align: center;">
+				<div class="col-sm-10 col-sm-offset-1 alert alert-info u-text-center u-mt-3">
 					<form method="post" action="[% Catalyst.uri_for('/member/charge') %]">
 						Add [% Catalyst.config.soda.add_amount %] credits to your account for $[% Catalyst.config.soda.cost / 100 %].<br />
 						<script src="https://checkout.stripe.com/v2/checkout.js" class="stripe-button"
@@ -83,12 +78,8 @@ END;
 					</form>
 				</div>
 [%~
-			CASE 'temp';
-				GET 'Loading temperatures...';
-			CASE 'access';
-				GET 'Loading accesses...';
-			CASE 'curse';
-				GET 'Loading notifications...';
+			CASE DEFAULT;
+				GET 'Loading ' _ panel.title _ '...';
 		END;
 %]
 			</div>

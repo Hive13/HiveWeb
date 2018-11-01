@@ -3,12 +3,12 @@
 <div class="row">
 	<div class="col-xs-12 col-lg-10 col-lg-offset-1">
 		<div class="panel panel-danger hive-curse-panel">
-			<div class="panel-heading" style="text-align: center;">
+			<div class="panel-heading u-text-center">
 				<button type="button" class="pull-right btn btn-success" aria-label="New Curse" title="New Curse" id="new_curse"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></button>
 				<h4>Curses</h4>
 			</div>
 			<div class="panel-body">
-				<div class="search" style="float: right; width: 25%; min-width: 100px;">
+				<div class="search u-f-r" style="width: 25%; min-width: 100px;">
 					<input type="text" class="form-control" placeholder="Search for members" />
 				</div>
 				<nav id="pagination_top" class="hive-curse-pagination">
@@ -373,6 +373,7 @@ $(function()
 			what: "Delete Curse Action",
 			url: "[% Catalyst.uri_for('/api/admin/curses/action_delete').dquote %]",
 			data: { action_id: action_id },
+			button: $(this),
 			success: function ()
 				{
 				curses[curse_id].actions.splice(action_idx, 1);
@@ -494,6 +495,7 @@ $(function()
 			data: data,
 			url: "[% Catalyst.uri_for('/api/admin/curses/action_edit').dquote %]",
 			what: ((action_idx >= 0) ? "Edit Curse Action" : "Add Curse Action"),
+			button: $(this),
 			success: function (rdata)
 				{
 				action.path    = data.path;
@@ -721,6 +723,7 @@ function curse_save()
 		url: edit_url,
 		what: data.curse_id ? "Edit Curse" : "Add Curse",
 		data: data,
+		button: $(this),
 		success: function ()
 			{
 			$dialogue.modal("hide");

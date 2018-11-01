@@ -1,22 +1,47 @@
 function loading_icon()
 	{
-	return "Loading...<br /><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active\" style=\"width: 100%\"></div></div>";
+	return "Loading...<br /><div class=\"progress\"><div class=\"progress-bar progress-bar-striped active u-w-100\"></div></div>";
 	}
 
-function api_json(options, old_data, old_what, old_success)
+function api_json(options)
 	{
+	var $button, $icon, $el, spinner_html, classes, i;
+
 	if (typeof(options) !== "object")
-		options =
+		return;
+
+	options = $.extend({ type: "POST", success_toast: true }, options);
+
+	if ("path" in options)
+		options.url = api_base + options.path;
+
+	if ("button" in options)
+		{
+		$button = options.button;
+		spinner_html = "<span class=\"spinner\"><i class=\"fas fa-spinner fa-spin\"></i></span>";
+		$button.addClass("has-spinner").attr("disabled", true).prepend(spinner_html);
+		}
+
+	if ("$icon" in options)
+		{
+		$icon = options.$icon;
+		classes = $icon.attr("class").split(" ");
+		for (i = 0; i < classes.length; i++)
 			{
-			url: options,
-			data: old_data,
-			what: old_what,
-			success: old_success
-			};
-	if (!("type" in options))
-		options.type = "POST";
-	if (!("success_toast" in options))
-		options.success_toast = true;
+			if (classes[i].substring(0, 9) === "glyphicon")
+				$icon.removeClass(classes[i]);
+			if (classes[i].substring(0, 3) === "fa-")
+				$icon.removeClass(classes[i]);
+			}
+		$icon.addClass("fas fa-spinner fa-spin has-spinner").attr("disabled", true);
+		}
+
+	if ("$el" in options)
+		{
+		$el = options.$el;
+		spinner_html = $el.html();
+		$el.html("<span class=\"fas fa-spinner fa-spin has-spinner\"></span>");
+		}
 
 	$.ajax(
 		{
@@ -29,6 +54,12 @@ function api_json(options, old_data, old_what, old_success)
 		cache: false,
 		success: function (data)
 			{
+			if ($button)
+				$button.removeClass("has-spinner").attr("disabled", false).find("span.spinner").remove();
+			if ($icon)
+				$icon.attr("class", classes.join(" ")).attr("disabled", false);
+			if ($el)
+				$el.html(spinner_html);
 			if (!data.response)
 				{
 				$.toast(
@@ -38,6 +69,8 @@ function api_json(options, old_data, old_what, old_success)
 					icon: "error",
 					position: "top-right"
 					});
+				if (options.failure)
+					options.failure();
 				return;
 				}
 			if (!options.success || options.success_toast)
@@ -52,6 +85,24 @@ function api_json(options, old_data, old_what, old_success)
 				}
 			if (options.success)
 				options.success(data);
+			},
+		error: function (jqXHR, textStatus, errorThrown)
+			{
+			$.toast(
+				{
+				heading: options.what + " failed",
+				text: errorThrown,
+				icon: "error",
+				position: "top-right"
+				});
+			if ($button)
+				$button.removeClass("has-spinner").attr("disabled", false).find("span.spinner").remove();
+			if ($icon)
+				$icon.attr("class", classes.join(" ")).attr("disabled", false);
+			if ($el)
+				$el.html(spinner_html);
+			if (options.failure)
+				options.failure();
 			}
 		});
 	}

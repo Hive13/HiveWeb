@@ -52,7 +52,6 @@ sub index :Path :Args(0)
 		else
 			{
 			$out->{error}    = 'Unknown item filter type ' . $type;
-			$out->{response} = \0;
 			return;
 			}
 		}
@@ -142,24 +141,11 @@ sub recent :Local :Args(0)
 		{
 		order_by => { -desc => 'me.access_time' },
 		rows     => 10,
-		prefetch => [ 'item', 'member' ],
+		prefetch => [ 'item', { member => 'member_mgroups' } ],
 		});
 	$out->{accesses} = \@accesses;
 	$out->{response} = \1;
 	}
-
-=encoding utf8
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

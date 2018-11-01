@@ -9,23 +9,6 @@ use Try::Tiny;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-=head1 NAME
-
-HiveWeb::Controller::API - Catalyst Controller
-
-=head1 DESCRIPTION
-
-Catalyst Controller.
-
-=head1 METHODS
-
-=cut
-
-
-=head2 index
-
-=cut
-
 sub find_member :Private
 	{
 	my $c        = shift;
@@ -81,7 +64,7 @@ sub begin :Private
 		{
 		$c->stash()->{in} = $c->req()->body_data();
 		}
-	$c->stash()->{out} = {};
+	$c->stash()->{out} = { response => \0 };
 	$c->stash()->{view} = $c->view('JSON');
 	}
 
@@ -112,16 +95,17 @@ sub access :Local
 
 	if (!defined($device))
 		{
-		$out->{response} = \0;
 		$out->{error}    = 'Cannot find device.';
 		$c->response()->status(400)
 			if ($data->{http});
 		return;
 		}
 
+	$c->stash()->{view}   = $view;
+	$c->stash()->{device} = $device;
+
 	if ($device->min_version() > $version || $version > $device->max_version())
 		{
-		$out->{response} = \0;
 		$out->{error}    = 'Invalid version for device.';
 		$c->response()->status(403)
 			if ($data->{http});
@@ -137,7 +121,6 @@ sub access :Local
 		$out->{new_nonce} = uc(unpack('H*', $new_nonce));
 		if ($nonce ne $exp_nonce && $operation ne 'get_nonce')
 			{
-			$out->{response}    = \0;
 			$out->{nonce_valid} = \0;
 			$out->{error}       = 'Invalid nonce.';
 			$c->response()->status(403)
@@ -147,13 +130,9 @@ sub access :Local
 		$out->{nonce_valid} = \1;
 		}
 
-	$c->stash()->{view}   = $view;
-	$c->stash()->{device} = $device;
-
 	my $shasum = $view->make_hash($c, $data);
 	if ($shasum ne uc($in->{checksum}))
 		{
-		$out->{response} = JSON->false();
 		$out->{error} = 'Invalid checksum.';
 		$c->response()->status(400)
 			if ($data->{http});
@@ -289,19 +268,6 @@ sub access :Local
 			if ($data->{http});
 		}
 	}
-
-=encoding utf8
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

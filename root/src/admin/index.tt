@@ -1,10 +1,10 @@
 <div class="row">
 	<div class="col-xs-12 col-sm-8 col-sm-offset-2 col-lg-4 col-lg-offset-4">
 		<div class="panel panel-default">
-			<div class="panel-heading" style="text-align: center;">
+			<div class="panel-heading u-text-center">
 				<h4>This is some neat-o Administration shit.</h4>
 			</div>
-			<div class="panel-body" style="padding: 18px;">
+			<div class="panel-body u-p-2">
 				<ul>
 					<li><a href="[% Catalyst.uri_for('/admin/members') %]">Member Admin</a></li>
 					<li><a href="[% Catalyst.uri_for('/admin/groups') %]">Group Admin</a></li>

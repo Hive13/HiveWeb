@@ -77,22 +77,14 @@ sub retrieve :Local :Args(0)
 		$out->{temps}    = $temps;
 		$out->{response} = \1;
 		}
+<<<<<<< HEAD
 	else
 		{
 		$out->{response} = \0;
 		}
+=======
+>>>>>>> master
 	}
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

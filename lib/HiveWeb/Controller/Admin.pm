@@ -8,7 +8,7 @@ sub auto :Private
 	{
 	my ($self, $c) = @_;
 
-	push (@{$c->stash()->{extra_css}}, $c->uri_for('/static/css/admin.css'));
+	push (@{$c->stash()->{extra_css}}, $c->uri_for('/static/css/admin.min.css'));
 	}
 
 sub index :Path :Args(0)
@@ -28,7 +28,12 @@ sub storage :Local :Args(0)
 		per_page => 50,
 		};
 
-	$c->stash()->{template} = 'admin/storage.tt';
+	my @types = $c->model('DB::StorageSlotType')->all();
+	$c->stash(
+		{
+		types    => \@types,
+		template => 'admin/storage.tt',
+		});
 	}
 
 sub access_log :Local :Args(0)

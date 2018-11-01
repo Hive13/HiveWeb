@@ -45,8 +45,7 @@ sub info :Local :Args(1)
 		});
 	if (!defined($member))
 		{
-		$out->{response} = \0;
-		$out->{data}     = "Cannot find member";
+		$out->{data} = "Cannot find member";
 		return;
 		}
 
@@ -79,14 +78,12 @@ sub add_badge :Local :Args(0)
 
 	if (!defined($member))
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Cannot find member';
+		$out->{data} = 'Cannot find member';
 		return;
 		}
 	if (!defined($badge_number))
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'No badge specified';
+		$out->{data} = 'No badge specified';
 		return;
 		}
 
@@ -109,8 +106,7 @@ sub add_badge :Local :Args(0)
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not update member.';
+		$out->{data} = 'Could not update member.';
 		};
 	}
 
@@ -125,14 +121,12 @@ sub delete_badge :Local :Args(0)
 
 	if (!defined($member))
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Cannot find member';
+		$out->{data} = 'Cannot find member';
 		return;
 		}
 	if (!defined($badge_ids))
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'No badge specified';
+		$out->{data} = 'No badge specified';
 		return;
 		}
 
@@ -178,15 +172,13 @@ sub password :Local :Args(0)
 
 	if (!defined($member))
 		{
-		$out->{response} = JSON->false();
-		$out->{data}     = "Cannot find member";
+		$out->{data} = "Cannot find member";
 		return;
 		}
 
 	if (!$password)
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Blank or invalid password supplied.';
+		$out->{data} = 'Blank or invalid password supplied.';
 		return;
 		}
 
@@ -206,8 +198,7 @@ sub password :Local :Args(0)
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not change password.';
+		$out->{data} = 'Could not change password.';
 		};
 	}
 
@@ -222,8 +213,7 @@ sub edit :Local :Args(0)
 
 	if (!defined($member))
 		{
-		$out->{response} = JSON->false();
-		$out->{data}     = "Cannot find member";
+		$out->{data} = "Cannot find member";
 		return;
 		}
 	my %new_groups   = map { $_ => 1; } @{$in->{groups}};
@@ -232,6 +222,20 @@ sub edit :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			if (exists($in->{member_image_id}))
+				{
+				my $image_id = $in->{member_image_id};
+				if ($image_id ne $member->member_image_id())
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'change_member_image',
+						changing_member_id => $c->user()->member_id(),
+						notes              => $image_id ? 'Set member image ID to ' . $image_id : 'Remove member image',
+						});
+					$member->update({ member_image_id => $image_id });
+					}
+				}
 			if (exists($in->{paypal_email}))
 				{
 				my $paypal = $in->{paypal_email};
@@ -292,123 +296,8 @@ sub edit :Local :Args(0)
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not update member profile.';
+		$out->{data} = 'Could not update member profile.';
 		};
-	}
-
-sub photo :Local :Args(0)
-	{
-	my ( $self, $c ) = @_;
-
-	my $in        = $c->stash()->{in};
-	my $out       = $c->stash()->{out};
-	my $member_id = $in->{member_id};
-	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
-
-	if (!defined($member))
-		{
-		$out->{response} = \0;
-		$out->{data}     = "Cannot find member";
-		return;
-		}
-
-	if ($member->member_image_id())
-		{
-		$out->{response} = \0;
-		$out->{data}     = "This member already has an image.  Please remove the old one.";
-		return;
-		}
-
-	my $image = $c->request()->upload('photo');
-	if (!$image)
-		{
-		$out->{response} = \0;
-		$out->{data}     = 'Cannot find image data.';
-		return;
-		}
-
-	$out->{response} = \1;
-	$out->{data}     = 'Member picture updated.';
-	try
-		{
-		$c->model('DB')->txn_do(sub
-			{
-			my $img_data = $image->slurp();
-			my $im = Image::Magick->new() || die $!;
-			$im->BlobToImage($img_data);
-			$im->Resize(geometry => '100x100');
-			my $thumb_data = ($im->ImageToBlob())[0];
-
-			my $db_image = $c->model('DB::Image')->create(
-				{
-				image        => $img_data,
-				thumbnail    => $thumb_data,
-				content_type => $image->type(),
-				}) || die $!;
-			my $image_id = $db_image->image_id();
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'image',
-				changing_member_id => $c->user()->member_id(),
-				notes              => 'Attached image ' . $image_id,
-				}) || die $!;
-			$member->update({ member_image_id => $image_id }) || die $!;
-			$out->{image_id} = $image_id;
-			});
-		}
-	catch
-		{
-		delete($out->{image_id});
-		$out->{response} = \0;
-		$out->{data}     = 'Could not update member profile: ' . $_;
-		};
-	}
-
-sub remove_photo :Local :Args(0)
-	{
-	my ( $self, $c ) = @_;
-
-	my $in        = $c->stash()->{in};
-	my $out       = $c->stash()->{out};
-	my $member_id = $in->{member_id};
-	my $member    = $c->model('DB::Member')->find({ member_id => $member_id });
-
-	if (!defined($member))
-		{
-		$out->{response} = \0;
-		$out->{data}     = "Cannot find member";
-		return;
-		}
-
-	if (!$member->member_image_id())
-		{
-		$out->{response} = \0;
-		$out->{data}     = "This member does not have an image.";
-		return;
-		}
-
-	try
-		{
-		$c->model('DB')->txn_do(sub
-			{
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'image',
-				changing_member_id => $c->user()->member_id(),
-				notes              => 'Detached image ' . $member->member_image_id(),
-				}) || die $!;
-			$member->update({ member_image_id => undef }) || die $!;
-			});
-		}
-	catch
-		{
-		delete($out->{image_id});
-		$out->{response} = \0;
-		$out->{data}     = 'Could not update member profile: ' . $_;
-		};
-	$out->{response} = \1;
-	$out->{data}     = 'Member picture removed.';
 	}
 
 sub index :Path :Args(0)
@@ -522,8 +411,7 @@ sub index :Path :Args(0)
 				}
 			else
 				{
-				$out->{error}    = 'Unknown PayPal filter type ' . $type;
-				$out->{response} = \0;
+				$out->{data} = 'Unknown PayPal filter type ' . $type;
 				return;
 				}
 			}
@@ -580,8 +468,7 @@ sub index :Path :Args(0)
 			}
 		else
 			{
-			$out->{error}    = 'Unknown group filter type ' . $type;
-			$out->{response} = \0;
+			$out->{data} = 'Unknown group filter type ' . $type;
 			return;
 			}
 		}
@@ -613,8 +500,7 @@ sub index :Path :Args(0)
 			}
 		else
 			{
-			$out->{error}    = "Unknown storage filter type '$type'.";
-			$out->{response} = \0;
+			$out->{data} = "Unknown storage filter type '$type'.";
 			return;
 			}
 		my $ss = $c->model('DB::StorageSlot')->search({ member_id => { '-ident' => 'me.member_id' } }, { alias => 'slots' })->count_rs()->as_query();
@@ -732,39 +618,24 @@ sub search :Local :Args(0)
 			});
 		}
 
-	my $members_rs = $c->model('DB::Member')->search(
+	my @members    = $c->model('DB::Member')->search(
 		{
 		-and => $names,
 		},
 		{
-		order_by => $order
-		});
-	my $count      = $members_rs->count();
-	my @members    = $members_rs->search({},
-		{
-		rows => 10,
-		page => $page,
+		select       => ['member_id', 'fname', 'lname'],
+		rows         => 10,
+		page         => $page,
+		result_class => 'DBIx::Class::ResultClass::HashRefInflator',
+		order_by     => $order,
 		});
 
 	$out->{members}  = \@members;
-	$out->{count}    = $count;
+	$out->{count}    = scalar(@members);
 	$out->{page}     = $page;
 	$out->{per_page} = 10;
 	$out->{response} = \1;
 	}
-
-=encoding utf8
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

@@ -21,10 +21,9 @@ sub index :Path :Args(0)
 
 sub edit :Local :Args(0)
 	{
-	my ($self, $c)   = @_;
-	my $in           = $c->stash()->{in};
-	my $out          = $c->stash()->{out};
-	$out->{response} = \0;
+	my ($self, $c) = @_;
+	my $in         = $c->stash()->{in};
+	my $out        = $c->stash()->{out};
 
 	my $curse;
 
@@ -86,8 +85,7 @@ sub cast :Local :Args(0)
 	# Wonder if Perl has an XOR...
 	if ((!$member_id && !$mgroup_id) || ($member_id && $mgroup_id))
 		{
-		$out->{response} = \0;
-		$out->{data}     = "You must specify either a member or a group.";
+		$out->{data} = "You must specify either a member or a group.";
 		return;
 		}
 
@@ -96,8 +94,7 @@ sub cast :Local :Args(0)
 		my $member = $c->model('DB::Member')->find({ member_id => $member_id });
 		if (!defined($member))
 			{
-			$out->{response} = \0;
-			$out->{data}     = "Cannot find member " . $member_id;
+			$out->{data} = "Cannot find member " . $member_id;
 			return;
 			}
 		$members = [ $member ];
@@ -109,8 +106,7 @@ sub cast :Local :Args(0)
 		my $mgroup = $c->model('DB::MGroup')->find({ mgroup_id => $mgroup_id });
 		if (!defined($mgroup))
 			{
-			$out->{response} = \0;
-			$out->{data}     = "Cannot find group " . $mgroup_id;
+			$out->{data} = "Cannot find group " . $mgroup_id;
 			return;
 			}
 		@members = $mgroup->member_mgroups()->search_related('member', {})->all();
@@ -120,8 +116,7 @@ sub cast :Local :Args(0)
 	my $curse = $c->model('DB::Curse')->find({ curse_id => $in->{curse_id} });
 	if (!defined($curse))
 		{
-		$out->{response} = \0;
-		$out->{data}     = "Cannot find curse " . $in->{curse_id};
+		$out->{data} = "Cannot find curse " . $in->{curse_id};
 		return;
 		}
 
@@ -129,8 +124,7 @@ sub cast :Local :Args(0)
 
 	if ($existing ne 'die' && $existing ne 'stack' && $existing ne 'replace')
 		{
-		$out->{response} = \0;
-		$out->{data}     = "Invalid existing curse action $existing.";
+		$out->{data} = "Invalid existing curse action $existing.";
 		return;
 		}
 
@@ -187,10 +181,9 @@ sub cast :Local :Args(0)
 
 sub action_edit :Local :Args(0)
 	{
-	my ($self, $c)   = @_;
-	my $in           = $c->stash()->{in};
-	my $out          = $c->stash()->{out};
-	$out->{response} = \0;
+	my ($self, $c) = @_;
+	my $in         = $c->stash()->{in};
+	my $out        = $c->stash()->{out};
 
 	if (my $curse_id = delete($in->{curse_id}))
 		{
@@ -225,10 +218,9 @@ sub action_edit :Local :Args(0)
 
 sub action_delete :Local :Args(0)
 	{
-	my ($self, $c)   = @_;
-	my $in           = $c->stash()->{in};
-	my $out          = $c->stash()->{out};
-	$out->{response} = \0;
+	my ($self, $c) = @_;
+	my $in         = $c->stash()->{in};
+	my $out        = $c->stash()->{out};
 
 	my $action_id = delete($in->{action_id});
 	my $action = $c->model('DB::CurseAction')->find($action_id);
@@ -240,19 +232,6 @@ sub action_delete :Local :Args(0)
 	$action->delete() || die $!;
 	$out->{response} = \1;
 	}
-
-=encoding utf8
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 
