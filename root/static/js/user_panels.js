@@ -5,9 +5,9 @@ var heatmap_panel;
 function display_heatmap_data(data)
 	{
 	var i, j, v, color, hour, panel = this;
-	var d = data.accesses, html = "<div style=\"text-align: center; width: 100%;\"><a class=\"scale anchor-style\">Lin</a> | <a class=\"scale anchor-style\">Log</a></div>";
+	var d = data.accesses;
 
-	html += "<table class=\"heatmap\"><thead><tr><th></th><th>S</th><th>M</th><th>T</th><th>W</th><th>R</th><th>F</th><th>S</th></tr></thead><tbody>";
+	html = "<table class=\"heatmap\"><thead><tr><th></th><th>S</th><th>M</th><th>T</th><th>W</th><th>R</th><th>F</th><th>S</th></tr></thead><tbody>";
 
 	for (i = 0; i < 96; i++)
 		{
@@ -55,17 +55,6 @@ function display_heatmap_data(data)
 
 	html += "</tbody></table>";
 	this.$panel.find(".panel-body").html(html);
-	this.$panel.find("a.scale").click(function ()
-		{
-		var what = $(this).text();
-
-		if (what === "Lin")
-			heatmap_scale = "lin";
-		else if (what === "Log")
-			heatmap_scale = "log";
-
-		panel.load_panel_data();
-		});
 	}
 
 function display_storage_data(data)
@@ -196,5 +185,76 @@ $(function()
 		refresh:        false,
 		load_path:      "/heatmap",
 		ldata:          function () { return { scale: heatmap_scale }; }
+		});
+
+	heatmap_panel.$panel.find("div.panel-heading").prepend($("<span class=\"fas fa-cog u-f-r anchor-style\" id=\"heatmap_settings\"></span>"));
+	heatmap_panel.$panel.on("click", "#heatmap_settings", function ()
+		{
+		var application_id = $(this).closest("ul.application").attr("id");
+		var $dialogue =
+			$([
+			"<div class=\"modal fade picture-dialogue\" tabIndex=\"-1\" role=\"dialog\">",
+				"<div class=\"modal-dialog\" role=\"document\">",
+					"<div class=\"modal-content\">",
+						"<div class=\"modal-header\">",
+							"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+							"<h3 class=\"modal-title\">Heatmap Settings</h3>",
+						"</div>",
+						"<div class=\"modal-body\">",
+							"<div class=\"row\">",
+								"<div class=\"col-xs-12 col-md-6\">",
+									"<div class=\"panel panel-success\">",
+										"<div class=\"panel-heading\">",
+											"<h4>Scale</h4>",
+										"</div>",
+										"<div class=\"panel-body\">",
+											"<label>",
+												"<input type=\"radio\" name=\"scale\" value=\"lin\"" + (heatmap_scale === "lin" ? " checked" : "") + " />",
+												" Linear",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"scale\" value=\"log\"" + (heatmap_scale === "log" ? " checked" : "") + " />",
+												" Logarithmic",
+											"</label>",
+										"</div>",
+									"</div>",
+								"</div>",
+								"<div class=\"col-xs-12 col-md-6\">",
+									"<div class=\"panel panel-success\">",
+										"<div class=\"panel-heading\">",
+											"<h4>Color Gradient</h4>",
+										"</div>",
+										"<div class=\"panel-body\">",
+											"<label>",
+												"<input type=\"radio\" name=\"scheme\" value=\"jet\"" + (heatmap_scheme === "jet" ? " checked" : "") + " />",
+												" Jet",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"scheme\" value=\"yel\"" + (heatmap_scheme === "yel" ? " checked" : "") + " />",
+												" White &rarr; Yellow &rarr; Red",
+											"</label>",
+										"</div>",
+									"</div>",
+								"</div>",
+							"</div>",
+						"</div>",
+						"<div class=\"modal-footer\">",
+							"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+							"<button type=\"button\" class=\"btn btn-primary accept\">Update</button>",
+						"</div>",
+					"</div>",
+				"</div>",
+			"</div>"
+			].join(""));
+
+		$dialogue.find("button.accept").click(function ()
+			{
+			heatmap_scale  = $dialogue.find("input[name=scale]:checked").val();
+			heatmap_scheme = $dialogue.find("input[name=scheme]:checked").val();
+			$dialogue.modal("hide");
+			heatmap_panel.load_panel_data();
+			});
+
+		$dialogue.modal("show");
 		});
 	});
