@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use Math::Round;
+use DateTime::Format::ISO8601;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -35,7 +36,7 @@ sub accesses :Local :Args(0)
 
 	if (!$i)
 		{
-		$out->{response} = 'Invalid item name.';
+		$out->{data} = 'Invalid item name.';
 		return;
 		}
 
@@ -68,9 +69,25 @@ sub accesses :Local :Args(0)
 			{
 			$search->{access_time} = { '>=' => \"now() - interval '1 month'" };
 			}
+		elsif ($range eq 'custom')
+			{
+			if (!exists($in->{start_date}) || !exists($in->{end_date}))
+				{
+				$out->{data} = 'You must provide start and end dates.';
+				return;
+				}
+			my $start  = DateTime::Format::ISO8601->parse_datetime($in->{start_date}) || die $!;
+			my $end    = DateTime::Format::ISO8601->parse_datetime($in->{end_date}) || die $!;
+			$end->add(days => 1);
+			$search->{access_time} =
+				{
+				'>=' => $start->ymd('-'),
+				'<'  => $end->ymd('-'),
+				};
+			}
 		elsif ($range ne 'all')
 			{
-			$out->{response} = 'Invalid range specified.';
+			$out->{data} = 'Invalid range specified.';
 			return;
 			}
 		}

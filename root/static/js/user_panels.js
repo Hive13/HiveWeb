@@ -243,30 +243,37 @@ $(function()
 										"<h4>Date Range</h4>",
 									"</div>",
 									"<div class=\"panel-body\">",
-										"<label>",
-											"<input type=\"radio\" name=\"range\" value=\"all\"" + (heatmap_panel.ldata.range === "all" ? " checked" : "") + " />",
-											" All",
-										"</label><br />",
-										"<label>",
-											"<input type=\"radio\" name=\"range\" value=\"year\"" + (heatmap_panel.ldata.range === "year" ? " checked" : "") + " />",
-											" Past Year",
-										"</label><br />",
-										"<label>",
-											"<input type=\"radio\" name=\"range\" value=\"half_year\"" + (heatmap_panel.ldata.range === "half_year" ? " checked" : "") + " />",
-											" Past Six Months",
-										"</label><br />",
-										"<label>",
-											"<input type=\"radio\" name=\"range\" value=\"quarter\"" + (heatmap_panel.ldata.range === "quarter" ? " checked" : "") + " />",
-											" Past Three Months",
-										"</label><br />",
-										"<label>",
-											"<input type=\"radio\" name=\"range\" value=\"month\"" + (heatmap_panel.ldata.range === "month" ? " checked" : "") + " />",
-											" Past Month",
-										"</label><br />",
-										"<label>",
-											"<input type=\"radio\" name=\"range\" value=\"custom\"" + (heatmap_panel.ldata.range === "custom" ? " checked" : "") + " />",
-											" Custom Range",
-										"</label>",
+										"<div class=\"two-column\">",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"all\"" + (heatmap_panel.ldata.range === "all" ? " checked" : "") + " />",
+												" All",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"year\"" + (heatmap_panel.ldata.range === "year" ? " checked" : "") + " />",
+												" Past Year",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"half_year\"" + (heatmap_panel.ldata.range === "half_year" ? " checked" : "") + " />",
+												" Past Six Months",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"quarter\"" + (heatmap_panel.ldata.range === "quarter" ? " checked" : "") + " />",
+												" Past Three Months",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"month\"" + (heatmap_panel.ldata.range === "month" ? " checked" : "") + " />",
+												" Past Month",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"custom\"" + (heatmap_panel.ldata.range === "custom" ? " checked" : "") + " />",
+												" Custom Range",
+											"</label>",
+										"</div>",
+										"<div class=\"input-group input-daterange\" style=\"display: none\">",
+											"<input type=\"text\" class=\"form-control datepicker\" id=\"start_date\" />",
+											"<div class=\"input-group-addon\">to</div>",
+											"<input type=\"text\" class=\"form-control datepicker\" id=\"end_date\" />",
+										"</div>",
 									"</div>",
 								"</div>",
 							"</div>",
@@ -281,6 +288,14 @@ $(function()
 		"</div>"
 		].join(""));
 
+	heatmap_panel.$settings_dialogue.find(".input-daterange").datepicker(
+		{
+		inputs: heatmap_panel.$settings_dialogue.find(".input-daterange input")
+		});
+	heatmap_panel.$settings_dialogue.find("input[name=range]").change(function ()
+		{
+		heatmap_panel.$settings_dialogue.find("div.input-daterange").css("display", $(this).val() == "custom" ? "" : "none");
+		});
 	heatmap_panel.$settings_dialogue.find("button.accept").click(function ()
 		{
 		var $this       = heatmap_panel.$settings_dialogue,
@@ -288,6 +303,16 @@ $(function()
 		settings.scale  = $this.find("input[name=scale]:checked").val();
 		settings.scheme = $this.find("input[name=scheme]:checked").val();
 		settings.range  = $this.find("input[name=range]:checked").val();
+		if (settings.range === "custom")
+			{
+			settings.end_date   = $this.find("input#end_date").datepicker("getDate");
+			settings.start_date = $this.find("input#start_date").datepicker("getDate");
+			}
+		else
+			{
+			delete settings.start_date;
+			delete settings.end_date;
+			}
 		$this.modal("hide");
 		heatmap_panel.load_panel_data();
 		});
