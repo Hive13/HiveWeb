@@ -39,10 +39,41 @@ sub accesses :Local :Args(0)
 		return;
 		}
 
+	my $search =
+		{
+		granted => 't',
+		item_id => $i->item_id(),
+		};
+
 	$scale = \&log10
 		if (lc($in->{scale}) eq 'log');
 
-	my $heatmap = $c->model('DB::AccessLog')->heatmap()->search({ granted => 't', item_id => $i->item_id() });
+	my $heatmap = $c->model('DB::AccessLog')->heatmap()->search($search);
+	if (exists($in->{range}))
+		{
+		my $range = lc($in->{range});
+		if ($range eq 'year')
+			{
+			$search->{access_time} = { '>=' => \"now() - interval '1 year'" };
+			}
+		elsif ($range eq 'half_year')
+			{
+			$search->{access_time} = { '>=' => \"now() - interval '6 months'" };
+			}
+		elsif ($range eq 'quarter')
+			{
+			$search->{access_time} = { '>=' => \"now() - interval '3 months'" };
+			}
+		elsif ($range eq 'month')
+			{
+			$search->{access_time} = { '>=' => \"now() - interval '1 month'" };
+			}
+		elsif ($range ne 'all')
+			{
+			$out->{response} = 'Invalid range specified.';
+			return;
+			}
+		}
 
 	for (my $i = 0; $i < 7; $i++)
 		{

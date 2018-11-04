@@ -253,11 +253,11 @@ $(function()
 										"</label><br />",
 										"<label>",
 											"<input type=\"radio\" name=\"range\" value=\"half_year\"" + (heatmap_panel.ldata.range === "half_year" ? " checked" : "") + " />",
-											" Past Six Monts",
+											" Past Six Months",
 										"</label><br />",
 										"<label>",
 											"<input type=\"radio\" name=\"range\" value=\"quarter\"" + (heatmap_panel.ldata.range === "quarter" ? " checked" : "") + " />",
-											" Past Three Monts",
+											" Past Three Months",
 										"</label><br />",
 										"<label>",
 											"<input type=\"radio\" name=\"range\" value=\"month\"" + (heatmap_panel.ldata.range === "month" ? " checked" : "") + " />",
@@ -287,6 +287,7 @@ $(function()
 			settings      = heatmap_panel.ldata;
 		settings.scale  = $this.find("input[name=scale]:checked").val();
 		settings.scheme = $this.find("input[name=scheme]:checked").val();
+		settings.range  = $this.find("input[name=range]:checked").val();
 		$this.modal("hide");
 		heatmap_panel.load_panel_data();
 		});
