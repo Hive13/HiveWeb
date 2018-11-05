@@ -9,7 +9,7 @@
 			</div>
 			<div class="panel-body">
 				<div class="search u-f-r" style="width: 25%; min-width: 100px;">
-					<input type="text" class="form-control" placeholder="Search for members" />
+					<input type="text" class="form-control" placeholder="Search for curses" />
 				</div>
 				<nav id="pagination_top" class="hive-curse-pagination">
 				</nav>
