@@ -15,9 +15,8 @@ sub index :Path :Args(0)
 	my $filters = {};
 
 	$filters->{name} = [ '-and', map { { ilike => "%$_%" } } split(/\s+/, $in->{search}) ]
-		if (exists($in->{search});
-	$c->log()->debug(Data::Dumper::Dumper($filters));
-	my @curses = $c->model('DB::Curse')->find($filters);
+		if ($in->{search});
+	my @curses = $c->model('DB::Curse')->search($filters);
 
 	$out->{response} = \1;
 	$out->{curses}   = \@curses;
