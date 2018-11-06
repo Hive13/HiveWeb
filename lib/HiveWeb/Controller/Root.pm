@@ -36,6 +36,9 @@ sub auto :Private
 			push(@$paths, $path);
 			}
 
+		$HiveWeb::Schema::is_admin = 1
+			if ($c->check_user_roles('board'));
+
 		my $actions = $c->model('DB::CurseAction')->search(
 			{
 			issued_at => { '<=' => \'now()'},

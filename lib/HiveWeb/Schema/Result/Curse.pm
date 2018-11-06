@@ -7,7 +7,7 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
-extends 'DBIx::Class::Core';
+extends 'HiveWeb::DBIx::Class::Core';
 
 use Text::Markdown 'markdown';
 
@@ -65,6 +65,37 @@ __PACKAGE__->has_many
 
 __PACKAGE__->many_to_many('members', 'member_curses', 'member');
 
+sub admin_class
+	{
+	return __PACKAGE__ . '::Admin';
+	}
+
+sub TO_JSON
+	{
+	my $self = shift;
+
+	return
+		{
+		curse_id              => $self->curse_id(),
+		name                  => $self->name(),
+		display_name          => $self->display_name(),
+		notification          => markdown($self->notification_markdown()),
+		notification_markdown => $self->notification_markdown(),
+		};
+	}
+
+__PACKAGE__->meta->make_immutable;
+1;
+
+package HiveWeb::Schema::Result::Curse::Admin;
+
+use strict;
+use warnings;
+use base qw/HiveWeb::Schema::Result::Curse/;
+use Text::Markdown 'markdown';
+
+__PACKAGE__->table('curse');
+
 sub TO_JSON
 	{
 	my $self    = shift;
@@ -95,6 +126,4 @@ sub TO_JSON
 		actions               => \@actions,
 		};
 	}
-
-__PACKAGE__->meta->make_immutable;
 1;
