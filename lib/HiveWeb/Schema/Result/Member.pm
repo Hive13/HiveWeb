@@ -7,7 +7,7 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
-extends 'DBIx::Class::Core';
+extends 'HiveWeb::DBIx::Class::Core';
 
 use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
@@ -180,37 +180,16 @@ sub sqlt_deploy_hook
 
 sub TO_JSON
 	{
-	my $self    = shift;
-	my $columns = { $self->get_columns() };
-	my $dtp     = $self->result_source()->schema()->storage()->datetime_parser();
-	my $lat;
-	$lat = $dtp->parse_datetime($columns->{last_access_time})
-		if (exists($columns->{last_access_time}) && $columns->{last_access_time});
-
-	my @groups;
-	my $mgs = $self->member_mgroups();
-	while (my $mg = $mgs->next())
-		{
-		push(@groups, $mg->mgroup_id());
-		}
+	my $self = shift;
 
 	return
 		{
-		member_id       => $self->member_id(),
-		fname           => $self->fname(),
-		lname           => $self->lname(),
-		email           => $self->email(),
-		created_at      => $self->created_at(),
-		groups          => \@groups,
-		handle          => $self->handle(),
-		phone           => $self->phone(),
-		create_time     => $self->created_at(),
-		vend_credits    => $self->vend_credits(),
-		paypal_email    => $self->paypal_email(),
-		member_image_id => $self->member_image_id(),
-		door_count      => $self->door_count(),
-		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
-		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
+		member_id => $self->member_id(),
+		fname     => $self->fname(),
+		lname     => $self->lname(),
+		email     => $self->email(),
+		handle    => $self->handle(),
+		phone     => $self->phone(),
 		};
 	}
 
@@ -344,5 +323,56 @@ sub check_2fa
 	return (($code eq $candidate_code1) || ($code eq $candidate_code2) || ($code eq $candidate_code3));
 	}
 
+sub admin_class
+	{
+	return __PACKAGE__ . '::Admin';
+	}
+
 __PACKAGE__->meta->make_immutable;
+1;
+
+package HiveWeb::Schema::Result::Member::Admin;
+
+use strict;
+use warnings;
+use base qw/HiveWeb::Schema::Result::Member/;
+use Text::Markdown 'markdown';
+
+__PACKAGE__->table('members');
+
+sub TO_JSON
+	{
+	my $self    = shift;
+	my $columns = { $self->get_columns() };
+	my $dtp     = $self->result_source()->schema()->storage()->datetime_parser();
+	my $lat;
+	$lat = $dtp->parse_datetime($columns->{last_access_time})
+		if (exists($columns->{last_access_time}) && $columns->{last_access_time});
+
+	my @groups;
+	my $mgs = $self->member_mgroups();
+	while (my $mg = $mgs->next())
+		{
+		push(@groups, $mg->mgroup_id());
+		}
+
+	return
+		{
+		member_id       => $self->member_id(),
+		fname           => $self->fname(),
+		lname           => $self->lname(),
+		email           => $self->email(),
+		created_at      => $self->created_at(),
+		groups          => \@groups,
+		handle          => $self->handle(),
+		phone           => $self->phone(),
+		create_time     => $self->created_at(),
+		vend_credits    => $self->vend_credits(),
+		paypal_email    => $self->paypal_email(),
+		member_image_id => $self->member_image_id(),
+		door_count      => $self->door_count(),
+		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
+		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
+		};
+	}
 1;
