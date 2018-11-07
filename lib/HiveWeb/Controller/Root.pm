@@ -36,7 +36,8 @@ sub auto :Private
 			push(@$paths, $path);
 			}
 
-		$HiveWeb::Schema::is_admin = 1
+		$HiveWeb::Schema::member_id = $user->member_id();
+		$HiveWeb::Schema::is_admin  = 1
 			if ($c->check_user_roles('board'));
 
 		my $actions = $c->model('DB::CurseAction')->search(
@@ -44,7 +45,7 @@ sub auto :Private
 			issued_at => { '<=' => \'now()'},
 			lifted_at => [ undef, { '>=' => \'now()' } ],
 			path      => $paths,
-			member_id => $c->user()->member_id(),
+			member_id => $user->member_id(),
 			},
 			{
 			prefetch => { curse => 'member_curses' },
@@ -68,7 +69,7 @@ sub auto :Private
 							{
 							$mc->update(
 								{
-								lifting_member_id => $c->user()->member_id(),
+								lifting_member_id => $user->member_id(),
 								lifted_at         => \'now()',
 								lifting_notes     => "Auto-lifted by visiting $path.",
 								});
