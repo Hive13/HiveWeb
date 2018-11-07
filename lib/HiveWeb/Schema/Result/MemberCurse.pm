@@ -86,11 +86,3 @@ sub TO_JSON
 		};
 	}
 1;
-
-package HiveWeb::Schema::Result::MemberCurse::Admin;
-
-use strict;
-use warnings;
-use base qw/HiveWeb::Schema::Result::MemberCurse/;
-
-__PACKAGE__->table('member_curse');
