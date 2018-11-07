@@ -34,7 +34,7 @@ function display_pending_applications(data)
 		app     = data.app_info[i];
 		dt      = new Date(app.created_at);
 
-		html += "<h4>Application from " + app.member.fname + " " + app.member.lname + "</h4>";
+		html += "<h4>Application from " + "<span class=\"profile-link\" data-member-id=\"" + app.member.member_id + "\">" + app.member.fname + " " + app.member.lname + "</span></h4>";
 		html += "<h6>Submitted " + dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</h6>";
 		html += "<ul class=\"application\" id=\"" + app.application_id + "\"><li>";
 		actions.push("<a href=\"/application/" + app.application_id + "\" target=\"_blank\">View this Application</a>");
@@ -261,4 +261,57 @@ $(function()
 		{
 		$(this).toggleClass("shown");
 		});
+
+	$("body")
+		.on("dblclick", ".profile-link", function (evt)
+			{
+			var member_id = $(this).data("member-id");
+
+			if (!member_id)
+				return;
+			view_profile(member_id);
+			})
+		.on("mousedown", ".profile-link", function (evt)
+			{
+			if (evt.detail > 1)
+				{
+				evt.preventDefault();
+				return false;
+				}
+			});
 	});
+
+function view_profile(member_id)
+	{
+	var s = function(data)
+		{
+		var member = data.member;
+		var $dialogue = $([
+			"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
+				"<div class=\"modal-dialog\" role=\"document\">",
+					"<div class=\"modal-content\">",
+						"<div class=\"modal-header\">",
+							"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+							"<h3 class=\"modal-title\">Profile for " + member.fname + " " + member.lname + "</h3>",
+						"</div>",
+						"<div class=\"modal-body\">",
+						"</div>",
+						"<div class=\"modal-footer\">",
+							"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>",
+						"</div>",
+					"</div>",
+				"</div>",
+			"</div>"
+			].join(''));
+		$dialogue.modal("show");
+		};
+
+	api_json(
+		{
+		path: "/admin/members/profile",
+		data: { member_id: member_id },
+		what: "Load Member Profile",
+		success_toast: false,
+		success: s
+		});
+	}
