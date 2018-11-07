@@ -7,7 +7,7 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
-extends 'DBIx::Class::Core';
+extends 'HiveWeb::DBIx::Class::Core';
 
 __PACKAGE__->load_components(qw[ UUIDColumns InflateColumn::DateTime ]);
 __PACKAGE__->table('lamp');
@@ -40,9 +40,36 @@ sub TO_JSON
 
 	return
 		{
+		lamp_id => $self->lamp_id(),
+		name    => $self->name(),
+		};
+	}
+
+sub admin_class
+	{
+	return __PACKAGE__ . '::Admin';
+	}
+
+1;
+
+package HiveWeb::Schema::Result::MemberCurse::Admin;
+
+use strict;
+use warnings;
+use base qw/HiveWeb::Schema::Result::MemberCurse/;
+
+__PACKAGE__->table('lamp');
+
+sub TO_JSON
+	{
+	my $self = shift;
+
+	return
+		{
 		lamp_id    => $self->lamp_id(),
 		name       => $self->name(),
 		ip_address => $self->ip_address(),
 		};
 	}
+
 1;
