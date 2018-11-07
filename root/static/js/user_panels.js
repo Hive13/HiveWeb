@@ -43,7 +43,7 @@ function display_storage_data(data)
 
 	this.$panel.find(".panel-body a.request-hide").click(function request_hide()
 		{
-		var $this, $li = $this.closest("li"),
+		var $this = $(this), $li = $this.closest("li"),
 			id = $li.attr("id");
 
 		$this.off("click");
