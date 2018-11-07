@@ -214,20 +214,6 @@ sub TO_JSON
 		};
 	}
 
-sub TO_SUMMARY_JSON
-	{
-	my $self    = shift;
-
-	return
-		{
-		member_id       => $self->member_id(),
-		fname           => $self->fname(),
-		lname           => $self->lname(),
-		email           => $self->email(),
-		handle          => $self->handle(),
-		};
-	}
-
 sub make_salt
 	{
 	my $self   = shift;
