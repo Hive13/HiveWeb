@@ -115,7 +115,7 @@ var columns    =
 				return "Unknown badge " + access.badge;
 
 			member = members[access.member_id];
-			return member.fname + " " + member.lname;
+			return "<span class=\"profile-link\" data-member-id=\"" + access.member_id + "\">" + member.fname + " " + member.lname + "</span>";
 			}
 		},
 		{
