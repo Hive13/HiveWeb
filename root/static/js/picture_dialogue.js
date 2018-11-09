@@ -138,7 +138,7 @@ Picture.prototype.load_image = function(image_id)
 
 	if (this.allow_deletes)
 		{
-		$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
+		$remove = $("<span />").addClass("fa").addClass("fa-times-circle").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
 			{
 			if (!confirm("Are you sure you want to remove this photo?"))
 				return;

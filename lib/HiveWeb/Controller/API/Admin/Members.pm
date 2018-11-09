@@ -9,6 +9,26 @@ use Image::Magick;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
+sub profile :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $in         = $c->stash()->{in};
+	my $out        = $c->stash()->{out};
+	my $member_id  = $in->{member_id};
+
+	$member_id ||= $c->user()->member_id();
+
+	my $member = $c->model('DB::Member')->find($member_id);
+	if (!$member)
+		{
+		$out->{data} = 'Invalid Member ID';
+		return;
+		}
+
+	$out->{member}   = $member;
+	$out->{response} = \1;
+	}
+
 sub info :Local :Args(1)
 	{
 	my ($self, $c, $member_id) = @_;

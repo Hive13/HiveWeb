@@ -4,12 +4,12 @@
 	<div class="col-xs-12 col-lg-10 col-lg-offset-1">
 		<div class="panel panel-danger hive-curse-panel">
 			<div class="panel-heading u-text-center">
-				<button type="button" class="pull-right btn btn-success" aria-label="New Curse" title="New Curse" id="new_curse"><span aria-hidden="true" class="glyphicon glyphicon-plus"></span></button>
+				<button type="button" class="pull-right btn btn-success" aria-label="New Curse" title="New Curse" id="new_curse"><span aria-hidden="true" class="fas fa-plus"></span></button>
 				<h4>Curses</h4>
 			</div>
 			<div class="panel-body">
 				<div class="search u-f-r" style="width: 25%; min-width: 100px;">
-					<input type="text" class="form-control" placeholder="Search for members" />
+					<input type="text" class="form-control" placeholder="Search for curses" />
 				</div>
 				<nav id="pagination_top" class="hive-curse-pagination">
 				</nav>
@@ -147,6 +147,67 @@
 	</div>
 </div>
 
+<div class="modal fade" id="filter_dialogue" tabIndex="-1" role="dialog" aria-labelledby="filter_label">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&#x2620;</span></button>
+				<h3 class="modal-title" id="filter_label">Select Filters</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row row-eq-height u-pb-5">
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Protected Group Cast</h4>
+							</div>
+							<div class="panel-body">
+								<label>
+									<input type="radio" name="group" value="null" />
+									All
+								</label><br />
+								<label>
+									<input type="radio" name="group" value="true" />
+									Yes
+								</label><br />
+								<label>
+									<input type="radio" name="group" value="false" />
+									No
+								</label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Protected Individual Cast</h4>
+							</div>
+							<div class="panel-body">
+								<label>
+									<input type="radio" name="indiv" value="null" />
+									All
+								</label><br />
+								<label>
+									<input type="radio" name="indiv" value="true" />
+									Yes
+								</label><br />
+								<label>
+									<input type="radio" name="indiv" value="false" />
+									No
+								</label><br />
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-primary" id="refresh_filters">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
 <script type="text/javascript">
 var load_url = "[% Catalyst.uri_for('/api/admin/curses').dquote %]";
 var edit_url = "[% Catalyst.uri_for('/api/admin/curses/edit').dquote %]";
@@ -157,9 +218,7 @@ var per_page = [% Catalyst.session.curse_table.per_page %];
 var count    = 0;
 var curses   = {};
 var total    = null;
-var filters  =
-	{
-	}
+var filters  = {};
 var columns  =
 	[
 		{
@@ -176,7 +235,7 @@ var columns  =
 		display: function(curse)
 			{
 			return "<span class=\"label " + (curse.protect_group_cast ? "label-success" : "label-danger") + "\">"
-				+ "<span class=\"glyphicon " + (curse.protect_group_cast ? "glyphicon-ok" : "glyphicon-remove") + "\"></span></span>";
+				+ "<span class=\"fas " + (curse.protect_group_cast ? "fa-check" : "fa-times") + "\"></span></span>";
 			}
 		},
 		{
@@ -185,7 +244,7 @@ var columns  =
 		display: function(curse)
 			{
 			return "<span class=\"label " + (curse.protect_user_cast ? "label-success" : "label-danger") + "\">"
-				+ "<span class=\"glyphicon " + (curse.protect_user_cast ? "glyphicon-ok" : "glyphicon-remove") + "\"></span></span>";
+				+ "<span class=\"fas " + (curse.protect_user_cast ? "fa-check" : "fa-times") + "\"></span></span>";
 			}
 		},
 		{
@@ -201,90 +260,47 @@ var columns  =
 
 $(function()
 	{
-	var
-		$table         = $("table#hive-curse-table"),
-		$nav           = $("nav.hive-curse-pagination"),
-		$filter        = $("div#filter_dialogue");
+	var $nav  = $("nav.hive-curse-pagination"),
+		$table  = $("table#hive-curse-table"),
+		$filter = $("div#filter_dialogue");
 
 	$filter.find("button#refresh_filters").click(function ()
 		{
-		var photo, group_type, paypal = [], group_list = [];
+		var group = $filter.find("input[name=group]:checked").val();
+			indiv   = $filter.find("input[name=indiv]:checked").val();
 
 		$filter.modal("hide");
-		photo      = $filter.find("input[name=photo]:checked").val();
-		group_type = $filter.find("input[name=group_filter]:checked").val();
-		$filter.find("input[name=paypal]:checked").each(function ()
-			{
-			var v = $(this).attr("value");
 
-			if (v === "any")
-				{
-				paypal = null;
-				return false;
-				}
-			paypal.push(v);
-			});
-
-		if (group_type === "null")
-			filters.group_type = null;
+		if (indiv === "true")
+			filters.indiv = true;
+		else if (indiv === "false")
+			filters.indiv = false;
 		else
-			filters.group_type = group_type;
-		$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
-		if (!group_list.length)
-			filters.group_list = null;
+			filters.indiv = null;
+		if (group === "true")
+			filters.group = true;
+		else if (group === "false")
+			filters.group = false;
 		else
-			filters.group_list = group_list;
-
-		if (photo === "true")
-			filters.photo = true;
-		else if (photo === "false")
-			filters.photo = false;
-		else
-			filters.photo = null;
-		if (!paypal || !paypal.length)
-			paypal = null;
-		filters.paypal = paypal;
+			filters.group = null;
 		page = 1;
-		load_members();
+		load_curses();
 		});
 
 	$filter.on("show.bs.modal", function ()
 		{
-		var i, html = "";
-
-		for (i = 0; i < all_groups.length; i++)
-			html += "<label>"
-				+ "<input type=\"checkbox\" name=\"group_list\" value=\""
-				+ all_groups[i].mgroup_id + "\" />\n"
-				+ all_groups[i].name
-				+ "</label><br />";
-		$filter.find("div#group_list").html(html);
-
-		if (filters.group_type === null)
-			$filter.find("input[name=group_filter][value=null]").prop("checked", true);
+		if (filters.indiv === true)
+			$filter.find("input[name=indiv][value=true]").prop("checked", true);
+		else if (filters.indiv === false)
+			$filter.find("input[name=indiv][value=false]").prop("checked", true);
 		else
-			$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
-		if (filters.group_list)
-			for (i = 0; i < filters.group_list.length; i++)
-				$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
-
-		if (filters.photo === true)
-			$filter.find("input[name=photo][value=true]").prop("checked", true);
-		else if (filters.photo === false)
-			$filter.find("input[name=photo][value=false]").prop("checked", true);
+			$filter.find("input[name=indiv][value=null]").prop("checked", true);
+		if (filters.group === true)
+			$filter.find("input[name=group][value=true]").prop("checked", true);
+		else if (filters.group === false)
+			$filter.find("input[name=group][value=false]").prop("checked", true);
 		else
-			$filter.find("input[name=photo][value=null]").prop("checked", true);
-		if (filters.paypal === null)
-			{
-			$filter.find("input[name=paypal][value!=any]").prop("checked", false);
-			$filter.find("input[name=paypal][value=any]").prop("checked", true);
-			}
-		else
-			{
-			$filter.find("input[name=paypal][value=any]").prop("checked", false);
-			for (i = 0; i < filters.paypal.length; i++)
-				$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
-			}
+			$filter.find("input[name=group][value=null]").prop("checked", true);
 		});
 
 	$nav.on("click", "li a", function ()
@@ -297,7 +313,7 @@ $(function()
 			page = Math.ceil(count / per_page);
 		else
 			page = parseInt(id.substr(5));
-		load_members();
+		load_curses();
 		});
 
 	$table
@@ -308,14 +324,14 @@ $(function()
 			page     = Math.floor((page - 1) * per_page / new_per_page + 1);
 			per_page = new_per_page;
 
-			load_members();
+			load_curses();
 			})
 		.on("dblclick", "tr", function ()
 			{
 			curse_edit($(this).attr("id"));
 			return false;
 			})
-		.on("click", "td.edit img.edit", function ()
+		.on("click", "td.edit span.curse-edit", function ()
 			{
 			var curse_id = $(this).closest("tr").attr("id");
 
@@ -535,7 +551,7 @@ function sort_click()
 
 	order = new_order;
 	dir   = new_dir;
-	load_members();
+	load_curses();
 	}
 
 function load_header($table)
@@ -557,7 +573,7 @@ function load_header($table)
 		+ "</th>";
 
 	html += "<th>"
-		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
+		+ "<span class=\"fas fa-filter anchor-style\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\"></span>"
 		+ "</th>";
 
 	for (i = 0; i < columns.length; i++)
@@ -653,8 +669,7 @@ function load_curses()
 			html += "<tr id=\"" + curse.curse_id + "\">";
 
 			html += "<td class=\"edit\" colspan=\"2\">"
-				+ "<img src=\"[% Catalyst.uri_for('/static/icons/edit.png').dquote %]\" title=\"Edit\" class=\"edit icon\" />"
-				+ "<img src=\"[% Catalyst.uri_for('/static/icons/delete.png').dquote %]\" title=\"Delete\" class=\"delete icon\" />"
+				+ "<span class=\"fas fa-user-edit anchor-style text-primary curse-edit\" title=\"Edit\"></span>"
 				+ "</td>";
 
 			for (j = 0; j < columns.length; j++)
