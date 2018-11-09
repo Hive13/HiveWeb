@@ -77,6 +77,8 @@ function view_profile(member_id)
 			}
 		html.push(
 							"</table>",
+							"<div class=\"member-photo u-text-center\">",
+							"</div>",
 						"</div>",
 						"<div class=\"modal-footer\">",
 							"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>",
@@ -86,6 +88,15 @@ function view_profile(member_id)
 			"</div>"
 		);
 		$dialogue = $(html.join(""));
+		if (member.member_image_id)
+			new Picture(
+				{
+				image_id:        member.member_image_id,
+				prevent_deletes: true,
+				$image_div:      $dialogue.find(".member-photo"),
+				accept:          false,
+				hide_icons:      true
+				});
 		$dialogue.modal("show");
 		};
 
