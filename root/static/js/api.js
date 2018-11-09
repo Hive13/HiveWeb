@@ -27,12 +27,8 @@ function api_json(options)
 		$icon = options.$icon;
 		classes = $icon.attr("class").split(" ");
 		for (i = 0; i < classes.length; i++)
-			{
-			if (classes[i].substring(0, 9) === "glyphicon")
-				$icon.removeClass(classes[i]);
 			if (classes[i].substring(0, 3) === "fa-")
 				$icon.removeClass(classes[i]);
-			}
 		$icon.addClass("fas fa-spinner fa-spin has-spinner").attr("disabled", true);
 		}
 
