@@ -483,7 +483,7 @@ function handle_slot(slot, selected_id)
 		+ slot.name;
 
 	if (slot.member)
-		html += " - " + slot.member.fname + " " + slot.member.lname;
+		html += " - <span class=\"profile-link\" data-member-id=\"" + slot.member.member_id + "\">" + slot.member.fname + " " + slot.member.lname + "</span>";
 
 	html += "</span></li>";
 	return html;
@@ -535,7 +535,6 @@ function load_storage()
 		$div.empty().append($tree).append($reqs);
 		$tree.html(tree);
 		$('div.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this location');
-		$('div.tree li:not(:has(ul))').find(' > span').attr('title', "Double-click for information about this slot.");
 		$reqs.html("<a class=\"u-anchor-style\">There " + (data.requests === 1 ? "is 1 request" : "are " + data.requests + " requests") + " outstanding.</a>");
 		$reqs.find("a").click(function() { view_requests(); });
 
@@ -595,25 +594,6 @@ function load_storage()
 	api_json(api);
 	}
 
-function edit_storage_slot(slot_id)
-	{
-	var $dialogue = $("div#edit_location"),
-		api =
-			{
-			what: "Storage Info",
-			success_toast: false,
-			path: "/admin/storage/info",
-			data: { slot_id: slot_id }
-			};
-
-	api.success = function (data)
-		{
-		alert(JSON.stringify(data));
-		};
-
-	api_json(api);
-	}
-
 $(function ()
 	{
 	var $panel = $("div#hive-storage div.panel-body")
@@ -637,10 +617,10 @@ $(function ()
 				}
 			e.stopPropagation();
 			})
-		.on("dblclick", "div.tree li.parent_li.storage-location", function (e)
+		.on("dblclick", "div.tree li.parent_li.storage-location > span", function (e)
 			{
 			var
-				$this     = $(this),
+				$this     = $(this).parent(),
 				$span     = $this.children("span"),
 				$children = $this.children("ul").children("li");
 				$expander = $this.children("span").children("i");
@@ -658,12 +638,13 @@ $(function ()
 				}
 			e.stopPropagation();
 			})
-		.on("dblclick", "div.tree li.storage-slot", function (e)
+		.on("mousedown", "div.tree li.parent_li.storage-location > span", function (evt)
 			{
-			var $this = $(this);
-
-			edit_storage_slot($this.attr("id"));
-			return false;
+			if (evt.detail > 1)
+				{
+				evt.preventDefault();
+				return false;
+				}
 			})
 		.on("click", "div.tree li > span", function (e)
 			{

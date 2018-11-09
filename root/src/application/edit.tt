@@ -86,7 +86,7 @@ $(function ()
 				[%~ IF other %]
 				<tr>
 					<td colspan="2" class="center">
-						<h2>Application for [% application.member.fname %] [% application.member.lname %]</h2>
+						<h2>Application for <span class="profile-link" data-member-id="[% application.member_id.dquote %]">[% application.member.fname %] [% application.member.lname %]</span></h2>
 						Submitted [% application.created_at.strftime('%D %r') %]<br />
 						Last updated [% application.updated_at.strftime('%D %r') %]
 					</td>

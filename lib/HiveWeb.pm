@@ -122,7 +122,6 @@ __PACKAGE__->allow_access(       '/api/soda/status');
 __PACKAGE__->allow_access(       '/api/temperature/current');
 __PACKAGE__->allow_access(       '/api/lights/get_state');
 __PACKAGE__->deny_access_unless( '/api/admin',                ['board']);
-__PACKAGE__->allow_access_if_any('/admin/auto',               ['board', 'storage']);
 __PACKAGE__->allow_access_if_any('/admin/storage',            ['board', 'storage']);
 __PACKAGE__->allow_access_if_any('/api/admin/storage',        ['board', 'storage']);
 __PACKAGE__->allow_access_if_any('/api/admin/members/search', ['board', 'storage']);

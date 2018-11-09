@@ -4,13 +4,6 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub auto :Private
-	{
-	my ($self, $c) = @_;
-
-	push (@{$c->stash()->{extra_css}}, $c->uri_for('/static/css/admin.min.css'));
-	}
-
 sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;

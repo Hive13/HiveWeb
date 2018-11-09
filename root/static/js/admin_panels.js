@@ -34,7 +34,7 @@ function display_pending_applications(data)
 		app     = data.app_info[i];
 		dt      = new Date(app.created_at);
 
-		html += "<h4>Application from " + app.member.fname + " " + app.member.lname + "</h4>";
+		html += "<h4>Application from " + "<span class=\"profile-link\" data-member-id=\"" + app.member.member_id + "\">" + app.member.fname + " " + app.member.lname + "</span></h4>";
 		html += "<h6>Submitted " + dt.toLocaleDateString() + " " + dt.toLocaleTimeString() + "</h6>";
 		html += "<ul class=\"application\" id=\"" + app.application_id + "\"><li>";
 		actions.push("<a href=\"/application/" + app.application_id + "\" target=\"_blank\">View this Application</a>");
