@@ -42,7 +42,7 @@ function view_profile(member_id)
 							"<h3 class=\"modal-title\">Profile for " + member.fname + " " + member.lname + "</h3>",
 						"</div>",
 						"<div class=\"modal-body\">",
-							"<table class=\"hive-profile-table\">",
+							"<table class=\"table table-bordered table-responsive\">",
 								"<tr>",
 									"<td>E-mail Address</td>",
 									"<td>" + member.email + "</td>",
@@ -59,6 +59,22 @@ function view_profile(member_id)
 									"<td>" + phone + "</td>",
 								"</tr>"
 			);
+		if (member.paypal_email !== null)
+			{
+			if (member.paypal_email)
+				html.push(
+								"<tr>",
+									"<td>PayPal E-mail Address</td>",
+									"<td>" + member.paypal_email + "</td>",
+								"</tr>"
+				);
+			else
+				html.push(
+								"<tr>",
+									"<td colspan=\"2\">Member does not use PayPal.</td>",
+								"</tr>"
+				);
+			}
 		html.push(
 							"</table>",
 						"</div>",
