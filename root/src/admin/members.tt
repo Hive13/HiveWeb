@@ -156,7 +156,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				<button type="button" class="btn btn-primary" id="finish_curse"><span class="glyphicon glyphicon-screenshot"></span>Curse</button>
+				<button type="button" class="btn btn-primary" id="finish_curse"><span class="fas fa-bullseye"></span>Curse</button>
 			</div>
 		</div>
 	</div>
@@ -531,7 +531,7 @@ $(function()
 			edit($(this).attr("id"));
 			return false;
 			})
-		.on("click", "td.photo img.icon", function ()
+		.on("click", "td.photo span.user-photo", function ()
 			{
 			var image_id  = $(this).parents("td").attr("id");
 
@@ -543,21 +543,21 @@ $(function()
 				prevent_deletes: true
 				}).show();
 			})
-		.on("click", "td.edit img.password", function ()
+		.on("click", "td.edit span.user-password", function ()
 			{
 			var $this = $(this);
 			var member_id = $this.parents("tr").attr("id");
 			change_password(member_id);
 			return false;
 			})
-		.on("click", "td.edit img.edit", function ()
+		.on("click", "td.edit span.user-edit", function ()
 			{
 			var $this = $(this);
 			var member_id = $this.parents("tr").attr("id");
 			edit(member_id);
 			return false;
 			})
-		.on("click", "td.edit img.curse", function ()
+		.on("click", "td.edit span.user-curse", function ()
 			{
 			var $this = $(this);
 			var member_id = $this.parents("tr").attr("id");
@@ -702,7 +702,7 @@ function load_header($table)
 	$("select.per-page").find("option[value=" + per_page + "]").attr("selected", true);
 
 	html = "<th colspan=\"2\" class=\"u-text-right u-pr-1\">"
-		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
+		+ "<span class=\"fas fa-filter\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\"></span>"
 		+ "</th>";
 
 	for (i = 0; i < columns.length; i++)
@@ -871,14 +871,13 @@ function load_members()
 			html += "<tr id=\"" + member.member_id + "\">";
 
 			html += "<td class=\"edit\">"
-				+ "<img src=\"[% Catalyst.uri_for('/static/icons/key.png').dquote %]\" title=\"Change Password\" class=\"password icon\" />"
-				+ "<img src=\"[% Catalyst.uri_for('/static/icons/edit.png').dquote %]\" title=\"Edit\" class=\"edit icon\" />"
-				+ "<img src=\"[% Catalyst.uri_for('/static/icons/delete.png').dquote %]\" title=\"Delete\" class=\"delete icon\" />"
-				+ "<img src=\"[% Catalyst.uri_for('/static/icons/curse.png').dquote %]\" title=\"Curse\" class=\"curse icon\" />"
+				+ "<span class=\"fas fa-key anchor-style text-danger user-password\" title=\"Change Password\"></span>"
+				+ "<span class=\"fas fa-user-edit anchor-style text-primary user-edit\" title=\"Edit\"></span>"
+				+ "<span class=\"fas fa-bullseye anchor-style text-danger user-curse\" title=\"Curse\"></span>"
 				+ "</td>";
 			html += "<td class=\"photo\"";
 			if (member.member_image_id)
-				html += " id=\"" + member.member_image_id + "\"><img src=\"[% Catalyst.uri_for('/static/icons/photo.png').dquote %]\" title=\"Member Photo\" class=\"icon\" />";
+				html += " id=\"" + member.member_image_id + "\"><span class=\"fas fa-camera anchor-style user-photo\" title=\"Member Photo\"></span>";
 			else
 				html += ">";
 
