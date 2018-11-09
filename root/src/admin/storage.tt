@@ -7,8 +7,8 @@
 		<div class="panel-heading">
 			<h3>Storage Slots</h3>
 			Right-click on a slot or location to open an action menu.<br />
-			<span><i class="glyphicon glyphicon-check"></i> = Assigned Slot</span><br />
-			<span><i class="glyphicon glyphicon-unchecked"></i> = Unassigned Slot</span><br />
+			<span><i class="fas fa-check-square"></i> = Assigned Slot</span><br />
+			<span><i class="fas fa-square"></i> = Unassigned Slot</span><br />
 		</div>
 		<div class="panel-body">
 		</div>
@@ -479,7 +479,7 @@ function handle_slot(slot, selected_id)
 	var html = "<li style=\"display: none\" class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
 		+ (slot.slot_id == selected_id ? " selected" : "")
 		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\" data-name=\"" + slot.name + "\" data-type-id=\"" + slot.type_id + "\">"
-		+ "<span><i class=\"glyphicon " + (slot.member_id ? "glyphicon-check" : "glyphicon-unchecked") + "\"></i>"
+		+ "<span><i class=\"fas " + (slot.member_id ? "fa-check-square" : "fa-square") + "\"></i>"
 		+ slot.name;
 
 	if (slot.member)
@@ -495,8 +495,8 @@ function handle_location(loc, show_depth, selected_id)
 		+ (loc.location_id == selected_id ? " selected" : "")
 		+ "\" " + (((show_depth) > 0) ? "" : "style=\"display: none\"")
 		+ " data-sort-order=\"" + loc.sort_order + "\" data-name=\"" + loc.name + "\" data-parent-id=\"" + loc.parent_id + "\""
-		+ " id=\"" + loc.location_id + "\"><span><i class=\"glyphicon"
-		+ (((show_depth - 1) > 0) ? " glyphicon-minus" : " glyphicon-plus")
+		+ " id=\"" + loc.location_id + "\"><span><i class=\"fas"
+		+ (((show_depth - 1) > 0) ? " fa-minus" : " fa-plus")
 		+ "\"></i>" + loc.name + "</span><ul>";
 
 	if ("children" in loc && loc.children.length > 0)
@@ -547,13 +547,13 @@ function load_storage()
 				{
 				$this.children("ul").children("li").show();
 				$this.children("span").attr("title", "Collapse this location")
-					.children("i").removeClass("glyphicon-plus").addClass("glyphicon-minus");
+					.children("i").removeClass("fa-plus").addClass("fa-minus");
 				}
 
 			$parents
 				.show()
 				.children("span").attr("title", "Collapse this location")
-					.children("i").removeClass("glyphicon-plus").addClass("glyphicon-minus");
+					.children("i").removeClass("fa-plus").addClass("fa-minus");
 			$parents.children("ul").children("li").show();
 			});
 
@@ -607,13 +607,13 @@ $(function ()
 				{
 				$children.hide("fast");
 				$span.attr("title", "Expand this location");
-				$expander.addClass("glyphicon-plus").removeClass("glyphicon-minus");
+				$expander.addClass("fa-plus").removeClass("fa-minus");
 				}
 			else
 				{
 				$children.show("fast");
 				$span.attr("title", "Collapse this location");
-				$expander.addClass("glyphicon-minus").removeClass("glyphicon-plus");
+				$expander.addClass("fa-minus").removeClass("fa-plus");
 				}
 			e.stopPropagation();
 			})
@@ -628,13 +628,13 @@ $(function ()
 				{
 				$children.hide("fast");
 				$span.attr("title", "Expand this location");
-				$expander.addClass("glyphicon-plus").removeClass("glyphicon-minus");
+				$expander.addClass("fa-plus").removeClass("fa-minus");
 				}
 			else
 				{
 				$children.show("fast");
 				$span.attr("title", "Collapse this location");
-				$expander.addClass("glyphicon-minus").removeClass("glyphicon-plus");
+				$expander.addClass("fa-minus").removeClass("fa-plus");
 				}
 			e.stopPropagation();
 			})

@@ -143,7 +143,7 @@ var columns    =
 		display: function(access, members)
 			{
 			return "<span class=\"label " + (access.granted ? "label-success" : "label-danger") + "\">"
-				+ "<span class=\"glyphicon " + (access.granted ? "glyphicon-ok" : "glyphicon-remove") + "\"></span></span>";
+				+ "<span class=\"fas " + (access.granted ? "fa-check" : "fa-times") + "\"></span></span>";
 			}
 		}
 	];
@@ -302,7 +302,7 @@ function load_header($table)
 		+ "</th>";
 
 	html += "<th>"
-		+ "<img class=\"filter icon\" src=\"[% Catalyst.uri_for('/static/icons/filter.png').dquote %]\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\" />"
+		+ "<span class=\"fas fa-filter\" title=\"Filter Results\" data-toggle=\"modal\" data-target=\"#filter_dialogue\"></span>"
 		+ "</th>";
 
 	for (i = 0; i < columns.length; i++)

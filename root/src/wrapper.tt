@@ -118,7 +118,7 @@
 							class="nav-current"
 						[%~ END; ~%]
 						><a href="[% link.uri %]">[% link.text %]
-						<span aria-hidden="true" class="glyphicon glyphicon-chevron-right"></span></a></li>
+						<span aria-hidden="true" class="fas fa-chevron-right"></span></a></li>
 					[%~ END; %]
 				</ul>
 			</div><!--/.nav-collapse -->
