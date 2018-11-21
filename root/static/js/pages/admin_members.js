@@ -725,11 +725,12 @@ function edit(member_id)
 	$dialogue.find("div#groups").html(html);
 	badge_edit_hide();
 
-	$.ajax(
+	api_json(
 		{
-		dataType: "json",
-		url: "[% Catalyst.uri_for('/api/admin/members/info') %]" + "/" + member_id,
-		cache: false,
+		path: "/admin/members/info",
+		data: { member_id: member_id},
+		what: "Load Member Profile",
+		success_toast: false,
 		success: function (data)
 			{
 			var i, badge, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc, phone;
@@ -881,11 +882,12 @@ function curse(member_id)
 			success: function () { $dialogue.modal("hide"); }
 			});
 		});
-	$.ajax(
+	api_json(
 		{
-		dataType: "json",
-		url: "[% Catalyst.uri_for('/api/admin/curses') %]",
-		cache: false,
+		what: "Load Curses",
+		path: "/admin/curses",
+		data: {},
+		success_toast: false,
 		success: function (data)
 			{
 			var i, html = "<option value=\"-1\">Select Curse</option>";

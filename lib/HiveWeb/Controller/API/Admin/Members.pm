@@ -29,11 +29,18 @@ sub profile :Local :Args(0)
 	$out->{response} = \1;
 	}
 
-sub info :Local :Args(1)
+sub info :Local :Args(0)
 	{
-	my ($self, $c, $member_id) = @_;
+	my ($self, $c) = @_;
 
-	my $out = $c->stash()->{out};
+	my $out       = $c->stash()->{out};
+	my $member_id = $c->stash()->{in}->{member_id};
+
+	if (!$member_id)
+		{
+		$out->{data} = 'You must specify a member ID.';
+		return;
+		}
 
 	my $count_query = $c->model('DB::AccessLog')->search(
 		{
