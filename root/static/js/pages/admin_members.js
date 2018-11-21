@@ -882,11 +882,12 @@ function curse(member_id)
 			success: function () { $dialogue.modal("hide"); }
 			});
 		});
-	$.ajax(
+	api_json(
 		{
-		dataType: "json",
-		url: "[% Catalyst.uri_for('/api/admin/curses') %]",
-		cache: false,
+		what: "Load Curses",
+		path: "/admin/curses",
+		data: {},
+		success_toast: false,
 		success: function (data)
 			{
 			var i, html = "<option value=\"-1\">Select Curse</option>";
