@@ -277,19 +277,7 @@ $(function()
 		return false;
 		});
 
-	$badge_edit.find("input").keydown(function (e)
-		{
-		if (e.keyCode == 27)
-			{
-			badge_edit_hide();
-			return false;
-			}
-		else if (e.keyCode == 13)
-			{
-			badge_save();
-			return false;
-			}
-		});
+	$badge_edit.find("input").keydown(key_handler(badge_save, badge_edit_hide));
 	$badge_edit.find("button.cancel").click(badge_edit_hide);
 	$badge_edit.find("button.ok").click(badge_save);
 

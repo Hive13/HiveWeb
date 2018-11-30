@@ -102,3 +102,32 @@ function api_json(options)
 			}
 		});
 	}
+
+function key_handler(enter_function, esc_function)
+	{
+	return function(e)
+		{
+		var func;
+		switch (e.keyCode)
+			{
+			case 13:
+				func = enter_function;
+				break;
+			case 27:
+				func = esc_function;
+				break;
+			default:
+				return;
+			}
+		switch (typeof(func))
+			{
+			case "function":
+				func();
+				break;
+			case "string":
+				$(func).modal("hide");
+				break;
+			}
+		return false;
+		};
+	}
