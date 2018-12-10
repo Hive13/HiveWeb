@@ -15,7 +15,7 @@ __PACKAGE__->table('lamp_bulb');
 __PACKAGE__->add_columns(
   'bulb_id',
   { data_type => 'uuid', is_nullable => 0, size => 16 },
-  'lamp_id',
+  'device_id',
   { data_type => 'uuid', is_nullable => 0, size => 16 },
   'color_id',
   { data_type => 'uuid', is_nullable => 0, size => 16 },
@@ -24,13 +24,13 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->set_primary_key('bulb_id');
-__PACKAGE__->uuid_columns(qw[ bulb_id lamp_id color_id ]);
+__PACKAGE__->uuid_columns(qw[ bulb_id device_id color_id ]);
 __PACKAGE__->resultset_attributes( { order_by => ['slot'] } );
 
 __PACKAGE__->belongs_to(
-  'lamp',
-  'HiveWeb::Schema::Result::Lamp',
-  { 'foreign.lamp_id' => 'self.lamp_id' },
+  'device',
+  'HiveWeb::Schema::Result::Device',
+  { 'foreign.device_id' => 'self.device_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -56,10 +56,10 @@ sub TO_JSON
 
 	return
 		{
-		bulb_id    => $self->bulb_id(),
-		lamp_id    => $self->lamp_id(),
-		color_id   => $self->color_id(),
-		slot       => $self->slot(),
+		bulb_id   => $self->bulb_id(),
+		device_id => $self->device_id(),
+		color_id  => $self->color_id(),
+		slot      => $self->slot(),
 		};
 	}
 1;
