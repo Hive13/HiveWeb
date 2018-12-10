@@ -256,6 +256,15 @@ sub access :Local
 			$out->{response} = \0;
 			};
 		}
+	elsif ($operation eq 'get_light_state')
+		{
+		my @presets = $device
+			->search_related('bulbs', { 'preset.name' => 'current' }, { join => { bulb_presets => 'preset' } })
+			->get_column('bulb_presets.value')->all();
+
+		$out->{states}   = \@presets;
+		$out->{response} = \1;
+		}
 	elsif ($operation eq 'get_nonce')
 		{
 		$out->{response} = \1;
