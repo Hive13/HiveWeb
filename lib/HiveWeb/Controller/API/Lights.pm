@@ -28,35 +28,6 @@ sub index :Path :Args(0)
 	$c->detach('status');
 	}
 
-sub get_state :Local :Args(0)
-	{
-	my ($self, $c) = @_;
-	my $lamp;
-	my $in  = $c->stash()->{in};
-	my $out = $c->stash()->{out};
-
-	if ($in->{lamp_id})
-		{
-		$lamp = $c->model('DB::Lamp')->find($in->{lamp_id});
-		}
-	else
-		{
-		$lamp = $c->model('DB::Lamp')->find({ 'me.ip_address' => $c->request()->address() });
-		}
-	if (!$lamp)
-		{
-		$out->{data} = 'Could not determine which lamp.';
-		return;
-		}
-
-	my @presets = $lamp
-		->search_related('bulbs', { 'preset.name' => 'current' }, { join => { bulb_presets => 'preset' } })
-		->get_column('bulb_presets.value')->all();
-
-	$out->{states}   = \@presets;
-	$out->{response} = \1;
-	}
-
 sub status :Local :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -68,27 +39,26 @@ sub status :Local :Args(0)
 	my $bulb_rs = $current->search_related('bulb_presets', {},
 		{
 		prefetch => { 'bulb' => 'color' },
-		order_by => [ 'bulb.lamp_id', 'bulb.slot' ],
+		order_by => [ 'bulb.device_id', 'bulb.slot' ],
 		});
-	my @lamps;
+	my @devices;
 	my $oid;
-	my $lamp;
 	my $bulbs;
 
 	while (my $bulb_ps = $bulb_rs->next())
 		{
-		my $bulb = $bulb_ps->bulb();
-		my $lamp = $bulb->lamp();
-		my $id   = $bulb->lamp_id();
+		my $bulb   = $bulb_ps->bulb();
+		my $device = $bulb->device();
+		my $id     = $bulb->device_id();
 
 		if ($oid != $id)
 			{
 			$bulbs = [];
-			push(@lamps,
+			push(@devices,
 				{
-				bulbs   => $bulbs,
-				lamp_id => $id,
-				name    => $lamp->name(),
+				bulbs     => $bulbs,
+				device_id => $id,
+				name      => $device->name(),
 				});
 			$oid = $id;
 			}
@@ -101,7 +71,7 @@ sub status :Local :Args(0)
 			});
 		}
 
-	$out->{lamps}    = \@lamps;
+	$out->{devices}  = \@devices;
 	$out->{configs}  = $configs;
 	$out->{colors}   = { map { $_->color_id() => $_ } @$colors };
 	$out->{response} = \1;
