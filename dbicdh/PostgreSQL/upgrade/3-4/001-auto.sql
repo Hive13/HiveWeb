@@ -11,7 +11,7 @@ ALTER TABLE lamp_bulb DROP CONSTRAINT lamp_bulb_fk_lamp_id;
 DROP INDEX lamp_bulb_idx_lamp_id;
 
 ;
-ALTER TABLE lamp_bulb RENAME COLUMN lamp_id TO bulb_id;
+ALTER TABLE lamp_bulb RENAME COLUMN lamp_id TO device_id;
 
 ;
 CREATE INDEX lamp_bulb_idx_device_id on lamp_bulb (device_id);
