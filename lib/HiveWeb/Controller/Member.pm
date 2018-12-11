@@ -1,8 +1,6 @@
 package HiveWeb::Controller::Member;
 use Moose;
 use namespace::autoclean;
-use LWP::UserAgent;
-use HTTP::Request::Common;
 use Bytes::Random::Secure qw(random_bytes);
 use Convert::Base32;
 use Imager::QRCode;
