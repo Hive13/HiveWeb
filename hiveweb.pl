@@ -17,7 +17,7 @@
 		},
 	stripe =>
 		{
-		public_key => 'pk_live_rP6E92Gc8FKq7yOLGk0kTPmi',
+		public_key => 'pk_live_FI8RhhPdbD6tTjAHtPbkrVi5',
 		secret_key => '< put secret key here >',
 		},
 	email =>
