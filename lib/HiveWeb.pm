@@ -114,6 +114,7 @@ __PACKAGE__->allow_access(       '/end');
 __PACKAGE__->allow_access(       '/index');
 __PACKAGE__->allow_access(       '/login');
 __PACKAGE__->allow_access(       '/logout');
+__PACKAGE__->allow_access(       '/forgot');
 __PACKAGE__->allow_access(       '/member/register');
 __PACKAGE__->allow_access(       '/api/begin');
 __PACKAGE__->allow_access(       '/api/end');
