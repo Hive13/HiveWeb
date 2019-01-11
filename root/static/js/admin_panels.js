@@ -223,6 +223,7 @@ function display_pending_applications(data)
 		var application_id = $(this).closest("ul.application").attr("id");
 		new Picture(
 			{
+			title: "Upload Application",
 			accept: function(pic)
 				{
 				var image_id = pic.get_image_id();
