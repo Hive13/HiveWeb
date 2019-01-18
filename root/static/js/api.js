@@ -103,7 +103,7 @@ function api_json(options)
 		});
 	}
 
-function key_handler(enter_function, esc_function)
+function key_handler(functions)
 	{
 	return function(e)
 		{
@@ -111,16 +111,28 @@ function key_handler(enter_function, esc_function)
 		switch (e.keyCode)
 			{
 			case 13:
-				func = enter_function;
+				if ("enter" in functions)
+					func = functions.enter;
 				break;
 			case 27:
-				func = esc_function;
+				if ("esc" in functions)
+					func = functions.esc;
+				break;
+			case 45:
+				if ("ins" in functions)
+					func = functions.ins;
+				break;
+			case 46:
+				if ("del" in functions)
+					func = functions.del;
 				break;
 			default:
 				return;
 			}
 		switch (typeof(func))
 			{
+			case "undefined":
+				return;
 			case "function":
 				func();
 				break;
