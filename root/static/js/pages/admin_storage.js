@@ -585,26 +585,8 @@ $(function ()
 		minimumInputLength: 1,
 		placeholder: "Type a member's name",
 		});
-	$("div#slot_edit div.modal-body input").keydown(function (e)
-		{
-		if (e.keyCode == 13)
-			finish_slot();
-		else if (e.keyCode == 27)
-			$("div#slot_edit").modal("hide");
-		else
-			return;
-		return false;
-		});
-	$("div#loc_edit div.modal-body input").keydown(function (e)
-		{
-		if (e.keyCode == 13)
-			finish_loc();
-		else if (e.keyCode == 27)
-			$("div#loc_edit").modal("hide");
-		else
-			return;
-		return false;
-		});
+	$("div#slot_edit div.modal-body input").keydown(key_handler({ "enter": finish_slot, "esc": "div#slot_edit" }));
+	$("div#loc_edit div.modal-body input").keydown(key_handler({ "enter": finish_loc, "esc": "div#loc_edit" }));
 
 	$("div#request_view div.modal-body div.notes button.btn-danger").click(cancel_request_action);
 
