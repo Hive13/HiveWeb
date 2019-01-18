@@ -585,8 +585,8 @@ $(function ()
 		minimumInputLength: 1,
 		placeholder: "Type a member's name",
 		});
-	$("div#slot_edit div.modal-body input").keydown(key_handler(finish_slot, "div#slot_edit"));
-	$("div#loc_edit div.modal-body input").keydown(key_handler(finish_slot, "div#loc_edit"));
+	$("div#slot_edit div.modal-body input").keydown(key_handler({ "enter": finish_slot, "esc": "div#slot_edit" }));
+	$("div#loc_edit div.modal-body input").keydown(key_handler({ "enter": finish_loc, "esc": "div#loc_edit" }));
 
 	$("div#request_view div.modal-body div.notes button.btn-danger").click(cancel_request_action);
 
