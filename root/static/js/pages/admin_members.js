@@ -584,7 +584,7 @@ function badge_save()
 			member_id:    member_id
 			},
 		what: "Badge Add",
-		$icon: $(this).find("span.fas"),
+		$icon: $div.find("button.ok > span"),
 		success: function (data)
 			{
 			var $option = $("<option />")
