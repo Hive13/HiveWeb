@@ -102,3 +102,44 @@ function api_json(options)
 			}
 		});
 	}
+
+function key_handler(functions)
+	{
+	return function(e)
+		{
+		var func;
+		switch (e.keyCode)
+			{
+			case 13:
+				if ("enter" in functions)
+					func = functions.enter;
+				break;
+			case 27:
+				if ("esc" in functions)
+					func = functions.esc;
+				break;
+			case 45:
+				if ("ins" in functions)
+					func = functions.ins;
+				break;
+			case 46:
+				if ("del" in functions)
+					func = functions.del;
+				break;
+			default:
+				return;
+			}
+		switch (typeof(func))
+			{
+			case "undefined":
+				return;
+			case "function":
+				func();
+				break;
+			case "string":
+				$(func).modal("hide");
+				break;
+			}
+		return false;
+		};
+	}

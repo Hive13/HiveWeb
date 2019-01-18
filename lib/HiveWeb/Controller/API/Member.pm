@@ -1,6 +1,9 @@
 package HiveWeb::Controller::API::Member;
 use Moose;
 use namespace::autoclean;
+use LWP::UserAgent;
+use HTTP::Request::Common;
+use JSON::MaybeXS;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -79,6 +82,45 @@ sub two_factor :Local :Args(0)
 		$out->{response} = \1;
 		$out->{data}     = 'Two-Factor Authentication has been disabled on your account.';
 		}
+	}
+
+sub charge :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+	my $config  = $c->config();
+	my $credits = $config->{soda}->{add_amount};
+
+	my $ua  = LWP::UserAgent->new();
+
+	my $data =
+		{
+		amount      => $config->{soda}->{cost},
+		currency    => 'usd',
+		description => $credits . ' Hive Soda Credits',
+		source      => $in->{token},
+		};
+	my $req = POST 'https://api.stripe.com/v1/charges', $data || die $!;
+	$req->header(Authorization => 'Bearer ' . $c->config()->{stripe}->{secret_key});
+	my $res = $ua->request($req);
+
+	my $stripe = decode_json($res->content());
+	if ($res->code() == 200)
+		{
+		$c->user()->add_vend_credits($credits);
+		}
+	else
+		{
+		$out->{error} = $stripe->{error}->{error};
+		if ($out->{error} eq "card_declined")
+			{
+			$out->{message} = $stripe->{error}->{message};
+			}
+		}
+	$out->{response} = \1;
+	$out->{success}  = (($res->code() == 200) ? \1 : \0);
 	}
 
 __PACKAGE__->meta->make_immutable;

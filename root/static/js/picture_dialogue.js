@@ -3,6 +3,7 @@ function Picture(options)
 	var dialogue, self = this;
 	this.show_icons    = !options.hide_icons;
 	this.title         = options.title || "Upload Photo";
+	this.button_text   = options.button_text || this.title;
 	this.accept        = options.accept;
 	this.allow_deletes = !options.prevent_deletes;
 
@@ -32,7 +33,7 @@ function Picture(options)
 			"<label class=\"btn btn-primary btn-lg\">",
 				"<img src=\"/static/icons/add_photo.png\" />",
 				"<br />",
-				"Upload photo",
+				this.button_text,
 				"<input type=\"file\" hidden style=\"display: none\" />",
 			"</label>"
 			].join('');
