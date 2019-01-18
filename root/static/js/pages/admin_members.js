@@ -237,47 +237,13 @@ $(function()
 	$edit_dialogue.find("input#different_paypal").click(paypal_checkbox);
 	$edit_dialogue.find("div#badges button.add").click(function () { badge_edit(undefined) });
 	$edit_dialogue.find("button#finish_edit").click(save_member);
-	$edit_dialogue.find("div#badges select").change(function ()
+	$edit_dialogue.find("div#badges select").keydown(key_handler({ "del": badge_delete, "ins": function() { badge_edit(undefined); } })).change(function ()
 		{
 		$edit_dialogue.find("button.delete").attr("disabled", $(this).find("option:selected").length <= 0);
 		return false;
 		});
-	$edit_dialogue.find("div#badges button.delete").click(function()
-		{
-		var badges = [];
-		var data =
-			{
-			member_id: $edit_dialogue.data("member_id"),
-			badge_id:  badges
-			};
-
-		$edit_dialogue.find("div#badges select option:selected").each(function ()
-			{
-			badges.push($(this).attr("id"));
-			});
-
-		if (badges.length <= 0)
-			return;
-		if (!confirm("Are you sure you want to delete " + badges.length + " badges?"))
-			return;
-		api_json(
-			{
-			path: "/admin/members/delete_badge",
-			data: data,
-			what: "Badge delete",
-			$icon: $(this).find("span.fas"),
-			success: function (data)
-				{
-				var i;
-
-				for (i = 0; i < badges.length; i++)
-					$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
-				}
-			});
-		return false;
-		});
-
-	$badge_edit.find("input").keydown(key_handler(badge_save, badge_edit_hide));
+	$edit_dialogue.find("div#badges button.delete").click(badge_delete);
+	$badge_edit.find("input").keydown(key_handler({ "enter": badge_save, "esc": badge_edit_hide }));
 	$badge_edit.find("button.cancel").click(badge_edit_hide);
 	$badge_edit.find("button.ok").click(badge_save);
 
@@ -604,10 +570,13 @@ function badge_edit_hide()
 	var $dialogue = $("#edit_dialogue");
 	var $sdiv     = $dialogue.find("div.badge-select");
 	var $div      = $dialogue.find("#badge_edit");
+	var $focus    = $div.data("focus");
 
 	$div.css("display", "none");
 	$sdiv.css("opacity", "1");
 	$sdiv.find("button").prop("disabled", false);
+	if ($focus)
+		$focus.focus();
 	}
 
 function badge_edit(badge_id)
@@ -617,12 +586,48 @@ function badge_edit(badge_id)
 	var $div      = $dialogue.find("#badge_edit");
 	var $edit     = $div.find("input");
 	$div.data("badge_id", badge_id);
+	$div.data("focus", $(":focus"));
 
 	$edit.val("");
 	$div.css("display", "");
 	$sdiv.css("opacity", "0.5");
 	$sdiv.find("button").prop("disabled", true);
 	$edit.focus();
+	}
+
+function badge_delete()
+	{
+	var $edit_dialogue = $("#edit_dialogue");
+	var badges = [];
+	var data =
+		{
+		member_id: $edit_dialogue.data("member_id"),
+		badge_id:  badges
+		};
+
+	$edit_dialogue.find("div#badges select option:selected").each(function ()
+		{
+		badges.push($(this).attr("id"));
+		});
+
+	if (badges.length <= 0)
+		return;
+	if (!confirm("Are you sure you want to delete " + badges.length + (badges.length == 1 ? " badge?" : " badges?")))
+		return;
+	api_json(
+		{
+		path: "/admin/members/delete_badge",
+		data: data,
+		what: "Badge delete",
+		$icon: $edit_dialogue.find("button.delete > span.fas"),
+		success: function (data)
+			{
+			var i;
+			for (i = 0; i < badges.length; i++)
+				$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
+			}
+		});
+	return false;
 	}
 
 function save_password()
