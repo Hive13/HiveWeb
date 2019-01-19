@@ -59,16 +59,6 @@
 								<h5>Badges</h5>
 							</div>
 							<div class="panel-body">
-								<div class="badge-select">
-									<select size="2" multiple="multiple"></select><br />
-									<button title="Add Badge" class="btn btn-xs btn-success add"><span class="fas fa-plus"></span></button>
-									<button title="Delete Badge" class="btn btn-xs btn-danger delete" disabled><span class="fas fa-minus"></span></button>
-								</div>
-								<div id="badge_edit" class="u-mw-100" style="display: none">
-									<input type="number" id="badge_number" class="u-mw-100" /><br />
-									<button title="OK" class="btn btn-xs btn-success ok"><span class="fas fa-check"></span></button>
-									<button title="Cancel" class="btn btn-xs btn-danger cancel"><span class="fas fa-times"></span></button>
-								</div>
 							</div>
 						</div>
 					</div>
