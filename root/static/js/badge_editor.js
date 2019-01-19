@@ -30,6 +30,18 @@ function Badge(options)
 	this.options.$parent.append(this.$div);
 	}
 
+Badge.prototype.get = function ()
+	{
+	var badges = [];
+
+	this.$div.find("select option").each(function ()
+		{
+		var $this = $(this);
+		badges.push({ id: $this.attr("id"), val: $this.val() });
+		});
+	return badges;
+	};
+
 Badge.prototype.save = function ()
 	{
 	var self = this;
