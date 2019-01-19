@@ -122,6 +122,7 @@ sub index :Path
 					text  => 'The application has been successfully updated.',
 					};
 				$c->response()->redirect($c->uri_for('/'));
+				return;
 				}
 
 			$form->{member_id} = $member_id;
