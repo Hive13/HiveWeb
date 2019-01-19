@@ -69,15 +69,15 @@
 							</div>
 							<div class="panel-body">
 								<label>Soda Credits:<br />
-									<input type="number" id="soda_credits" size="3" />
+									<input type="number" id="soda_credits" size="3" class="dirty" />
 								</label>
 								<label>
-									<input type="checkbox" name="different_paypal" id="different_paypal" />
+									<input type="checkbox" name="different_paypal" id="different_paypal" class="dirty" />
 									Member uses a different e-mail for PayPal or does not use PayPal.
 								</label><br />
 								<div style="display: none" id="paypal_div">
 									<label for="paypal_email">PayPal E-mail:</label>
-									<input type="email" name="paypal_email" id="paypal_email" maxlength="255" />
+									<input type="email" name="paypal_email" id="paypal_email" maxlength="255" class="dirty" />
 									<br />
 									Leave blank if member does not use PayPal.
 								</div>

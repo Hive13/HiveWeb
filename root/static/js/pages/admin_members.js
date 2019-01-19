@@ -238,6 +238,20 @@ $(function()
 
 	$edit_dialogue.find("input#different_paypal").click(paypal_checkbox);
 	$edit_dialogue.find("button#finish_edit").click(save_member);
+	$edit_dialogue
+		.on("change", "input.dirty", function ()
+			{
+			$edit_dialogue.data("dirty", true);
+			})
+		.on("hide.bs.modal", function(evt)
+			{
+			var $this = $(this);
+			var member_image_id = $this.data("picture").get_image_id();
+			if ($this.data("dirty") || member_image_id != $this.data("member_image_id"))
+				if (!confirm("You have unsaved changes.  Discard them?"))
+					evt.preventDefault();
+			})
+		;
 
 	$("div.search input").keydown(function()
 		{
@@ -607,9 +621,10 @@ function edit(member_id)
 	var title = member_id ? "Edit Member" : "Add Member";
 	var $dialogue = $("#edit_dialogue");
 	$dialogue.data("member_id", member_id);
+	$dialogue.data("dirty", false);
 
 	for (i = 0; i < all_groups.length; i++)
-		html += "<label><input type=\"checkbox\" class=\"group\" value=\""
+		html += "<label><input type=\"checkbox\" class=\"group dirty\" value=\""
 			+ all_groups[i].mgroup_id + "\" /> " + all_groups[i].name
 			+ "</label><br />";
 	$dialogue.find("div#groups").html(html);
@@ -624,6 +639,7 @@ function edit(member_id)
 			{
 			var i, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc, phone;
 			var $info   = $dialogue.find("div#info_div div.panel-body");
+			$dialogue.data("member_image_id", data.member.member_image_id);
 			var picture = new Picture(
 				{
 				$image_div: $dialogue.find("div#photo div.panel div.panel-body"),
