@@ -30,6 +30,15 @@ function Badge(options)
 	this.options.$parent.append(this.$div);
 	}
 
+Badge.prototype.dirty = function ()
+	{
+	if (!("dirty" in this.options))
+		return;
+
+	if (typeof(this.options.dirty) === "function")
+		this.options.dirty();
+	};
+
 Badge.prototype.get = function ()
 	{
 	var badges = [];
@@ -44,30 +53,14 @@ Badge.prototype.get = function ()
 
 Badge.prototype.save = function ()
 	{
-	var self = this;
 	var badge_number = this.$div.find("input").val();
-	var api =
-		{
-		path: "/admin/members/add_badge",
-		data:
-			{
-			badge_number: badge_number,
-			member_id:    this.member_id
-			},
-		what: "Badge Add",
-		$icon: self.$div.find("button.ok > span"),
-		success: function (data)
-			{
-			var $option = $("<option />")
-				.attr("id", data.badge_id)
-				.attr("value", data.badge_number)
-				.text(data.badge_number);
-			self.$div.find("select").append($option);
-			self.cancel();
-			}
-		};
+	var $option = $("<option />")
+		.attr("value", badge_number)
+		.text(badge_number);
 
-	api_json(api);
+	this.dirty();
+	this.$div.find("select").append($option);
+	this.cancel();
 	};
 
 Badge.prototype.cancel = function ()
@@ -96,43 +89,21 @@ Badge.prototype.edit = function (badge_id)
 
 Badge.prototype.delete = function ()
 	{
-	var self = this, badges = [];
-	var data =
-		{
-		member_id: this.member_id,
-		badge_id:  badges
-		};
+	var $badges =	this.$div.find("select option:selected");
 
-	this.$div.find("select option:selected").each(function ()
-		{
-		badges.push($(this).attr("id"));
-		});
+	if ($badges.length <= 0)
+		return;
+	if (!confirm("Are you sure you want to delete " + $badges.length + ($badges.length == 1 ? " badge?" : " badges?")))
+		return;
 
-	if (badges.length <= 0)
-		return;
-	if (!confirm("Are you sure you want to delete " + badges.length + (badges.length == 1 ? " badge?" : " badges?")))
-		return;
-	api_json(
-		{
-		path: "/admin/members/delete_badge",
-		data: data,
-		what: "Badge delete",
-		$icon: self.$div.find("button.delete > span.fas"),
-		success: function (data)
-			{
-			var i;
-			for (i = 0; i < badges.length; i++)
-				self.$div.find("select option#" + badges[i]).remove();
-			}
-		});
-	return false;
+	this.dirty();
+	$badges.remove();
 	}
 
-Badge.prototype.set = function (member_id, badges)
+Badge.prototype.set = function (badges)
 	{
 	var i, $option, $select;
 
-	this.member_id = member_id;
 	this.cancel();
 	$select = this.$div.find("select").empty();
 
@@ -144,21 +115,4 @@ Badge.prototype.set = function (member_id, badges)
 			.text(badges[i].badge_number);
 		$select.append($option);
 		}
-	};
-
-Badge.prototype.load = function (member_id)
-	{
-	var self = this;
-
-	api_json(
-		{
-		path: "/admin/members/info",
-		data: { member_id: member_id },
-		what: "Load Member Profile",
-		success_toast: false,
-		success: function (data)
-			{
-			self.set(member_id, data.badges);
-			}
-		});
 	};

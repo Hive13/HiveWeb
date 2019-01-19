@@ -61,7 +61,14 @@ $(function()
 		$edit_dialogue = $("div#edit_dialogue"),
 		$filter        = $("div#filter_dialogue");
 
-	badge = new Badge({ $parent: $("div#badges div.panel-body") });
+	badge = new Badge(
+		{
+		$parent: $("div#badges div.panel-body"),
+		dirty: function()
+			{
+			$edit_dialogue.data("dirty", true);
+			}
+		});
 
 	$filter.find("input[name=paypal]").click(function ()
 		{
@@ -247,6 +254,7 @@ $(function()
 			{
 			var $this = $(this);
 			var member_image_id = $this.data("picture").get_image_id();
+			alert(JSON.stringify(badge.get()));
 			if ($this.data("dirty") || member_image_id != $this.data("member_image_id"))
 				if (!confirm("You have unsaved changes.  Discard them?"))
 					evt.preventDefault();
@@ -701,7 +709,7 @@ function edit(member_id)
 				$("input#paypal_email").val(data.member.paypal_email);
 				}
 			
-			badge.set(member_id, data.badges);
+			badge.set(data.badges);
 			paypal_checkbox();
 			$dialogue.find("#edit_label").text(title);
 			$dialogue.modal("show");
