@@ -102,6 +102,20 @@ sub finalize :Local :Args(0)
 							});
 						$member->add_vend_credits(1);
 						}
+					elsif ($action eq 'add_badges')
+						{
+						foreach my $badge (@{ $in->{badges} })
+							{
+							my $badge_number = $badge->{val};
+							$member->create_related('changed_audits',
+								{
+								change_type        => 'add_badge',
+								notes              => 'Badge number ' . $badge_number,
+								changing_member_id => $c->user()->member_id(),
+								});
+							$badge = $member->create_related('badges', { badge_number => $badge_number });
+							}
+						}
 					}
 				}
 			});

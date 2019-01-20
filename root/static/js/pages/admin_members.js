@@ -1,3 +1,4 @@
+var badge;
 var order      = "lname";
 var dir        = "ASC";
 var all_groups = [];
@@ -58,8 +59,16 @@ $(function()
 		$table         = $("table#hive-member-table"),
 		$nav           = $("nav.hive-member-pagination"),
 		$edit_dialogue = $("div#edit_dialogue"),
-		$filter        = $("div#filter_dialogue"),
-		$badge_edit    = $edit_dialogue.find("div#badge_edit");
+		$filter        = $("div#filter_dialogue");
+
+	badge = new Badge(
+		{
+		$parent: $("div#badges div.panel-body"),
+		dirty: function()
+			{
+			$edit_dialogue.data("dirty", true);
+			}
+		});
 
 	$filter.find("input[name=paypal]").click(function ()
 		{
@@ -235,17 +244,21 @@ $(function()
 	$("div#password_dialogue button#finish_pass").click(save_password);
 
 	$edit_dialogue.find("input#different_paypal").click(paypal_checkbox);
-	$edit_dialogue.find("div#badges button.add").click(function () { badge_edit(undefined) });
 	$edit_dialogue.find("button#finish_edit").click(save_member);
-	$edit_dialogue.find("div#badges select").keydown(key_handler({ "del": badge_delete, "ins": function() { badge_edit(undefined); } })).change(function ()
-		{
-		$edit_dialogue.find("button.delete").attr("disabled", $(this).find("option:selected").length <= 0);
-		return false;
-		});
-	$edit_dialogue.find("div#badges button.delete").click(badge_delete);
-	$badge_edit.find("input").keydown(key_handler({ "enter": badge_save, "esc": badge_edit_hide }));
-	$badge_edit.find("button.cancel").click(badge_edit_hide);
-	$badge_edit.find("button.ok").click(badge_save);
+	$edit_dialogue
+		.on("change", "input.dirty", function ()
+			{
+			$edit_dialogue.data("dirty", true);
+			})
+		.on("hide.bs.modal", function(evt)
+			{
+			var $this = $(this);
+			var member_image_id = $this.data("picture").get_image_id();
+			if ($this.data("dirty") || member_image_id != $this.data("member_image_id"))
+				if (!confirm("You have unsaved changes.  Discard them?"))
+					evt.preventDefault();
+			})
+		;
 
 	$("div.search input").keydown(function()
 		{
@@ -535,101 +548,6 @@ function load_members()
 	api_json(api);
 	}
 
-function badge_save()
-	{
-	var $dialogue    = $("#edit_dialogue");
-	var $div         = $dialogue.find("#badge_edit");
-	var member_id    = $dialogue.data("member_id");
-	var badge_number = $div.find("input#badge_number").val();
-	var api =
-		{
-		path: "/admin/members/add_badge",
-		data:
-			{
-			badge_number: badge_number,
-			member_id:    member_id
-			},
-		what: "Badge Add",
-		$icon: $div.find("button.ok > span"),
-		success: function (data)
-			{
-			var $option = $("<option />")
-				.attr("id", data.badge_id)
-				.attr("value", data.badge_number)
-				.text(data.badge_number);
-			$("#edit_dialogue div#badges select").append($option);
-			badge_edit_hide();
-			}
-		};
-
-	api_json(api);
-	}
-
-function badge_edit_hide()
-	{
-	var $dialogue = $("#edit_dialogue");
-	var $sdiv     = $dialogue.find("div.badge-select");
-	var $div      = $dialogue.find("#badge_edit");
-	var $focus    = $div.data("focus");
-
-	$div.css("display", "none");
-	$sdiv.css("opacity", "1");
-	$sdiv.find("button").prop("disabled", false);
-	if ($focus)
-		$focus.focus();
-	}
-
-function badge_edit(badge_id)
-	{
-	var $dialogue = $("#edit_dialogue");
-	var $sdiv     = $dialogue.find("div.badge-select");
-	var $div      = $dialogue.find("#badge_edit");
-	var $edit     = $div.find("input");
-	$div.data("badge_id", badge_id);
-	$div.data("focus", $(":focus"));
-
-	$edit.val("");
-	$div.css("display", "");
-	$sdiv.css("opacity", "0.5");
-	$sdiv.find("button").prop("disabled", true);
-	$edit.focus();
-	}
-
-function badge_delete()
-	{
-	var $edit_dialogue = $("#edit_dialogue");
-	var badges = [];
-	var data =
-		{
-		member_id: $edit_dialogue.data("member_id"),
-		badge_id:  badges
-		};
-
-	$edit_dialogue.find("div#badges select option:selected").each(function ()
-		{
-		badges.push($(this).attr("id"));
-		});
-
-	if (badges.length <= 0)
-		return;
-	if (!confirm("Are you sure you want to delete " + badges.length + (badges.length == 1 ? " badge?" : " badges?")))
-		return;
-	api_json(
-		{
-		path: "/admin/members/delete_badge",
-		data: data,
-		what: "Badge delete",
-		$icon: $edit_dialogue.find("button.delete > span.fas"),
-		success: function (data)
-			{
-			var i;
-			for (i = 0; i < badges.length; i++)
-				$edit_dialogue.find("div#badges select option#" + badges[i]).remove();
-			}
-		});
-	return false;
-	}
-
 function save_password()
 	{
 	var $this = $(this).parents(".modal"), member_id = $this.data("member_id");
@@ -675,7 +593,8 @@ function save_member()
 		vend_credits: soda_credits,
 		paypal_email: null,
 		member_image_id: member_image_id || null,
-		member_id: member_id
+		member_id: member_id,
+		badges: badge.get()
 		};
 
 	$("input.group[type=\"checkbox\"]:checked").each(function()
@@ -692,7 +611,11 @@ function save_member()
 		data: data,
 		what: member_id ? "Member edit" : "Member add",
 		button: $(this),
-		success: function (data) { $this.modal("hide"); }
+		success: function (data)
+			{
+			$this.data("dirty", false);
+			$this.modal("hide");
+			}
 		});
 	}
 
@@ -710,24 +633,25 @@ function edit(member_id)
 	var title = member_id ? "Edit Member" : "Add Member";
 	var $dialogue = $("#edit_dialogue");
 	$dialogue.data("member_id", member_id);
+	$dialogue.data("dirty", false);
 
 	for (i = 0; i < all_groups.length; i++)
-		html += "<label><input type=\"checkbox\" class=\"group\" value=\""
+		html += "<label><input type=\"checkbox\" class=\"group dirty\" value=\""
 			+ all_groups[i].mgroup_id + "\" /> " + all_groups[i].name
 			+ "</label><br />";
 	$dialogue.find("div#groups").html(html);
-	badge_edit_hide();
 
 	api_json(
 		{
 		path: "/admin/members/info",
-		data: { member_id: member_id},
+		data: { member_id: member_id },
 		what: "Load Member Profile",
 		success_toast: false,
 		success: function (data)
 			{
-			var i, badge, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc, phone;
+			var i, $option, $soda_credits, $remove, date_obj, html, ac, dc, phone;
 			var $info   = $dialogue.find("div#info_div div.panel-body");
+			$dialogue.data("member_image_id", data.member.member_image_id);
 			var picture = new Picture(
 				{
 				$image_div: $dialogue.find("div#photo div.panel div.panel-body"),
@@ -741,7 +665,6 @@ function edit(member_id)
 			title = "Edit " + data.member.fname + " " + data.member.lname;
 
 			$("input.group[type=\"checkbox\"]").prop("checked", false);
-			$select       = $dialogue.find("div#badges select").empty();
 			$soda_credits = $dialogue.find("input#soda_credits");
 
 			date_obj = new Date(data.member.last_access_time);
@@ -788,17 +711,8 @@ function edit(member_id)
 				$("input#different_paypal").prop("checked", true);
 				$("input#paypal_email").val(data.member.paypal_email);
 				}
-
-			for (i = 0; i < data.badges.length; i++)
-				{
-				badge = data.badges[i];
-				$option = $("<option />")
-					.attr("id", badge.badge_id)
-					.attr("value", badge.badge_number)
-					.text(badge.badge_number);
-				$select.append($option);
-				}
-
+			
+			badge.set(data.badges);
 			paypal_checkbox();
 			$dialogue.find("#edit_label").text(title);
 			$dialogue.modal("show");
