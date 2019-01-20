@@ -611,7 +611,11 @@ function save_member()
 		data: data,
 		what: member_id ? "Member edit" : "Member add",
 		button: $(this),
-		success: function (data) { $this.modal("hide"); }
+		success: function (data)
+			{
+			$this.data("dirty", false);
+			$this.modal("hide");
+			}
 		});
 	}
 
