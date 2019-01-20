@@ -254,7 +254,6 @@ $(function()
 			{
 			var $this = $(this);
 			var member_image_id = $this.data("picture").get_image_id();
-			alert(JSON.stringify(badge.get()));
 			if ($this.data("dirty") || member_image_id != $this.data("member_image_id"))
 				if (!confirm("You have unsaved changes.  Discard them?"))
 					evt.preventDefault();
@@ -594,7 +593,8 @@ function save_member()
 		vend_credits: soda_credits,
 		paypal_email: null,
 		member_image_id: member_image_id || null,
-		member_id: member_id
+		member_id: member_id,
+		badges: badge.get()
 		};
 
 	$("input.group[type=\"checkbox\"]:checked").each(function()
@@ -645,7 +645,7 @@ function edit(member_id)
 		success_toast: false,
 		success: function (data)
 			{
-			var i, $option, $select, $soda_credits, $remove, date_obj, html, ac, dc, phone;
+			var i, $option, $soda_credits, $remove, date_obj, html, ac, dc, phone;
 			var $info   = $dialogue.find("div#info_div div.panel-body");
 			$dialogue.data("member_image_id", data.member.member_image_id);
 			var picture = new Picture(
@@ -661,7 +661,6 @@ function edit(member_id)
 			title = "Edit " + data.member.fname + " " + data.member.lname;
 
 			$("input.group[type=\"checkbox\"]").prop("checked", false);
-			$select       = $dialogue.find("div#badges select").empty();
 			$soda_credits = $dialogue.find("input#soda_credits");
 
 			date_obj = new Date(data.member.last_access_time);
