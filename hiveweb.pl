@@ -55,6 +55,7 @@
 		'application.mark_submitted' => 60,
 		'application.attach_form'    => 60,
 		'application.update'         => 60,
+		'application.finalize'       => 70,
 		'password.reset'             => 1,
 		'storage.assign'             => 100,
 		'storage.request'            => 100,
@@ -82,6 +83,10 @@
 		update =>
 			{
 			temp_plain => 'email/application/updated_plain.tt',
+			},
+		finalize =>
+			{
+			temp_plain => 'email/application/finalize_plain.tt',
 			},
 		},
 	}
