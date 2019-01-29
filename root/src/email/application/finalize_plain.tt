@@ -1,0 +1,22 @@
+[%~
+SWITCH application.final_result;
+	CASE 'approved';
+		SET action = 'approved';
+	CASE 'rejected';
+		SET action = 'rejected';
+	CASE 'withdrew';
+		SET action = 'marked as withdrawn';
+	CASE 'expired';
+		SET action = 'marked as expired';
+	CASE;
+		SET action = 'done something weird with';
+END;
+~%]
+Hello Leadership,
+
+[% action.queuing_member.fname %] [% action.queuing_member.lname %] has [% action %] this application.
+
+Sincerely,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

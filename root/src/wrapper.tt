@@ -76,6 +76,7 @@
 	[%~ IF Catalyst.check_user_roles('board') %]
 	<link rel="stylesheet" href="[% Catalyst.uri_for('/static/css/admin.min.css') %]" type="text/css" />
 	<script src="[% Catalyst.uri_for('/static/js/admin.js') %]" type="text/javascript"></script>
+	<script src="[% Catalyst.uri_for('/static/js/badge_editor.js') %]" type="text/javascript"></script>
 	[%~ END %]
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />

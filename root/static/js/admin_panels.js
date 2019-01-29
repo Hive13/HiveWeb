@@ -67,6 +67,7 @@ function display_pending_applications(data)
 	this.$panel.find("a.finalize-application").click(function ()
 		{
 		var application_id = $(this).closest("ul.application").attr("id");
+		var badge;
 		var $dialogue =
 			$([
 			"<div class=\"modal fade picture-dialogue\" tabIndex=\"-1\" role=\"dialog\">",
@@ -108,6 +109,13 @@ function display_pending_applications(data)
 										"<input type=\"checkbox\" name=\"add_soda_credit\" checked />",
 										"Give person one soda credit",
 									"</label><br />",
+									"<label class=\"one-line action-hide action-accepted\">",
+										"<input type=\"checkbox\" name=\"add_badges\" id=\"add_badges\" checked />",
+										"Assign the following badges to the member",
+									"</label><br />",
+									"<div class=\"action-hide action-accepted\">",
+										"<div class=\"badge-div\"></div>",
+									"</div>",
 								"</div>",
 							"</div>",
 						"</div>",
@@ -120,16 +128,25 @@ function display_pending_applications(data)
 			"</div>"
 			].join(""));
 
-		$dialogue.find("label.action-hide").css("display", "none");
+		$dialogue.find(".action-hide").css("display", "none");
 
 		$dialogue.find("select").change(function ()
 			{
 			var val = $(this).val();
-			$("label.action-hide").css("display", "none");
+			$(".action-hide").css("display", "none");
 			if (val)
-				$("label.action-" + val).css("display", "");
+				$(".action-" + val).css("display", "");
 			$dialogue.find("button.accept").attr("disabled", !val);
 			});
+
+		$dialogue
+			.on("change", "input#add_badges", function ()
+				{
+				$dialogue.find("div.badge-div").css("display", ($(this).prop("checked") ? "" : "none"));
+				})
+			;
+
+		badge = new Badge({ $parent: $dialogue.find("div.badge-div") });
 
 		$dialogue.find("button.accept").click(function ()
 			{
@@ -142,7 +159,10 @@ function display_pending_applications(data)
 
 			$dialogue.find("label:visible input[type=checkbox]:checked").each(function ()
 				{
-				data.actions.push($(this).attr("name"));
+				var name = $(this).attr("name");
+				data.actions.push(name);
+				if (name === "add_badges")
+					data.badges = badge.get();
 				});
 
 			api_json(

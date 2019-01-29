@@ -94,100 +94,6 @@ sub info :Local :Args(0)
 	$out->{response} = \1;
 	}
 
-sub add_badge :Local :Args(0)
-	{
-	my ($self, $c) = @_;
-
-	my $out          = $c->stash()->{out};
-	my $member_id    = $c->stash()->{in}->{member_id};
-	my $badge_number = $c->stash()->{in}->{badge_number};
-	my $member       = $c->model('DB::Member')->find({ member_id => $member_id });
-
-	if (!defined($member))
-		{
-		$out->{data} = 'Cannot find member';
-		return;
-		}
-	if (!defined($badge_number))
-		{
-		$out->{data} = 'No badge specified';
-		return;
-		}
-
-	try
-		{
-		$c->model('DB')->txn_do(sub
-			{
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'add_badge',
-				notes              => 'Badge number ' . $badge_number,
-				changing_member_id => $c->user()->member_id(),
-				});
-			my $badge = $member->create_related('badges', { badge_number => $badge_number });
-			$out->{badge_number} = $badge_number;
-			$out->{badge_id}     = $badge->badge_id();
-			$out->{response}     = \1;
-			$out->{data}         = 'Badge created';
-			});
-		}
-	catch
-		{
-		$out->{data} = 'Could not update member.';
-		};
-	}
-
-sub delete_badge :Local :Args(0)
-	{
-	my ($self, $c) = @_;
-
-	my $out          = $c->stash()->{out};
-	my $member_id    = $c->stash()->{in}->{member_id};
-	my $badge_ids    = $c->stash()->{in}->{badge_ids} // $c->stash()->{in}->{badge_id};
-	my $member       = $c->model('DB::Member')->find({ member_id => $member_id });
-
-	if (!defined($member))
-		{
-		$out->{data} = 'Cannot find member';
-		return;
-		}
-	if (!defined($badge_ids))
-		{
-		$out->{data} = 'No badge specified';
-		return;
-		}
-
-	$badge_ids = [ $badge_ids ]
-		if (ref($badge_ids) ne 'ARRAY');
-
-	$out->{response} = \1;
-	$out->{data}     = "Badges deleted";
-	try
-		{
-		$c->model('DB')->txn_do(sub
-			{
-			foreach my $badge_id (@$badge_ids)
-				{
-				my $badge = $c->model('DB::Badge')->find($badge_id);
-				die
-					if (!defined($badge));
-				$member->create_related('changed_audits',
-					{
-					change_type        => 'delete_badge',
-					notes              => 'Badge number ' . $badge->badge_number(),
-					changing_member_id => $c->user()->member_id(),
-					});
-				$badge->delete();
-				}
-			});
-		}
-	catch
-		{
-		$out->{response} = \0;
-		$out->{data}     = "One or more badges was invalid";
-		};
-	}
-
 sub password :Local :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -249,6 +155,54 @@ sub edit :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			if (exists($in->{badges}))
+				{
+				my %current_badges = map { $_->badge_id() => $_->badge_number() } $member->badges();
+				my @new_badges;
+				BADGE: foreach my $badge (@{ $in->{badges} })
+					{
+					if ($badge->{id})
+						{
+						delete($current_badges{$badge->{id}});
+						}
+					else
+						{
+						# Filter out deleting and re-adding the same badge number
+						foreach my $id (keys(%current_badges))
+							{
+							if ($badge->{val} == $current_badges{$id})
+								{
+								delete($current_badges{$id});
+								next BADGE;
+								}
+							}
+						push(@new_badges, $badge->{val});
+						}
+					}
+				foreach my $badge_id (keys(%current_badges))
+					{
+					my $badge = $c->model('DB::Badge')->find($badge_id);
+					die
+						if (!defined($badge));
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'delete_badge',
+						notes              => 'Badge number ' . $badge->badge_number(),
+						changing_member_id => $c->user()->member_id(),
+						});
+					$badge->delete();
+					}
+				foreach my $badge_number (@new_badges)
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'add_badge',
+						notes              => 'Badge number ' . $badge_number,
+						changing_member_id => $c->user()->member_id(),
+						});
+					my $badge = $member->create_related('badges', { badge_number => $badge_number });
+					}
+				}
 			if (exists($in->{member_image_id}))
 				{
 				my $image_id = $in->{member_image_id};
