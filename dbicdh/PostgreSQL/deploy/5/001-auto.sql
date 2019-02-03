@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Wed Jan 23 13:42:18 2019
+-- Created on Sun Feb  3 15:21:13 2019
 -- 
 ;
 --
@@ -79,7 +79,7 @@ CREATE TABLE "mgroup" (
 --
 CREATE TABLE "payment_type" (
   "payment_type_id" uuid NOT NULL,
-  "name" uuid,
+  "name" character varying NOT NULL,
   PRIMARY KEY ("payment_type_id")
 );
 

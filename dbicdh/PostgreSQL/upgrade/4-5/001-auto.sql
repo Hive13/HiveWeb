@@ -23,7 +23,7 @@ CREATE INDEX "payment_idx_payment_type_id" on "payment" ("payment_type_id");
 ;
 CREATE TABLE "payment_type" (
   "payment_type_id" uuid NOT NULL,
-  "name" uuid,
+  "name" character varying NOT NULL,
   PRIMARY KEY ("payment_type_id")
 );
 

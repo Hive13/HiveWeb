@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
   'payment_type_id',
   { data_type => 'uuid', is_nullable => 0, size => 16 },
   'name',
-  { data_type => 'uuid', is_nullable => 1, size => 16 },
+  { data_type => 'character varying', is_nullable => 0 },
 );
 
 __PACKAGE__->uuid_columns('payment_type_id');
