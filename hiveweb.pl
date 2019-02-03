@@ -15,6 +15,10 @@
 		add_amount => 20,
 		cost => 1000,
 		},
+	paypal =>
+		{
+		gateway_url => 'https://www.sandbox.paypal.com',
+		},
 	stripe =>
 		{
 		public_key => 'pk_live_FI8RhhPdbD6tTjAHtPbkrVi5',
