@@ -4,36 +4,39 @@
 BEGIN;
 
 ;
-CREATE TABLE "payment" (
-  "payment_id" uuid NOT NULL,
-  "payment_type_id" uuid NOT NULL,
+CREATE TABLE "ipn_message" (
+  "ipn_message_id" uuid NOT NULL,
   "member_id" uuid,
-  "payment_date" timestamp with time zone NOT NULL,
-  "processed_at" timestamp with time zone DEFAULT current_timestamp NOT NULL,
-  "payment_currency" character varying NOT NULL,
-  "payment_amount" numeric NOT NULL,
-  "paypal_txn_id" character varying NOT NULL,
+  "received_at" timestamp with time zone DEFAULT current_timestamp NOT NULL,
+  "txn_id" character varying NOT NULL,
   "payer_email" character varying NOT NULL,
   "raw" text NOT NULL,
-  PRIMARY KEY ("payment_id")
+  PRIMARY KEY ("ipn_message_id")
 );
-CREATE INDEX "payment_idx_member_id" on "payment" ("member_id");
-CREATE INDEX "payment_idx_payment_type_id" on "payment" ("payment_type_id");
+CREATE INDEX "ipn_message_idx_member_id" on "ipn_message" ("member_id");
 
 ;
-CREATE TABLE "payment_type" (
-  "payment_type_id" uuid NOT NULL,
-  "name" character varying NOT NULL,
-  PRIMARY KEY ("payment_type_id")
+CREATE TABLE "payment" (
+  "payment_id" uuid NOT NULL,
+  "member_id" uuid NOT NULL,
+  "ipn_message_id" uuid NOT NULL,
+  "payment_date" timestamp with time zone NOT NULL,
+  PRIMARY KEY ("payment_id")
 );
+CREATE INDEX "payment_idx_ipn_message_id" on "payment" ("ipn_message_id");
+CREATE INDEX "payment_idx_member_id" on "payment" ("member_id");
+
+;
+ALTER TABLE "ipn_message" ADD CONSTRAINT "ipn_message_fk_member_id" FOREIGN KEY ("member_id")
+  REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+;
+ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_ipn_message_id" FOREIGN KEY ("ipn_message_id")
+  REFERENCES "ipn_message" ("ipn_message_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
 ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_member_id" FOREIGN KEY ("member_id")
   REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
-
-;
-ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_payment_type_id" FOREIGN KEY ("payment_type_id")
-  REFERENCES "payment_type" ("payment_type_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
 

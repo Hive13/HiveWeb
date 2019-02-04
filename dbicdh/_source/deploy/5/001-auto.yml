@@ -226,7 +226,7 @@ schema:
           type: NORMAL
       name: action
       options: []
-      order: 17
+      order: 16
     application:
       constraints:
         - deferrable: 1
@@ -481,7 +481,7 @@ schema:
           type: NORMAL
       name: application
       options: []
-      order: 18
+      order: 17
     audit_log:
       constraints:
         - deferrable: 1
@@ -597,7 +597,7 @@ schema:
           type: NORMAL
       name: audit_log
       options: []
-      order: 19
+      order: 18
     badge:
       constraints:
         - deferrable: 1
@@ -664,7 +664,7 @@ schema:
           type: NORMAL
       name: badge
       options: []
-      order: 20
+      order: 19
     curse:
       constraints:
         - deferrable: 1
@@ -843,7 +843,7 @@ schema:
           type: NORMAL
       name: curse_action
       options: []
-      order: 12
+      order: 11
     device:
       constraints:
         - deferrable: 1
@@ -998,7 +998,7 @@ schema:
           type: NORMAL
       name: device_item
       options: []
-      order: 21
+      order: 20
     image:
       constraints:
         - deferrable: 1
@@ -1092,7 +1092,105 @@ schema:
       indices: []
       name: image
       options: []
-      order: 13
+      order: 12
+    ipn_message:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - ipn_message_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: ipn_message_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        ipn_message_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: ipn_message_id
+          order: 1
+          size:
+            - 16
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 2
+          size:
+            - 16
+        payer_email:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: payer_email
+          order: 5
+          size:
+            - 0
+        raw:
+          data_type: text
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: raw
+          order: 6
+          size:
+            - 0
+        received_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: received_at
+          order: 3
+          size:
+            - 0
+        txn_id:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: txn_id
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - member_id
+          name: ipn_message_idx_member_id
+          options: []
+          type: NORMAL
+      name: ipn_message
+      options: []
+      order: 21
     item:
       constraints:
         - deferrable: 1
@@ -1969,7 +2067,7 @@ schema:
           type: NORMAL
       name: members
       options: []
-      order: 14
+      order: 13
     mgroup:
       constraints:
         - deferrable: 1
@@ -2026,6 +2124,19 @@ schema:
         - deferrable: 0
           expression: ''
           fields:
+            - ipn_message_id
+          match_type: ''
+          name: payment_fk_ipn_message_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - ipn_message_id
+          reference_table: ipn_message
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
             - member_id
           match_type: ''
           name: payment_fk_member_id
@@ -2036,60 +2147,27 @@ schema:
             - member_id
           reference_table: members
           type: FOREIGN KEY
-        - deferrable: 0
-          expression: ''
-          fields:
-            - payment_type_id
-          match_type: ''
-          name: payment_fk_payment_type_id
-          on_delete: RESTRICT
-          on_update: RESTRICT
-          options: []
-          reference_fields:
-            - payment_type_id
-          reference_table: payment_type
-          type: FOREIGN KEY
       fields:
-        member_id:
+        ipn_message_id:
           data_type: uuid
           default_value: ~
-          is_nullable: 1
+          is_nullable: 0
           is_primary_key: 0
           is_unique: 0
-          name: member_id
+          name: ipn_message_id
           order: 3
           size:
             - 16
-        payer_email:
-          data_type: character varying
+        member_id:
+          data_type: uuid
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
           is_unique: 0
-          name: payer_email
-          order: 9
+          name: member_id
+          order: 2
           size:
-            - 0
-        payment_amount:
-          data_type: numeric
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: payment_amount
-          order: 7
-          size:
-            - 0
-        payment_currency:
-          data_type: character varying
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: payment_currency
-          order: 6
-          size:
-            - 0
+            - 16
         payment_date:
           data_type: timestamp with time zone
           default_value: ~
@@ -2110,100 +2188,20 @@ schema:
           order: 1
           size:
             - 16
-        payment_type_id:
-          data_type: uuid
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: payment_type_id
-          order: 2
-          size:
-            - 16
-        paypal_txn_id:
-          data_type: character varying
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: paypal_txn_id
-          order: 8
-          size:
-            - 0
-        processed_at:
-          data_type: timestamp with time zone
-          default_value: !!perl/ref
-            =: current_timestamp
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: processed_at
-          order: 5
-          size:
-            - 0
-        raw:
-          data_type: text
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: raw
-          order: 10
-          size:
-            - 0
       indices:
+        - fields:
+            - ipn_message_id
+          name: payment_idx_ipn_message_id
+          options: []
+          type: NORMAL
         - fields:
             - member_id
           name: payment_idx_member_id
           options: []
           type: NORMAL
-        - fields:
-            - payment_type_id
-          name: payment_idx_payment_type_id
-          options: []
-          type: NORMAL
       name: payment
       options: []
       order: 29
-    payment_type:
-      constraints:
-        - deferrable: 1
-          expression: ''
-          fields:
-            - payment_type_id
-          match_type: ''
-          name: ''
-          on_delete: ''
-          on_update: ''
-          options: []
-          reference_fields: []
-          reference_table: ''
-          type: PRIMARY KEY
-      fields:
-        name:
-          data_type: character varying
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: name
-          order: 2
-          size:
-            - 0
-        payment_type_id:
-          data_type: uuid
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 1
-          is_unique: 0
-          name: payment_type_id
-          order: 1
-          size:
-            - 16
-      indices: []
-      name: payment_type
-      options: []
-      order: 7
     reset_token:
       constraints:
         - deferrable: 1
@@ -2331,7 +2329,7 @@ schema:
       indices: []
       name: session
       options: []
-      order: 8
+      order: 7
     sign_in_log:
       constraints:
         - deferrable: 1
@@ -2516,7 +2514,7 @@ schema:
           type: NORMAL
       name: soda_status
       options: []
-      order: 15
+      order: 14
     soda_type:
       constraints:
         - deferrable: 1
@@ -2555,7 +2553,7 @@ schema:
       indices: []
       name: soda_type
       options: []
-      order: 9
+      order: 8
     storage_location:
       constraints:
         - deferrable: 1
@@ -2632,7 +2630,7 @@ schema:
           type: NORMAL
       name: storage_location
       options: []
-      order: 10
+      order: 9
     storage_request:
       constraints:
         - deferrable: 1
@@ -3016,7 +3014,7 @@ schema:
       indices: []
       name: storage_slot_type
       options: []
-      order: 11
+      order: 10
     temp_log:
       constraints:
         - deferrable: 1
@@ -3100,7 +3098,7 @@ schema:
           type: NORMAL
       name: temp_log
       options: []
-      order: 16
+      order: 15
     vend_log:
       constraints:
         - deferrable: 1
@@ -3234,6 +3232,7 @@ translator:
       - CurseAction
       - Device
       - DeviceItem
+      - IPNMessage
       - Image
       - Item
       - ItemMgroup
@@ -3246,7 +3245,6 @@ translator:
       - MemberMgroup
       - Mgroup
       - Payment
-      - PaymentType
       - ResetToken
       - Session
       - SignInLog
