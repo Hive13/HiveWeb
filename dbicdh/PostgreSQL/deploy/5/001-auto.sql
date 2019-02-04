@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Wed Jan 23 13:42:18 2019
+-- Created on Mon Feb  4 16:55:02 2019
 -- 
 ;
 --
@@ -71,16 +71,6 @@ CREATE TABLE "mgroup" (
   "mgroup_id" uuid NOT NULL,
   "name" character(32),
   PRIMARY KEY ("mgroup_id")
-);
-
-;
---
--- Table: payment_type
---
-CREATE TABLE "payment_type" (
-  "payment_type_id" uuid NOT NULL,
-  "name" uuid,
-  PRIMARY KEY ("payment_type_id")
 );
 
 ;
@@ -298,6 +288,21 @@ CREATE INDEX "device_item_idx_item_id" on "device_item" ("item_id");
 
 ;
 --
+-- Table: ipn_message
+--
+CREATE TABLE "ipn_message" (
+  "ipn_message_id" uuid NOT NULL,
+  "member_id" uuid,
+  "received_at" timestamp with time zone DEFAULT current_timestamp NOT NULL,
+  "txn_id" character varying NOT NULL,
+  "payer_email" character varying NOT NULL,
+  "raw" text NOT NULL,
+  PRIMARY KEY ("ipn_message_id")
+);
+CREATE INDEX "ipn_message_idx_member_id" on "ipn_message" ("member_id");
+
+;
+--
 -- Table: item_mgroup
 --
 CREATE TABLE "item_mgroup" (
@@ -407,19 +412,13 @@ CREATE INDEX "member_mgroup_idx_mgroup_id" on "member_mgroup" ("mgroup_id");
 --
 CREATE TABLE "payment" (
   "payment_id" uuid NOT NULL,
-  "payment_type_id" uuid NOT NULL,
-  "member_id" uuid,
+  "member_id" uuid NOT NULL,
+  "ipn_message_id" uuid NOT NULL,
   "payment_date" timestamp with time zone NOT NULL,
-  "processed_at" timestamp with time zone DEFAULT current_timestamp NOT NULL,
-  "payment_currency" character varying NOT NULL,
-  "payment_amount" numeric NOT NULL,
-  "paypal_txn_id" character varying NOT NULL,
-  "payer_email" character varying NOT NULL,
-  "raw" text NOT NULL,
   PRIMARY KEY ("payment_id")
 );
+CREATE INDEX "payment_idx_ipn_message_id" on "payment" ("ipn_message_id");
 CREATE INDEX "payment_idx_member_id" on "payment" ("member_id");
-CREATE INDEX "payment_idx_payment_type_id" on "payment" ("payment_type_id");
 
 ;
 --
@@ -556,6 +555,10 @@ ALTER TABLE "device_item" ADD CONSTRAINT "device_item_fk_item_id" FOREIGN KEY ("
   REFERENCES "item" ("item_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
+ALTER TABLE "ipn_message" ADD CONSTRAINT "ipn_message_fk_member_id" FOREIGN KEY ("member_id")
+  REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+;
 ALTER TABLE "item_mgroup" ADD CONSTRAINT "item_mgroup_fk_item_id" FOREIGN KEY ("item_id")
   REFERENCES "item" ("item_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
@@ -612,12 +615,12 @@ ALTER TABLE "member_mgroup" ADD CONSTRAINT "member_mgroup_fk_mgroup_id" FOREIGN 
   REFERENCES "mgroup" ("mgroup_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
-ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_member_id" FOREIGN KEY ("member_id")
-  REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_ipn_message_id" FOREIGN KEY ("ipn_message_id")
+  REFERENCES "ipn_message" ("ipn_message_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
-ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_payment_type_id" FOREIGN KEY ("payment_type_id")
-  REFERENCES "payment_type" ("payment_type_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_member_id" FOREIGN KEY ("member_id")
+  REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
 ALTER TABLE "vend_log" ADD CONSTRAINT "vend_log_fk_device_id" FOREIGN KEY ("device_id")
