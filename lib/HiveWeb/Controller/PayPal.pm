@@ -17,16 +17,21 @@ sub ipn :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 	my $response   = $c->response();
+	my $log        = $c->log();
 	
 	$response->content_type('text/plain');
 	try
 		{
 		$c->model('DB')->txn_do(sub
 			{
-
+			my $parameters = $c->request()->parameters();
+			if (my $dup = $c->model('DB::Payment')->find({ paypal_txn_id => $parameters->{txn_id} }))
+				{
+				$log->error('Duplicate txn_id as payment ' . $dup->payment_id() . ': ' . Data::Dumper::Dumper($parameters));
+				return;
+				}
 
 			# Verify the transaction with PayPal
-			my $parameters = $c->request()->parameters();
 			$parameters->{cmd} = '_notify-validate';
 			my $ua = LWP::UserAgent->new();
 			$ua->agent(sprintf("HiveWeb/%s (%s)", $HiveWeb::VERSION, $ua->agent));
