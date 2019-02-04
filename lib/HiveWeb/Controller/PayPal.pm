@@ -31,6 +31,30 @@ sub ipn :Local :Args(0)
 				return;
 				}
 
+			my $member = $c->model('DB::Member')->find({ email => $parameters->{payer_email} });
+			if (!$member)
+				{
+				my @members = $c->model('DB::Member')->search({ paypal_email => $parameters->{payer_email} });
+				if (scalar(@members) == 1)
+					{
+					$member = $members[0];
+					}
+				else
+					{
+					# ???
+					}
+				}
+			if (!$member)
+				{
+				$log->error('Cannot locate member: ' . Data::Dumper::Dumper($parameters));
+				}
+			my $member_id = $member ? $member->member_id() : undef;
+
+			my $payment = $c->model('DB::Payment')->create(
+				{
+				member_id => $member_id,
+				});
+
 			# Verify the transaction with PayPal
 			$parameters->{cmd} = '_notify-validate';
 			my $ua = LWP::UserAgent->new();
