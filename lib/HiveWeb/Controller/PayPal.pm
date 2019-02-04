@@ -91,7 +91,7 @@ sub ipn :Local :Args(0)
 		{
 		$response->status(500);
 		$response->body('not_ok');
-		$c->log()->debug($_);
+		$c->log()->error($_);
 		};
 	}
 
