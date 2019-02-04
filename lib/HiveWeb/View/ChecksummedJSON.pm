@@ -3,7 +3,7 @@ package HiveWeb::View::ChecksummedJSON;
 use strict;
 use base 'Catalyst::View::JSON';
 use Digest::SHA qw(sha512_hex);
-use JSON::PP ();
+use JSON::PP;
 use feature 'state';
 
 =head1 AUTHOR
