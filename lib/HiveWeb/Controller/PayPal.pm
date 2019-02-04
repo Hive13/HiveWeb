@@ -3,9 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Try::Tiny;
 use LWP::UserAgent;
-use Data::Dumper;
-use DateTime::TimeZone;
-use DateTime::Format::Strptime;
+use JSON;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -29,11 +27,8 @@ sub ipn :Local :Args(0)
 			{
 			my $parameters = $c->request()->parameters();
 			my $payer      = $parameters->{payer_email};
-			if (my $dup = $c->model('DB::Payment')->find({ paypal_txn_id => $parameters->{txn_id} }))
-				{
-				$log->error('Duplicate txn_id as payment ' . $dup->payment_id() . ': ' . Data::Dumper::Dumper($parameters));
-				return;
-				}
+			my $type       = $parameters->{payment_type};
+			my $json       = encode_json($parameters);
 
 			my $member = $c->model('DB::Member')->find({ email => $payer });
 			if (!$member)
@@ -45,37 +40,32 @@ sub ipn :Local :Args(0)
 					}
 				elsif (scalar(@members) > 1)
 					{
-					$log->error('Multiple members with one PayPal e-mail: ' . Data::Dumper::Dumper($parameters));
+					$log->error("Multiple members with one PayPal e-mail: $json");
 					$member = $members[0];
 					}
 				}
-			if (!$member)
-				{
-				$log->error('Cannot locate member: ' . Data::Dumper::Dumper($parameters));
-				}
 			my $member_id = $member ? $member->member_id() : undef;
 
-			my $payment_type =
-				$c->model('DB::PaymentType')->find({ name => $parameters->{payment_type} })
-				// $c->model('DB::PaymentType')->find({ name => 'unknown' })
-				// die;
-			my $tz         = DateTime::TimeZone->new(name => 'America/Los_Angeles');
-			my $payment_p  = DateTime::Format::Strptime->new( pattern => '%H:%M:%S %b %d, %Y', time_zone => $tz);
-			my $payment_dt = $payment_p->parse_datetime($parameters->{payment_date});
-
-			my $raw = Data::Dumper->new([$parameters]);
-			$raw->Terse(1)->Indent(0);
-			my $payment = $c->model('DB::Payment')->create(
+			my $message = $c->model('DB::IPNMessage')->create(
 				{
-				member_id        => $member_id,
-				payment_type_id  => $payment_type->id(),
-				payment_currency => $parameters->{mc_currency},
-				payment_amount   => $parameters->{mc_gross},
-				payment_date     => $payment_dt,
-				paypal_txn_id    => $parameters->{txn_id},
-				payer_email      => $payer,
-				raw              => $raw->Dump(),
-				});
+				member_id   => $member_id,
+				txn_id      => $parameters->{txn_id},
+				payer_email => $payer,
+				raw         => encode_json($parameters),
+				}) || die;
+
+			if (!$member)
+				{
+				$log->error('Cannot locate member in message ' . $message->ipn_message_id());
+				}
+
+			if ($type)
+				{
+				}
+			else
+				{
+				$log->error('Unknown payment type in message ' . $message->ipn_message_id());
+				}
 
 			# Verify the transaction with PayPal
 			$parameters->{cmd} = '_notify-validate';
