@@ -18,7 +18,7 @@ sub ipn :Local :Args(0)
 	my ($self, $c) = @_;
 	my $response   = $c->response();
 	my $log        = $c->log();
-	
+
 	$response->content_type('text/plain');
 	try
 		{
@@ -41,7 +41,8 @@ sub ipn :Local :Args(0)
 					}
 				else
 					{
-					# ???
+					$log->error('Multiple members with one PayPal e-mail: ' . Data::Dumper::Dumper($parameters));
+					$member = $members[0];
 					}
 				}
 			if (!$member)
