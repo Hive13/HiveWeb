@@ -74,7 +74,7 @@ sub ipn :Local :Args(0)
 				payment_date     => $payment_dt,
 				paypal_txn_id    => $parameters->{txn_id},
 				payer_email      => $payer,
-				raw       => $raw->Dump(),
+				raw              => $raw->Dump(),
 				});
 
 			# Verify the transaction with PayPal
