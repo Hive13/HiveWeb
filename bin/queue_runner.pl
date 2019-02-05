@@ -58,6 +58,24 @@ while (my $action = $queue->next())
 				return;
 				}
 			}
+		elsif ($type eq 'member.welcome')
+			{
+			my $member = $schema->resultset('Member')->find($action->row_id());
+			if (!$slot)
+				{
+				warn 'Cannot find referenced member ' . $action->row_id();
+				return;
+				}
+			$message->{to}         = $member->email();
+			$message->{to_name}    = $member->fname() . ' ' . $member->lname();
+			$message->{temp_plain} = $mail_config->{welcome}->{temp_plain};
+			$message->{subject}    = $mail_config->{welcome}->{subject};
+			$message->{stash}      =
+				{
+				member   => $member,
+				base_url => $config->{base_url},
+				};
+			}
 		elsif ($type eq 'storage.assign')
 			{
 			my $slot = $schema->resultset('StorageSlot')->find($action->row_id());
