@@ -42,7 +42,7 @@ sub status :Local :Args(0)
 		order_by => [ 'bulb.device_id', 'bulb.slot' ],
 		});
 	my @devices;
-	my $oid;
+	my $oid = '';
 	my $bulbs;
 
 	while (my $bulb_ps = $bulb_rs->next())
@@ -51,7 +51,7 @@ sub status :Local :Args(0)
 		my $device = $bulb->device();
 		my $id     = $bulb->device_id();
 
-		if ($oid != $id)
+		if ($oid ne $id)
 			{
 			$bulbs = [];
 			push(@devices,

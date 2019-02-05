@@ -119,7 +119,7 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
-__PACKAGE__->might_have
+__PACKAGE__->belongs_to
 	(
 	'image',
 	'HiveWeb::Schema::Result::Image',
