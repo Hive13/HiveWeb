@@ -58,7 +58,6 @@ sub finalize :Local :Args(0)
 				action_type       => 'application.finalize',
 				row_id            => $application->application_id(),
 				}) || die 'Could not queue notification: ' . $!;
-			});
 			$member->create_related('changed_audits',
 				{
 				change_type        => 'finalize_application',
