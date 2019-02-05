@@ -26,6 +26,7 @@
 		},
 	email =>
 		{
+		admin_to    => 'intwebsandbox@hive13.org',
 		from        => 'intweb@hive13.org',
 		from_name   => 'Hive13 Intweb',
 		auth        => '< put auth password here >',
@@ -51,15 +52,18 @@
 			temp_plain => 'email/requested_slot_plain.tt',
 			subject    => 'Storage Slot requested at Hive13',
 			},
-		confirm_cancel =>
+		member =>
 			{
-			temp_plain => 'email/member/confirm_cancel_plain.tt',
-			subject    => 'Hive13 Subscription Cancelled',
-			},
-		notify_cancel =>
-			{
-			temp_plain => 'email/member/notify_cancel_plain.tt',
-			subject    => 'Member Subscription Cancelled',
+			confirm_cancel =>
+				{
+				temp_plain => 'email/member/confirm_cancel_plain.tt',
+				subject    => 'Hive13 Subscription Cancelled',
+				},
+			notify_cancel =>
+				{
+				temp_plain => 'email/member/notify_cancel_plain.tt',
+				subject    => 'Member Subscription Cancelled',
+				},
 			},
 		},
 	priorities =>
