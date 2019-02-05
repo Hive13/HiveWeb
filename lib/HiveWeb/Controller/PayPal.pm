@@ -41,6 +41,15 @@ sub subscr_payment
 		my $new_group = $c->model('DB::Mgroup')->find({ name => 'members' }) || die;
 		$member->find_or_create_related('member_mgroups', { mgroup_id => $new_group->mgroup_id() });
 
+		my $application = $member->find_related('applications',
+			{
+			decided_at => { '!=' => undef},
+			},
+			{
+			order_by => { -desc => 'updated_at' },
+			rows     => 1,
+			});
+
 		$c->model('DB::Action')->create(
 			{
 			queuing_member_id => $member->member_id(),
