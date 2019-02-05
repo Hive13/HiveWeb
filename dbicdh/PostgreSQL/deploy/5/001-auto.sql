@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Feb  4 16:55:02 2019
+-- Created on Tue Feb  5 09:13:57 2019
 -- 
 ;
 --
@@ -414,7 +414,7 @@ CREATE TABLE "payment" (
   "payment_id" uuid NOT NULL,
   "member_id" uuid NOT NULL,
   "ipn_message_id" uuid NOT NULL,
-  "payment_date" timestamp with time zone NOT NULL,
+  "payment_date" timestamp with time zone DEFAULT current_timestamp NOT NULL,
   PRIMARY KEY ("payment_id")
 );
 CREATE INDEX "payment_idx_ipn_message_id" on "payment" ("ipn_message_id");
