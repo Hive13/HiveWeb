@@ -4,8 +4,37 @@ use namespace::autoclean;
 use Try::Tiny;
 use LWP::UserAgent;
 use JSON;
+use DateTime::TimeZone;
+use DateTime::Format::Strptime;
 
 BEGIN { extends 'Catalyst::Controller' }
+
+sub subscr_payment
+	{
+	my ($self, $c, $member, $parameters, $message) = @_;
+
+	return if ($parameters->{payment_status} ne 'Completed');
+
+	my $existing = $c->model('DB::Payment')->search(
+		{ 'ipn_message.txn_id' => $parameters->{txn_id} },
+		{ join => 'ipn_message'}
+		)->count();
+	if ($existing)
+		{
+		$c->log()->error('Payment already exists for IPN Message ' . $message->ipn_message_id());
+		return;
+		}
+
+	my $tz         = DateTime::TimeZone->new(name => 'America/Los_Angeles');
+	my $payment_p  = DateTime::Format::Strptime->new( pattern => '%H:%M:%S %b %d, %Y', time_zone => $tz);
+	my $payment_dt = $payment_p->parse_datetime($parameters->{payment_date});
+	my $payment    = $member->create_related('payments',
+		{
+		ipn_message_id => $message->ipn_message_id(),
+		payment_date   => $payment_dt,
+		}) || die;
+	}
+
 
 sub index :Path :Args(0)
 	{
@@ -59,8 +88,9 @@ sub ipn :Local :Args(0)
 				$log->error('Cannot locate member in message ' . $message->ipn_message_id());
 				}
 
-			if ($type)
+			if ($type eq 'echeck')
 				{
+				$self->subscr_payment($c, $member, $parameters, $message);
 				}
 			else
 				{
