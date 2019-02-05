@@ -56,6 +56,13 @@ sub subscr_payment
 			action_type       => 'application.pay',
 			row_id            => $application->application_id(),
 			}) || die 'Could not queue notification: ' . $!;
+
+		$c->model('DB::Action')->create(
+			{
+			queuing_member_id => $member->member_id(),
+			action_type       => 'member.welcome',
+			row_id            => $payment->payment_id(),
+			}) || die 'Could not queue notification: ' . $!;
 		}
 	}
 

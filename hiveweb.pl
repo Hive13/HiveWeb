@@ -51,6 +51,11 @@
 			temp_plain => 'email/requested_slot_plain.tt',
 			subject    => 'Storage Slot requested at Hive13',
 			},
+		welcome =>
+			{
+			temp_plain => 'email/welcome.tt',
+			subject    => 'Welcome to Hive13',
+			},
 		},
 	priorities =>
 		{
@@ -61,6 +66,7 @@
 		'application.update'         => 60,
 		'application.finalize'       => 70,
 		'application.pay'            => 80,
+		'member.welcome'             => 2,
 		'password.reset'             => 1,
 		'storage.assign'             => 100,
 		'storage.request'            => 100,
