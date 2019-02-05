@@ -118,7 +118,7 @@ sub ipn :Local :Args(0)
 				$log->error('Cannot locate member in message ' . $message->ipn_message_id());
 				}
 
-			if ($type eq 'echeck')
+			if ($type eq 'echeck' || $type eq 'subscr_payment')
 				{
 				$self->subscr_payment($c, $member, $parameters, $message);
 				}
