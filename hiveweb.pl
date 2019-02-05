@@ -60,6 +60,7 @@
 		'application.attach_form'    => 60,
 		'application.update'         => 60,
 		'application.finalize'       => 70,
+		'application.pay'            => 80,
 		'password.reset'             => 1,
 		'storage.assign'             => 100,
 		'storage.request'            => 100,
@@ -91,6 +92,10 @@
 		finalize =>
 			{
 			temp_plain => 'email/application/finalize_plain.tt',
+			},
+		pay =>
+			{
+			temp_plain => 'email/application/pay_plain.tt',
 			},
 		},
 	}
