@@ -33,8 +33,15 @@ sub subscr_payment
 		ipn_message_id => $message->ipn_message_id(),
 		payment_date   => $payment_dt,
 		}) || die;
-	}
 
+	my $pending = $member->search_related('member_mgroups', { 'mgroup.name' => 'pending_payments' }, { join => 'mgroup' });
+	if ($pending->count())
+		{
+		$pending->delete();
+		my $new_group = $c->model('DB::Mgroup')->find({ name => 'members' }) || die;
+		$member->find_or_create_related('member_mgroups', { mgroup_id => $new_group->mgroup_id() });
+		}
+	}
 
 sub index :Path :Args(0)
 	{
