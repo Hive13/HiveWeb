@@ -1,0 +1,8 @@
+Hello [% member.fname %],
+
+Welcome to Hive13.  Your payment has been received and your account is now active.
+
+Once again, Welcome to Hive13 from all of us.
+
+
+[%~# vim:set filetype=tt2: ~%]
