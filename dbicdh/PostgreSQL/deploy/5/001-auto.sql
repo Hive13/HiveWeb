@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Tue Feb  5 09:13:57 2019
+-- Created on Wed Feb  6 11:27:15 2019
 -- 
 ;
 --
@@ -166,6 +166,7 @@ CREATE TABLE "members" (
   "member_image_id" uuid,
   "door_count" integer,
   "totp_secret" bytea,
+  "linked_member_id" uuid,
   PRIMARY KEY ("member_id"),
   CONSTRAINT "index_members_on_email" UNIQUE ("email"),
   CONSTRAINT "members_handle_key" UNIQUE ("handle")
@@ -509,6 +510,10 @@ ALTER TABLE "image" ADD CONSTRAINT "image_fk_image_id" FOREIGN KEY ("image_id")
 ;
 ALTER TABLE "members" ADD CONSTRAINT "members_fk_member_image_id" FOREIGN KEY ("member_image_id")
   REFERENCES "image" ("image_id") DEFERRABLE;
+
+;
+ALTER TABLE "members" ADD CONSTRAINT "members_fk_member_id" FOREIGN KEY ("member_id")
+  REFERENCES "members" ("linked_member_id") DEFERRABLE;
 
 ;
 ALTER TABLE "soda_status" ADD CONSTRAINT "soda_status_fk_soda_type_id" FOREIGN KEY ("soda_type_id")

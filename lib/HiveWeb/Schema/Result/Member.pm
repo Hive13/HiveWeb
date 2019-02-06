@@ -56,6 +56,8 @@ __PACKAGE__->add_columns(
 	{ data_type => 'integer', is_nullable => 1 },
 	'totp_secret',
 	{ data_type => 'bytea', is_nullable => 1 },
+	'linked_member_id',
+	{ data_type => 'uuid', is_nullable => 1, size => 16 },
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -172,6 +174,21 @@ __PACKAGE__->has_many
 	'payments',
 	'HiveWeb::Schema::Result::Payment',
 	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->belongs_to
+	(
+	'link',
+	'HiveWeb::Schema::Result::Member',
+	{ 'foreign.linked_member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+__PACKAGE__->has_many
+	(
+	'linked_members',
+	'HiveWeb::Schema::Result::Member',
+	{ 'foreign.linked_member_id' => 'self.member_id' },
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 

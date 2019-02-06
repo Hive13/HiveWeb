@@ -31,5 +31,16 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
+sub TO_JSON
+	{
+	my $self = shift;
+
+	return
+		{
+		badge_id     => $self->badge_id(),
+		badge_number => $self->badge_number(),
+		};
+	}
+
 __PACKAGE__->meta->make_immutable;
 1;
