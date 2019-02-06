@@ -76,21 +76,10 @@ sub info :Local :Args(0)
 		return;
 		}
 
-	my @badges = $member->badges();
-	my @obadges;
-	foreach my $badge (@badges)
-		{
-		push(@obadges,
-			{
-			badge_id     => $badge->badge_id(),
-			badge_number => $badge->badge_number()
-			});
-		}
-	my @slots = $member->list_slots();
-
-	$out->{slots}    = \@slots;
-	$out->{badges}   = \@obadges;
+	$out->{slots}    = [ $member->list_slots() ];
+	$out->{badges}   = [ $member->badges() ];
 	$out->{member}   = $member;
+	$out->{linked}   = [ $member->linked_members() ];
 	$out->{response} = \1;
 	}
 
