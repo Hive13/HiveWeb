@@ -76,21 +76,10 @@ sub info :Local :Args(0)
 		return;
 		}
 
-	my @badges = $member->badges();
-	my @obadges;
-	foreach my $badge (@badges)
-		{
-		push(@obadges,
-			{
-			badge_id     => $badge->badge_id(),
-			badge_number => $badge->badge_number()
-			});
-		}
-	my @slots = $member->list_slots();
-
-	$out->{slots}    = \@slots;
-	$out->{badges}   = \@obadges;
+	$out->{slots}    = [ $member->list_slots() ];
+	$out->{badges}   = [ $member->badges() ];
 	$out->{member}   = $member;
+	$out->{linked}   = [ $member->linked_members() ];
 	$out->{response} = \1;
 	}
 
@@ -364,6 +353,32 @@ sub index :Path :Args(0)
 
 	$filters->{member_image_id} = ($in->{filters}->{photo} ? { '!=' => undef } : undef)
 		if (defined($in->{filters}->{photo}));
+
+	if (defined(my $linked = $in->{filters}->{linked}))
+		{
+		my $main_query = $c->model('DB::Member')->search({ linked_member_id => { '-ident' => 'me.member_id' } }, { alias => 'links' })->count_rs()->as_query();
+		if ($linked eq 'sub')
+			{
+			$filters->{linked_member_id} = { '!=' => undef };
+			}
+		elsif ($linked eq 'main')
+			{
+			$filters->{$$main_query->[0]} = { '>=' => 1 };
+			}
+		elsif ($linked eq 'no')
+			{
+			$filters->{linked_member_id} = undef;
+			$filters->{$$main_query->[0]} = 0;
+			}
+		elsif ($linked eq 'yes')
+			{
+			$filters->{'-or'} =
+				[
+				{ linked_member_id  => { '!=' => undef} },
+				{ $$main_query->[0] => { '>=' => 1} },
+				];
+			}
+		}
 
 	if (defined(my $pp = $in->{filters}->{paypal}))
 		{
