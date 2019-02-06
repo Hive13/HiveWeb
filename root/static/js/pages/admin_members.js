@@ -649,7 +649,7 @@ function edit(member_id)
 		success_toast: false,
 		success: function (data)
 			{
-			var i, $option, $soda_credits, $remove, date_obj, html, ac, dc, phone;
+			var i, $option, $soda_credits, $remove, date_obj, html, ac, dc, phone, $div;
 			var $info   = $dialogue.find("div#info_div div.panel-body");
 			$dialogue.data("member_image_id", data.member.member_image_id);
 			var picture = new Picture(
@@ -711,6 +711,16 @@ function edit(member_id)
 				$("input#different_paypal").prop("checked", true);
 				$("input#paypal_email").val(data.member.paypal_email);
 				}
+
+			if (data.linked.length)
+				{
+				$("div#linked_div").css("display", "");
+				$div = $("div#linked_div div").empty();
+				for (i = 0; i < data.linked.length; i++)
+					$div.append("<i class=\"fas fa-link\"></i> " + data.linked[i].fname + " " + data.linked[i].lname + "<br />");
+				}
+			else
+				$("div#linked_div").css("display", "none");
 			
 			badge.set(data.badges);
 			paypal_checkbox();
