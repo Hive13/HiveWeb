@@ -11,7 +11,8 @@ var filters    =
 	group_type:    null,
 	group_list:    null,
 	storage_type:  null,
-	storage_value: null
+	storage_value: null,
+	linked:        null
 	}
 var columns    =
 	[
@@ -86,7 +87,8 @@ $(function()
 			photo         = $filter.find("input[name=photo]:checked").val(),
 			group_type    = $filter.find("input[name=group_filter]:checked").val(),
 			storage_value = parseInt($filter.find("input#storage_value").val()) || 0,
-			storage_type  = $filter.find("input[name=storage_type]:checked").val();
+			storage_type  = $filter.find("input[name=storage_type]:checked").val(),
+			linked        = $filter.find("input[name=linked]:checked").val();
 
 		$filter.modal("hide").find("input[name=paypal]:checked").each(function ()
 			{
@@ -114,6 +116,10 @@ $(function()
 			filters.group_type = null;
 		else
 			filters.group_type = group_type;
+		if (linked === "null")
+			filters.linked = null;
+		else
+			filters.linked = linked;
 		$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
 		if (!group_list.length)
 			filters.group_list = null;
@@ -154,6 +160,10 @@ $(function()
 			$filter.find("input[name=group_filter][value=null]").prop("checked", true);
 		else
 			$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
+		if (filters.linked === null)
+			$filter.find("input[name=linked][value=null]").prop("checked", true);
+		else
+			$filter.find("input[name=linked][value=" + filters.linked + "]").prop("checked", true);
 		if (filters.group_list)
 			for (i = 0; i < filters.group_list.length; i++)
 				$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
@@ -374,6 +384,22 @@ function set_top_html(count)
 			else
 				html += "???";
 			}
+		html += "</span>";
+		}
+
+	if (filters.linked !== null)
+		{
+		html += " <span class=\"label label-info\">Linked: ";
+		if (filters.linked === "main")
+			html += "Main Account";
+		else if (filters.linked === "sub")
+			html += "Linked Account";
+		else if (filters.linked === "yes")
+			html += "Either Main or Linked Account";
+		else if (filters.linked === "no")
+			html += "No";
+		else
+			html += "???";
 		html += "</span>";
 		}
 
