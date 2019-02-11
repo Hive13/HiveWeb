@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Wed Feb  6 11:27:15 2019
+-- Created on Mon Feb 11 17:41:56 2019
 -- 
 ;
 --
@@ -255,7 +255,7 @@ CREATE TABLE "audit_log" (
   "audit_id" uuid NOT NULL,
   "change_time" timestamp with time zone DEFAULT current_timestamp NOT NULL,
   "changed_member_id" uuid NOT NULL,
-  "changing_member_id" uuid NOT NULL,
+  "changing_member_id" uuid,
   "change_type" character varying NOT NULL,
   "notes" character varying,
   PRIMARY KEY ("audit_id")
