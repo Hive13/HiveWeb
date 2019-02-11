@@ -15,8 +15,11 @@ my $group_name    = 'members';
 my $pc_group_name = 'pending_cancellations';
 
 my $pay_date_query = $schema->resultset('Payment')->search(
-	{ payment_date => { '<=' => \"now() - interval '$begin_date days'" } },
-	{ alias => 'payment' })->get_column('member_id')->as_query() || die $!;
+	{ member_id => { ident => 'me.member_id' } },
+	{
+	alias   => 'payment',
+	columns => { pay_date => { max => 'payment_date' } },
+	})->as_query() || die $!;
 my $member_query = $schema->resultset('MemberMgroup')->search(
 	{ 'mgroup.name' => $group_name },
 	{ alias => 'mem_group', join => 'mgroup' }
@@ -27,11 +30,18 @@ my $candidates  = $schema->resultset('Member')->search(
 	{
 	paypal_email     => [ { 'like' => '%@%' }, undef ],
 	linked_member_id => undef,
-	member_id        => { '-not_in' => $pay_date_query, '-in' => $member_query },
+	member_id        => { '-in' => $member_query },
+	},
+	{
+	'+select' => $pay_date_query,
+	'+as'     => 'pay_date',
 	}) || die $!;
 
 while (my $candidate = $candidates->next())
 	{
+	my $pay_date = $candidate->get_column('pay_date');
+	next if (!$pay_date);
+	warn Data::Dumper::Dumper($pay_date);
 	$schema->txn_do(sub
 		{
 		my $pc  = $candidate->find_or_new_related('member_mgroups', { mgroup_id => $pc_group_id }) || die $!;
