@@ -10,7 +10,7 @@ use HiveWeb::Schema;
 my $config = HiveWeb->config();
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
 
-my $begin_date    = 35;
+my $begin_days    = 35;
 my $group_name    = 'members';
 my $pc_group_name = 'pending_cancellations';
 
@@ -18,7 +18,7 @@ my $pay_date_query = $schema->resultset('Payment')->search(
 	{ member_id => { ident => 'me.member_id' } },
 	{
 	alias   => 'payment',
-	columns => { pay_date => { max => 'payment_date' } },
+	columns => { pay_date => \'EXTRACT(DAYS FROM NOW() - MAX(payment_date))' },
 	})->as_query() || die $!;
 my $member_query = $schema->resultset('MemberMgroup')->search(
 	{ 'mgroup.name' => $group_name },
@@ -34,14 +34,14 @@ my $candidates  = $schema->resultset('Member')->search(
 	},
 	{
 	'+select' => $pay_date_query,
-	'+as'     => 'pay_date',
+	'+as'     => 'days_past',
 	}) || die $!;
 
 while (my $candidate = $candidates->next())
 	{
-	my $pay_date = $candidate->get_column('pay_date');
-	next if (!$pay_date);
-	warn Data::Dumper::Dumper($pay_date);
+	my $days = $candidate->get_column('days_past');
+	next if (!defined($days) || $days < $begin_days);
+	warn $days;
 	$schema->txn_do(sub
 		{
 		my $pc  = $candidate->find_or_new_related('member_mgroups', { mgroup_id => $pc_group_id }) || die $!;
