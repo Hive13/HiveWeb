@@ -378,7 +378,7 @@ sub remove_group
 	$changing_id = $changing_id->member_id() if (ref($changing_id));
 	$notes     //= "Removed group $group_id";
 	
-	my $mg = $self->find_related('member_mgroups', { mgroup_id => $group_id }) || die $!;
+	my $mg = $self->find_related('member_mgroups', { mgroup_id => $group_id });
 
 	if ($mg)
 		{
