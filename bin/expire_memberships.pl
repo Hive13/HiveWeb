@@ -10,7 +10,7 @@ use HiveWeb::Schema;
 my $config = HiveWeb->config();
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
 
-my $begin_days    = 35;
+my $begin_days    = 40;
 my $expire_days   = 90;
 my $group_name    = 'members';
 my $pc_group_name = 'pending_cancellations';
@@ -48,80 +48,20 @@ while (my $candidate = $candidates->next())
 		my $lpc = $candidate->linked_members();
 		if ($days < $expire_days)
 			{
-			my $pc = $candidate->find_or_new_related('member_mgroups', { mgroup_id => $pc_group_id }) || die $!;
-
-			if (!$pc->in_storage())
-				{
-				$candidate->create_related('changed_audits',
-					{
-					change_type        => 'add_group',
-					changing_member_id => undef,
-					notes              => "Added group $pc_group_id due to lapsed payment",
-					}) || die $!;
-				$pc->insert();
-				}
+			$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment");
 			while (my $link = $lpc->next())
 				{
-				$link->find_or_new_related('member_mgroups', { mgroup_id => $pc_group_id }) || die $!;
-				if (!$link->in_storage())
-					{
-					$link->create_related('changed_audits',
-						{
-						change_type        => 'add_group',
-						changing_member_id => undef,
-						notes              => "Added group $pc_group_id due to lapsed payment of linked account",
-						}) || die $!;
-					}
+				$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment of linked account");
 				}
 			}
 		else
 			{
-			my $pc = $candidate->find_related('member_mgroups', { mgroup_id => $pc_group_id });
-			if ($pc)
-				{
-				$candidate->create_related('changed_audits',
-					{
-					change_type        => 'remove_group',
-					changing_member_id => undef,
-					notes              => "Removed group $pc_group_id due to lapsed payment",
-					}) || die $!;
-				$pc->delete();
-				}
-			my $mem = $candidate->find_related('member_mgroups', { mgroup_id => $mem_group_id });
-			if ($mem)
-				{
-				$candidate->create_related('changed_audits',
-					{
-					change_type        => 'remove_group',
-					changing_member_id => undef,
-					notes              => "Removed group $mem_group_id due to lapsed payment",
-					}) || die $!;
-				$mem->delete();
-				}
+			$candidate->remove_group($pc_group_id, undef, "Removed group $pc_group_id due to lapsed payment");
+			$candidate->remove_group($mem_group_id, undef, "Removed group $mem_group_id due to lapsed payment");
 			while (my $link = $lpc->next())
 				{
-				my $pc = $link->find_related('member_mgroups', { mgroup_id => $pc_group_id }) || die $!;
-				if ($pc)
-					{
-					$link->create_related('changed_audits',
-						{
-						change_type        => 'remove_group',
-						changing_member_id => undef,
-						notes              => "Removed group $pc_group_id due to lapsed payment of linked account",
-						}) || die $!;
-					$pc->delete();
-					}
-				my $mem = $link->find_related('member_mgroups', { mgroup_id => $mem_group_id }) || die $!;
-				if ($mem)
-					{
-					$link->create_related('changed_audits',
-						{
-						change_type        => 'remove_group',
-						changing_member_id => undef,
-						notes              => "Removed group $mem_group_id due to lapsed payment of linked account",
-						}) || die $!;
-					$mem->delete();
-					}
+				$link->remove_group($pc_group_id, undef, "Removed group $pc_group_id due to lapsed payment of linked account");
+				$link->remove_group($mem_group_id, undef, "Removed group $mem_group_id due to lapsed payment of linked account");
 				}
 			}
 
