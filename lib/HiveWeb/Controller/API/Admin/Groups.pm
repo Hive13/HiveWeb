@@ -96,6 +96,7 @@ sub edit :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
+			my $changing_id = $c->user()->member_id();
 			if (!$mgroup)
 				{
 				$mgroup    = $c->model('DB::MGroup')->create({ name => $name }) || die $!;
@@ -109,26 +110,13 @@ sub edit :Local :Args(0)
 			foreach my $member (@members)
 				{
 				my $member_id = $member->member_id();
-				if ($new_members{$member_id} && !$member->find_related('member_mgroups', { mgroup_id => $mgroup_id }))
+				if ($new_members{$member_id})
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'add_group',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Added group ' . $mgroup_id,
-						});
-					$member->create_related('member_mgroups', { mgroup_id => $mgroup_id });
+					$member->add_group($mgroup_id, $changing_id);
 					}
-				my $mg;
-				if (!$new_members{$member_id} && ($mg = $member->find_related('member_mgroups', { mgroup_id => $mgroup_id })))
+				else
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'remove_group',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Removed group ' . $mgroup_id,
-						});
-					$mg->delete();
+					$member->remove_group($mgroup_id, $changing_id);
 					}
 				}
 			$out->{response} = \1;
