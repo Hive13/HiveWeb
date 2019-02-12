@@ -567,7 +567,7 @@ schema:
         changing_member_id:
           data_type: uuid
           default_value: ~
-          is_nullable: 0
+          is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: changing_member_id
@@ -1894,6 +1894,19 @@ schema:
             - image_id
           reference_table: image
           type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: members_fk_member_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - linked_member_id
+          reference_table: members
+          type: FOREIGN KEY
       fields:
         created_at:
           data_type: timestamp without time zone
@@ -1956,6 +1969,16 @@ schema:
           order: 12
           size:
             - 0
+        linked_member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: linked_member_id
+          order: 16
+          size:
+            - 16
         lname:
           data_type: varchar
           default_value: ~

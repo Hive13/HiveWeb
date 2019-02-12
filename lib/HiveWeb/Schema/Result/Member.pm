@@ -56,6 +56,8 @@ __PACKAGE__->add_columns(
 	{ data_type => 'integer', is_nullable => 1 },
 	'totp_secret',
 	{ data_type => 'bytea', is_nullable => 1 },
+	'linked_member_id',
+	{ data_type => 'uuid', is_nullable => 1, size => 16 },
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -172,6 +174,21 @@ __PACKAGE__->has_many
 	'payments',
 	'HiveWeb::Schema::Result::Payment',
 	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->belongs_to
+	(
+	'link',
+	'HiveWeb::Schema::Result::Member',
+	{ 'foreign.linked_member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+__PACKAGE__->has_many
+	(
+	'linked_members',
+	'HiveWeb::Schema::Result::Member',
+	{ 'foreign.linked_member_id' => 'self.member_id' },
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
@@ -329,6 +346,59 @@ sub check_2fa
 	my $candidate_code3 = $oath->totp($secret, $now - 30);
 
 	return (($code eq $candidate_code1) || ($code eq $candidate_code2) || ($code eq $candidate_code3));
+	}
+
+sub add_group
+	{
+	my ($self, $group_id, $changing_id, $notes) = @_;
+
+	$group_id    = $group_id->mgroup_id() if (ref($group_id));
+	$changing_id = $changing_id->member_id() if (ref($changing_id));
+	$notes     //= "Added group $group_id";
+
+	my $mg = $self->find_or_new_related('member_mgroups', { mgroup_id => $group_id }) || die $!;
+
+	if (!$mg->in_storage())
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type        => 'add_group',
+			changing_member_id => $changing_id,
+			notes              => $notes,
+			}) || die $!;
+		$mg->insert();
+		}
+	}
+
+sub remove_group
+	{
+	my ($self, $group_id, $changing_id, $notes) = @_;
+
+	$group_id    = $group_id->mgroup_id() if (ref($group_id));
+	$changing_id = $changing_id->member_id() if (ref($changing_id));
+	$notes     //= "Removed group $group_id";
+
+	my $mg = $self->find_related('member_mgroups', { mgroup_id => $group_id });
+
+	if ($mg)
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type        => 'remove_group',
+			changing_member_id => $changing_id,
+			notes              => $notes,
+			}) || die $!;
+		$mg->delete();
+		}
+	}
+
+sub in_group
+	{
+	my ($self, $group_id) = @_;
+
+	$group_id = $group_id->mgroup_id() if (ref($group_id));
+
+	return $self->find_related('member_mgroups', { mgroup_id => $group_id });
 	}
 
 sub admin_class

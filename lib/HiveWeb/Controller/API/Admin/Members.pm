@@ -76,21 +76,10 @@ sub info :Local :Args(0)
 		return;
 		}
 
-	my @badges = $member->badges();
-	my @obadges;
-	foreach my $badge (@badges)
-		{
-		push(@obadges,
-			{
-			badge_id     => $badge->badge_id(),
-			badge_number => $badge->badge_number()
-			});
-		}
-	my @slots = $member->list_slots();
-
-	$out->{slots}    = \@slots;
-	$out->{badges}   = \@obadges;
+	$out->{slots}    = [ $member->list_slots() ];
+	$out->{badges}   = [ $member->badges() ];
 	$out->{member}   = $member;
+	$out->{linked}   = [ $member->linked_members() ];
 	$out->{response} = \1;
 	}
 
@@ -249,26 +238,13 @@ sub edit :Local :Args(0)
 			foreach my $group (@groups)
 				{
 				my $group_id = $group->mgroup_id();
-				if ($new_groups{$group_id} && !$member->find_related('member_mgroups', { mgroup_id => $group_id }))
+				if ($new_groups{$group_id})
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'add_group',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Added group ' . $group_id
-						});
-					$member->create_related('member_mgroups', { mgroup_id => $group_id });
+					$member->add_group($group_id, $c->user());
 					}
-				my $mg;
-				if (!$new_groups{$group_id} && ($mg = $member->find_related('member_mgroups', { mgroup_id => $group_id })))
+				else
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'remove_group',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Removed group ' . $group_id
-						});
-					$mg->delete();
+					$member->remove_group($group_id, $c->user());
 					}
 				}
 			$out->{response} = \1;
@@ -364,6 +340,32 @@ sub index :Path :Args(0)
 
 	$filters->{member_image_id} = ($in->{filters}->{photo} ? { '!=' => undef } : undef)
 		if (defined($in->{filters}->{photo}));
+
+	if (defined(my $linked = $in->{filters}->{linked}))
+		{
+		my $main_query = $c->model('DB::Member')->search({ linked_member_id => { '-ident' => 'me.member_id' } }, { alias => 'links' })->count_rs()->as_query();
+		if ($linked eq 'sub')
+			{
+			$filters->{linked_member_id} = { '!=' => undef };
+			}
+		elsif ($linked eq 'main')
+			{
+			$filters->{$$main_query->[0]} = { '>=' => 1 };
+			}
+		elsif ($linked eq 'no')
+			{
+			$filters->{linked_member_id} = undef;
+			$filters->{$$main_query->[0]} = 0;
+			}
+		elsif ($linked eq 'yes')
+			{
+			$filters->{'-or'} =
+				[
+				{ linked_member_id  => { '!=' => undef} },
+				{ $$main_query->[0] => { '>=' => 1} },
+				];
+			}
+		}
 
 	if (defined(my $pp = $in->{filters}->{paypal}))
 		{

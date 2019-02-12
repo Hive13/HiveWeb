@@ -81,6 +81,10 @@
 									<br />
 									Leave blank if member does not use PayPal.
 								</div>
+								<div style="display: none" id="linked_div">
+									<h6>Linked Accounts</h6>
+									<div></div>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -161,28 +165,7 @@
 			</div>
 			<div class="modal-body">
 				<div class="row row-eq-height u-pb-5">
-					<div class="col-md-4">
-						<div class="panel panel-default">
-							<div class="panel-heading">
-								<h4>Profile Picture</h4>
-							</div>
-							<div class="panel-body">
-								<label>
-									<input type="radio" name="photo" value="null" />
-									All
-								</label><br />
-								<label>
-									<input type="radio" name="photo" value="true" />
-									Yes
-								</label><br />
-								<label>
-									<input type="radio" name="photo" value="false" />
-									No
-								</label><br />
-							</div>
-						</div>
-					</div>
-					<div class="col-md-4">
+					<div class="col-xs-12 col-sm-6 col-md-4">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>PayPal Status</h4>
@@ -207,7 +190,36 @@
 							</div>
 						</div>
 					</div>
-					<div class="col-md-4">
+					<div class="col-xs-12 col-sm-6 col-md-4">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Linked</h4>
+							</div>
+							<div class="panel-body">
+								<label>
+									<input type="radio" name="linked" value="null" />
+									Any
+								</label><br />
+								<label>
+									<input type="radio" name="linked" value="no" />
+									No
+								</label><br />
+								<label>
+									<input type="radio" name="linked" value="main" />
+									Yes, the main account
+								</label><br />
+								<label>
+									<input type="radio" name="linked" value="sub" />
+									Yes, a linked account
+								</label><br />
+								<label>
+									<input type="radio" name="linked" value="yes" />
+									Yes, either main or linked
+								</label>
+							</div>
+						</div>
+					</div>
+					<div class="col-xs-12 col-sm-6 col-md-4">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>Storage Slots</h4>
@@ -269,14 +281,35 @@
 							</div>
 						</div>
 					</div>
-					<div class="col-xs-12">
+					<div class="col-xs-12 col-sm-6 col-md-3">
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h4>Profile Picture</h4>
+							</div>
+							<div class="panel-body">
+								<label>
+									<input type="radio" name="photo" value="null" />
+									All
+								</label><br />
+								<label>
+									<input type="radio" name="photo" value="true" />
+									Yes
+								</label><br />
+								<label>
+									<input type="radio" name="photo" value="false" />
+									No
+								</label><br />
+							</div>
+						</div>
+					</div>
+					<div class="col-xs-12 col-md-9">
 						<div class="panel panel-default">
 							<div class="panel-heading">
 								<h4>Group Membership</h4>
 							</div>
 							<div class="panel-body">
 								<div class="row">
-									<div class="col-md-6">
+									<div class="col-md-7">
 										<h5>Filtering Options</h5>
 										<label>
 											<input type="radio" name="group_filter" value="null" />
@@ -302,7 +335,7 @@
 											#	</label><br />
 										%]
 									</div>
-									<div class="col-md-6">
+									<div class="col-md-5">
 										<h5>Group Selection</h5>
 										<div id="group_list"></div>
 									</div>
