@@ -6,10 +6,12 @@ use warnings;
 use lib 'lib';
 use HiveWeb;
 use HiveWeb::Schema;
+use Try::Tiny;
 
 my $config = HiveWeb->config();
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
 
+my $debug         = 1;
 my $begin_days    = 40;
 my $expire_days   = 90;
 my $group_name    = 'members';
@@ -40,31 +42,39 @@ my $candidates   = $schema->resultset('Member')->search(
 
 while (my $candidate = $candidates->next())
 	{
-	my $days = $candidate->get_column('days_past');
-	next if (!defined($days) || $days < $begin_days);
-	warn $days;
-	$schema->txn_do(sub
+	try
 		{
-		my $lpc = $candidate->linked_members();
-		if ($days < $expire_days)
+		my $days = $candidate->get_column('days_past');
+		return if (!defined($days) || $days < $begin_days);
+		warn $days;
+		$schema->txn_do(sub
 			{
-			$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment");
-			while (my $link = $lpc->next())
+			my $lpc = $candidate->linked_members();
+			if ($days < $expire_days)
 				{
-				$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment of linked account");
+				$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment");
+				while (my $link = $lpc->next())
+					{
+					$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment of linked account");
+					}
 				}
-			}
-		else
-			{
-			$candidate->remove_group($pc_group_id, undef, "Removed group $pc_group_id due to lapsed payment");
-			$candidate->remove_group($mem_group_id, undef, "Removed group $mem_group_id due to lapsed payment");
-			while (my $link = $lpc->next())
+			else
 				{
-				$link->remove_group($pc_group_id, undef, "Removed group $pc_group_id due to lapsed payment of linked account");
-				$link->remove_group($mem_group_id, undef, "Removed group $mem_group_id due to lapsed payment of linked account");
+				$candidate->remove_group($pc_group_id, undef, "Removed group $pc_group_id due to lapsed payment");
+				$candidate->remove_group($mem_group_id, undef, "Removed group $mem_group_id due to lapsed payment");
+				while (my $link = $lpc->next())
+					{
+					$link->remove_group($pc_group_id, undef, "Removed group $pc_group_id due to lapsed payment of linked account");
+					$link->remove_group($mem_group_id, undef, "Removed group $mem_group_id due to lapsed payment of linked account");
+					}
 				}
-			}
 
-		die;
-		});
+			die "Debug Rollback" if $debug;
+			});
+		}
+	catch
+		{
+		die $_ if !$debug;
+		warn $_ if $debug && $_;
+		};
 	}
