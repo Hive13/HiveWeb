@@ -39,7 +39,7 @@
 		},
 	email =>
 		{
-		admin_to    => 'intwebsandbox@hive13.org',
+		notify_to   => 'intwebsandbox@hive13.org',
 		from        => 'intweb@hive13.org',
 		from_name   => 'Hive13 Intweb',
 		auth        => '< put auth password here >',
