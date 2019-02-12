@@ -39,6 +39,9 @@ ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_member_id" FOREIGN KEY ("member
   REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
+ALTER TABLE audit_log ALTER COLUMN changing_member_id DROP NOT NULL;
+
+;
 ALTER TABLE members ADD COLUMN linked_member_id uuid;
 
 ;

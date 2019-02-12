@@ -24,6 +24,19 @@
 		public_key => 'pk_live_FI8RhhPdbD6tTjAHtPbkrVi5',
 		secret_key => '< put secret key here >',
 		},
+	cancellations =>
+		{
+		message_groups =>
+			{
+			40 => 'late_payment_40',
+			60 => 'late_payment_60',
+			80 => 'late_payment_80',
+			},
+		late_email    => 'member.past_due',
+		expire_days   => 90,
+		member_group  => 'members',
+		pending_group => 'pending_cancellations',
+		},
 	email =>
 		{
 		from        => 'intweb@hive13.org',
@@ -60,6 +73,7 @@
 		'application.attach_form'    => 60,
 		'application.update'         => 60,
 		'application.finalize'       => 70,
+		'member.past_due'            => 40,
 		'password.reset'             => 1,
 		'storage.assign'             => 100,
 		'storage.request'            => 100,
