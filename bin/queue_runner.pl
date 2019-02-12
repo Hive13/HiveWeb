@@ -66,7 +66,6 @@ while (my $action = $queue->next())
 				warn 'Cannot find referenced member ' . $action->row_id();
 				return;
 				}
-
 			my $member_config = $mail_config->{member};
 			if (exists($member_config->{$type}))
 				{

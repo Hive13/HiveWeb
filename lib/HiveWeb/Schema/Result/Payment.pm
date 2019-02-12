@@ -23,6 +23,8 @@ __PACKAGE__->add_columns(
   {
     data_type     => 'timestamp with time zone',
     is_nullable   => 0,
+    default_value => \'current_timestamp',
+    original      => { default_value => \'now()' },
   },
 );
 

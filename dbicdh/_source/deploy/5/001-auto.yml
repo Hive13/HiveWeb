@@ -2193,7 +2193,8 @@ schema:
             - 16
         payment_date:
           data_type: timestamp with time zone
-          default_value: ~
+          default_value: !!perl/ref
+            =: current_timestamp
           is_nullable: 0
           is_primary_key: 0
           is_unique: 0

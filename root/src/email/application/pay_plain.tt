@@ -1,0 +1,8 @@
+Hello Leadership,
+
+[% action.queuing_member.fname %] [% action.queuing_member.lname %] has paid the first month's dues and is now fully activated.
+
+Sincerely,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

@@ -4,8 +4,67 @@ use namespace::autoclean;
 use Try::Tiny;
 use LWP::UserAgent;
 use JSON;
+use DateTime::TimeZone;
+use DateTime::Format::Strptime;
 
 BEGIN { extends 'Catalyst::Controller' }
+
+sub subscr_payment
+	{
+	my ($self, $c, $member, $parameters, $message) = @_;
+
+	return if ($parameters->{payment_status} ne 'Completed');
+
+	my $existing = $c->model('DB::Payment')->search(
+		{ 'ipn_message.txn_id' => $parameters->{txn_id} },
+		{ join => 'ipn_message'}
+		)->count();
+	if ($existing)
+		{
+		$c->log()->error('Payment already exists for IPN Message ' . $message->ipn_message_id());
+		return;
+		}
+
+	my $tz         = DateTime::TimeZone->new(name => 'America/Los_Angeles');
+	my $payment_p  = DateTime::Format::Strptime->new( pattern => '%H:%M:%S %b %d, %Y', time_zone => $tz);
+	my $payment_dt = $payment_p->parse_datetime($parameters->{payment_date});
+	my $payment    = $member->create_related('payments',
+		{
+		ipn_message_id => $message->ipn_message_id(),
+		payment_date   => $payment_dt,
+		}) || die;
+
+	my $pending = $member->search_related('member_mgroups', { 'mgroup.name' => 'pending_payments' }, { join => 'mgroup' });
+	if ($pending->count())
+		{
+		$pending->delete();
+		my $new_group = $c->model('DB::Mgroup')->find({ name => 'members' }) || die;
+		$member->find_or_create_related('member_mgroups', { mgroup_id => $new_group->mgroup_id() });
+
+		my $application = $member->find_related('applications',
+			{
+			decided_at => { '!=' => undef},
+			},
+			{
+			order_by => { -desc => 'updated_at' },
+			rows     => 1,
+			});
+
+		$c->model('DB::Action')->create(
+			{
+			queuing_member_id => $member->member_id(),
+			action_type       => 'application.pay',
+			row_id            => $application->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+
+		$c->model('DB::Action')->create(
+			{
+			queuing_member_id => $member->member_id(),
+			action_type       => 'member.welcome',
+			row_id            => $payment->payment_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+	}
 
 sub subscr_cancel
 	{
@@ -78,8 +137,9 @@ sub ipn :Local :Args(0)
 				$log->error('Cannot locate member in message ' . $message->ipn_message_id());
 				}
 
-			if ($type)
+			if ($type eq 'echeck' || $type eq 'subscr_payment')
 				{
+				$self->subscr_payment($c, $member, $parameters, $message);
 				}
 			elsif ($type eq 'subscr_cancel')
 				{

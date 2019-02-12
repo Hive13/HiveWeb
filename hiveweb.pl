@@ -67,6 +67,11 @@
 			},
 		member =>
 			{
+			welcome =>
+				{
+				temp_plain => 'email/welcome.tt',
+				subject    => 'Welcome to Hive13',
+				}
 			confirm_cancel =>
 				{
 				temp_plain => 'email/member/confirm_cancel_plain.tt',
@@ -87,9 +92,11 @@
 		'application.attach_form'    => 60,
 		'application.update'         => 60,
 		'application.finalize'       => 70,
+		'application.pay'            => 80,
 		'member.confirm_cancel'      => 100,
 		'member.notify_cancel'       => 100,
 		'member.past_due'            => 40,
+		'member.welcome'             => 2,
 		'password.reset'             => 1,
 		'storage.assign'             => 100,
 		'storage.request'            => 100,
@@ -121,6 +128,10 @@
 		finalize =>
 			{
 			temp_plain => 'email/application/finalize_plain.tt',
+			},
+		pay =>
+			{
+			temp_plain => 'email/application/pay_plain.tt',
 			},
 		},
 	}
