@@ -71,7 +71,7 @@
 				{
 				temp_plain => 'email/welcome.tt',
 				subject    => 'Welcome to Hive13',
-				}
+				},
 			confirm_cancel =>
 				{
 				temp_plain => 'email/member/confirm_cancel_plain.tt',
