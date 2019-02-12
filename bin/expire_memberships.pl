@@ -10,12 +10,23 @@ use Try::Tiny;
 
 my $config = HiveWeb->config();
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
+$config = $config->{cancellations};
 
-my $debug         = 1;
-my $begin_days    = 40;
-my $expire_days   = 90;
-my $group_name    = 'members';
-my $pc_group_name = 'pending_cancellations';
+my $debug   = 1;
+my $message = [];
+foreach my $freq (sort(keys(%{$config->{message_groups}})))
+	{
+	my $name  = $config->{message_groups}->{$freq};
+	my $group = $schema->resultset('Mgroup')->find({ name => $name }) || die "Unknown group $name";
+	push (@$message,
+		{
+		days     => $freq,
+		name     => $name,
+		group_id => $group->mgroup_id(),
+		});
+	}
+die "Don't know when to send messages!" if (scalar(@$message) < 1);
+my $begin_days = $message->[0]->{days};
 
 my $pay_date_query = $schema->resultset('Payment')->search(
 	{ member_id => { ident => 'me.member_id' } },
@@ -24,11 +35,11 @@ my $pay_date_query = $schema->resultset('Payment')->search(
 	columns => { pay_date => \'EXTRACT(DAYS FROM NOW() - MAX(payment_date))' },
 	})->as_query() || die $!;
 my $member_query = $schema->resultset('MemberMgroup')->search(
-	{ 'mgroup.name' => $group_name },
+	{ 'mgroup.name' => $config->{member_group} },
 	{ alias => 'mem_group', join => 'mgroup' }
 	)->get_column('member_id')->as_query() || die $!;
-my $mem_group_id = $schema->resultset('Mgroup')->find({ name => $group_name })->mgroup_id() || die $!;
-my $pc_group_id  = $schema->resultset('Mgroup')->find({ name => $pc_group_name })->mgroup_id() || die $!;
+my $mem_group_id = $schema->resultset('Mgroup')->find({ name => $config->{member_group} })->mgroup_id() || die $!;
+my $pc_group_id  = $schema->resultset('Mgroup')->find({ name => $config->{pending_group} })->mgroup_id() || die $!;
 my $candidates   = $schema->resultset('Member')->search(
 	{
 	paypal_email     => [ { 'like' => '%@%' }, undef ],
@@ -50,12 +61,28 @@ while (my $candidate = $candidates->next())
 		$schema->txn_do(sub
 			{
 			my $lpc = $candidate->linked_members();
-			if ($days < $expire_days)
+			if ($days < $config->{expire_days})
 				{
 				$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment");
 				while (my $link = $lpc->next())
 					{
 					$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment of linked account");
+					}
+				# Loop through the list of when to send messages BACKWARDS
+				for (my $i = scalar(@$message) - 1; $i >= 0; $i--)
+					{
+					# Skip if we haven't hit number of days yet
+					next if ($days < $message->[$i]->{days});
+					# Skip if already sent message
+					next if ($candidate->in_group($message->[$i]->{group_id}));
+					$schema->resultset('Action')->create(
+						{
+						queuing_member_id => $candidate->member_id(),
+						action_type       => $config->{late_email},
+						row_id            => $candidate->member_id(),
+						}) || die 'Could not queue notification: ' . $!;
+					$candidate->add_group($message->[$i]->{group_id}, undef, 'Added group ' . $message->[$i]->{group_id} . ' due to lapsed payment');
+					last;
 					}
 				}
 			else
@@ -75,6 +102,6 @@ while (my $candidate = $candidates->next())
 	catch
 		{
 		die $_ if !$debug;
-		warn $_ if $debug && $_;
+		warn $_ if $debug && $_ !~ /^Debug Rollback/;
 		};
 	}
