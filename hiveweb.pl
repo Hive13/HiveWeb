@@ -24,8 +24,22 @@
 		public_key => 'pk_live_FI8RhhPdbD6tTjAHtPbkrVi5',
 		secret_key => '< put secret key here >',
 		},
+	cancellations =>
+		{
+		message_groups =>
+			{
+			40 => 'late_payment_40',
+			60 => 'late_payment_60',
+			80 => 'late_payment_80',
+			},
+		late_email    => 'member.past_due',
+		expire_days   => 90,
+		member_group  => 'members',
+		pending_group => 'pending_cancellations',
+		},
 	email =>
 		{
+		notify_to   => 'intwebsandbox@hive13.org',
 		from        => 'intweb@hive13.org',
 		from_name   => 'Hive13 Intweb',
 		auth        => '< put auth password here >',
@@ -51,10 +65,23 @@
 			temp_plain => 'email/requested_slot_plain.tt',
 			subject    => 'Storage Slot requested at Hive13',
 			},
-		welcome =>
+		member =>
 			{
-			temp_plain => 'email/welcome.tt',
-			subject    => 'Welcome to Hive13',
+			welcome =>
+				{
+				temp_plain => 'email/welcome.tt',
+				subject    => 'Welcome to Hive13',
+				}
+			confirm_cancel =>
+				{
+				temp_plain => 'email/member/confirm_cancel_plain.tt',
+				subject    => 'Hive13 Subscription Cancelled',
+				},
+			notify_cancel =>
+				{
+				temp_plain => 'email/member/notify_cancel_plain.tt',
+				subject    => 'Member Subscription Cancelled',
+				},
 			},
 		},
 	priorities =>
@@ -66,6 +93,9 @@
 		'application.update'         => 60,
 		'application.finalize'       => 70,
 		'application.pay'            => 80,
+		'member.confirm_cancel'      => 100,
+		'member.notify_cancel'       => 100,
+		'member.past_due'            => 40,
 		'member.welcome'             => 2,
 		'password.reset'             => 1,
 		'storage.assign'             => 100,

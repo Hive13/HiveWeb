@@ -348,6 +348,59 @@ sub check_2fa
 	return (($code eq $candidate_code1) || ($code eq $candidate_code2) || ($code eq $candidate_code3));
 	}
 
+sub add_group
+	{
+	my ($self, $group_id, $changing_id, $notes) = @_;
+
+	$group_id    = $group_id->mgroup_id() if (ref($group_id));
+	$changing_id = $changing_id->member_id() if (ref($changing_id));
+	$notes     //= "Added group $group_id";
+
+	my $mg = $self->find_or_new_related('member_mgroups', { mgroup_id => $group_id }) || die $!;
+
+	if (!$mg->in_storage())
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type        => 'add_group',
+			changing_member_id => $changing_id,
+			notes              => $notes,
+			}) || die $!;
+		$mg->insert();
+		}
+	}
+
+sub remove_group
+	{
+	my ($self, $group_id, $changing_id, $notes) = @_;
+
+	$group_id    = $group_id->mgroup_id() if (ref($group_id));
+	$changing_id = $changing_id->member_id() if (ref($changing_id));
+	$notes     //= "Removed group $group_id";
+
+	my $mg = $self->find_related('member_mgroups', { mgroup_id => $group_id });
+
+	if ($mg)
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type        => 'remove_group',
+			changing_member_id => $changing_id,
+			notes              => $notes,
+			}) || die $!;
+		$mg->delete();
+		}
+	}
+
+sub in_group
+	{
+	my ($self, $group_id) = @_;
+
+	$group_id = $group_id->mgroup_id() if (ref($group_id));
+
+	return $self->find_related('member_mgroups', { mgroup_id => $group_id });
+	}
+
 sub admin_class
 	{
 	return __PACKAGE__ . '::Admin';

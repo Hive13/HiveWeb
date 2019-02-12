@@ -1,0 +1,8 @@
+Hello Leadership,
+
+I have received a PayPal cancellation for [% member.fname %] [% member.lname %].
+
+Sincerely,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

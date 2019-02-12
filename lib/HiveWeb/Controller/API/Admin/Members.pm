@@ -238,26 +238,13 @@ sub edit :Local :Args(0)
 			foreach my $group (@groups)
 				{
 				my $group_id = $group->mgroup_id();
-				if ($new_groups{$group_id} && !$member->find_related('member_mgroups', { mgroup_id => $group_id }))
+				if ($new_groups{$group_id})
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'add_group',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Added group ' . $group_id
-						});
-					$member->create_related('member_mgroups', { mgroup_id => $group_id });
+					$member->add_group($group_id, $c->user());
 					}
-				my $mg;
-				if (!$new_groups{$group_id} && ($mg = $member->find_related('member_mgroups', { mgroup_id => $group_id })))
+				else
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'remove_group',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Removed group ' . $group_id
-						});
-					$mg->delete();
+					$member->remove_group($group_id, $c->user());
 					}
 				}
 			$out->{response} = \1;

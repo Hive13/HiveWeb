@@ -66,6 +66,25 @@ sub subscr_payment
 		}
 	}
 
+sub subscr_cancel
+	{
+	my ($self, $c, $member, $parameters, $message) = @_;
+
+	$c->model('DB::Action')->create(
+		{
+		queuing_member_id => $member->member_id(),
+		action_type       => 'member.confirm_cancel',
+		row_id            => $member->member_id(),
+		}) || die 'Could not queue notification: ' . $!;
+
+	$c->model('DB::Action')->create(
+		{
+		queuing_member_id => $member->member_id(),
+		action_type       => 'member.notify_cancel',
+		row_id            => $member->member_id(),
+		}) || die 'Could not queue notification: ' . $!;
+	}
+
 sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -121,6 +140,10 @@ sub ipn :Local :Args(0)
 			if ($type eq 'echeck' || $type eq 'subscr_payment')
 				{
 				$self->subscr_payment($c, $member, $parameters, $message);
+				}
+			elsif ($type eq 'subscr_cancel')
+				{
+				$self->subscr_cancel($c, $member, $parameters, $message);
 				}
 			else
 				{
