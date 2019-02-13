@@ -1,0 +1,65 @@
+<form method="post">
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="panel panel-danger">
+				<div class="panel-heading">
+					<h5>Confirm Cancellation</h5>
+				</div>
+				<div class="panel-body">
+					<h4>Please fill out this brief survey to help us improve the Hive.</h4>
+					<div class="input-group u-w-100">
+						<h5>Why are you leaving?</h5>
+						<label>
+							<input type="radio" name="reason" value="moving" />
+							I'm moving
+						</label><br />
+						<label>
+							<input type="radio" name="reason" value="time" />
+							I don't have time
+						</label><br />
+						<label>
+							<input type="radio" name="reason" value="money" />
+							I can't justify the expense
+						</label><br />
+						<label>
+							<input type="radio" name="reason" value="other" />
+							Other
+						</label><br />
+						<input type="text"id="other_reason" name="other_reason" style="display: none" class="form-control" />
+					</div>
+					<div class="input-group u-w-100">
+						<label class="u-w-100">
+							Do you have any comments to share with us?<br />
+							<textarea class="u-w-100" rows="6"></textarea>
+						</label>
+					</div>
+				</div>
+				<div class="panel-footer text-center">
+					Note that this is your official resignation from Hive13.
+					At the end of your subscription, your access will be automatically disabled.<br />
+					<input type="submit" value="Confirm Membership Cancellation" />
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+
+<script type="text/javascript">
+function reason_change()
+	{
+	var $other_reason = $("input#other_reason");
+	var val = $("input[name=reason]:checked").val();
+
+	if (val === "other")
+		$other_reason.css("display", "").focus();
+	else
+		$other_reason.css("display", "none");
+	}
+
+$(function ()
+	{
+	$("input[name=reason]").change(reason_change);
+	reason_change();
+	});
+</script>
+[%~ # vim:set filetype=tt2html: ~%]
