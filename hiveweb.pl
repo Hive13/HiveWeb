@@ -83,6 +83,11 @@
 				temp_plain => 'email/member/notify_cancel_plain.tt',
 				subject    => 'Member Subscription Cancelled',
 				},
+			notify_term =>
+				{
+				temp_plain => 'email/member/notify_term_plain.tt',
+				subject    => 'Member is Resigning',
+				},
 			},
 		},
 	priorities =>
