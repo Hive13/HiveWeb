@@ -69,7 +69,7 @@ while (my $action = $queue->next())
 			my $member_config = $mail_config->{member};
 			if (exists($member_config->{$type}))
 				{
-				if ($type eq 'notify_cancel')
+				if ($type =~ /^notify_/)
 					{
 					$message->{to} = $mail_config->{notify_to};
 					}
