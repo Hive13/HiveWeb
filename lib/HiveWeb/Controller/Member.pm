@@ -194,6 +194,42 @@ sub cancel :Local :Args(0)
 	my ($self, $c) = @_;
 
 	$c->stash()->{template} = 'member/cancel.tt';
+	my $member_id = $c->user()->member_id();
+
+	return
+		if ($c->request()->method() eq 'GET');
+
+	$c->model('DB')->txn_do(sub
+		{
+		$c->model('DB::Action')->create(
+			{
+			queuing_member_id => $member_id,
+			action_type       => 'member.notify_term',
+			row_id            => $member_id,
+			}) || die 'Could not queue notification: ' . $!;
+		my $expired = $c->model('DB::Payment')->find({ member_id => $member_id },
+			{
+			select => \"max(payment_date) + interval '1 month' <= now()",
+			as     => 'expired',
+			});
+		if ($expired->get_column('expired'))
+			{
+			my $group_id = $c->model('DB::Mgroup')->find({ name => 'members' })->mgroup_id() || die "Can't find group";
+			$c->user()->remove_group($group_id, undef, 'cancellation confirmation');
+			}
+		else
+			{
+			my $group_id = $c->model('DB::Mgroup')->find({ name => 'pending_expiry' })->mgroup_id() || die "Can't find group";
+			$c->user()->add_group($group_id, undef, 'cancellation confirmation');
+			}
+		$c->flash()->{auto_toast} =
+			{
+			title => 'Resignation Submitted',
+			text  => 'Your resignation has been submitted.',
+			};
+		die;
+		$c->response()->redirect($c->uri_for('/'));
+		});
 	}
 
 sub requests :Local :Args(0)
