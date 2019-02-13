@@ -189,6 +189,62 @@ sub pay :Local :Args(0)
 	$c->stash()->{template} = 'member/pay.tt';
 	}
 
+sub cancel :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	$c->stash()->{template} = 'member/cancel.tt';
+	my $user      = $c->user();
+	my $member_id = $user->member_id();
+
+	return
+		if ($c->request()->method() eq 'GET');
+
+	my $form = $c->request()->params();
+
+	$c->model('DB')->txn_do(sub
+		{
+		$c->model('DB::Action')->create(
+			{
+			queuing_member_id => $member_id,
+			action_type       => 'member.notify_term',
+			row_id            => $member_id,
+			}) || die 'Could not queue notification: ' . $!;
+		my $expired = $c->model('DB::Payment')->find({ member_id => $member_id },
+			{
+			select => \"max(payment_date) + interval '1 month' <= now()",
+			as     => 'expired',
+			});
+		if ($expired->get_column('expired'))
+			{
+			my $group_id = $c->model('DB::Mgroup')->find({ name => 'members' })->mgroup_id() || die "Can't find group";
+			$user->remove_group($group_id, undef, 'cancellation confirmation');
+			}
+		else
+			{
+			my $group_id = $c->model('DB::Mgroup')->find({ name => 'pending_expiry' })->mgroup_id() || die "Can't find group";
+			$user->add_group($group_id, undef, 'cancellation confirmation');
+			}
+
+		# TODO: Don't hardcode these UUIDs in.
+		my $reason = $form->{reason};
+		if ($reason eq 'other')
+			{
+			$reason = $form->{other_reason};
+			}
+		my $response = $user->create_related('survey_responses', { survey_id => 'c061cc14-0a56-4c6b-b589-32760c2e77f6' }) || die $!;
+		$response->create_related('answers', { survey_question_id => '6560957a-b1ca-4757-93e3-313c5a22679a', answer_text => $form->{comments} }) || die $!;
+		$response->create_related('answers', { survey_question_id => '6f38821c-1905-4d75-bd71-0ad21b2f187c', answer_text => $reason }) || die $!;
+
+		$c->flash()->{auto_toast} =
+			{
+			title => 'Resignation Submitted',
+			text  => 'Your resignation has been submitted.',
+			};
+		$c->response()->redirect($c->uri_for('/'));
+		});
+	}
+
 sub requests :Local :Args(0)
 	{
 	my ($self, $c) = @_;

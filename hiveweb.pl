@@ -36,6 +36,7 @@
 		expire_days   => 90,
 		member_group  => 'members',
 		pending_group => 'pending_cancellations',
+		expire_group  => 'pending_expiry',
 		},
 	email =>
 		{
@@ -82,6 +83,11 @@
 				temp_plain => 'email/member/notify_cancel_plain.tt',
 				subject    => 'Member Subscription Cancelled',
 				},
+			notify_term =>
+				{
+				temp_plain => 'email/member/notify_term_plain.tt',
+				subject    => 'Member is Resigning',
+				},
 			},
 		},
 	priorities =>
@@ -94,6 +100,7 @@
 		'application.finalize'       => 70,
 		'application.pay'            => 80,
 		'member.confirm_cancel'      => 100,
+		'member.notify_term'         => 90,
 		'member.notify_cancel'       => 100,
 		'member.past_due'            => 40,
 		'member.welcome'             => 2,

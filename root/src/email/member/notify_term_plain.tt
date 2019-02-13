@@ -1,0 +1,9 @@
+Hello Leadership,
+
+[% member.fname %] [% member.lname %] is resigning from the Hive.
+Membership will be automatically revoked on [% member.expire_date.strftime('%x') %].
+
+Sincerely,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]
