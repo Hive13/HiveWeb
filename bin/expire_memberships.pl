@@ -63,10 +63,10 @@ while (my $candidate = $candidates->next())
 			my $lpc = $candidate->linked_members();
 			if ($days < $config->{expire_days})
 				{
-				$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment");
+				$candidate->add_group($pc_group_id, undef, 'lapsed payment');
 				while (my $link = $lpc->next())
 					{
-					$candidate->add_group($pc_group_id, undef, "Added group $pc_group_id due to lapsed payment of linked account");
+					$candidate->add_group($pc_group_id, undef, 'lapsed payment of linked account');
 					}
 				# Loop through the list of when to send messages BACKWARDS
 				for (my $i = scalar(@$message) - 1; $i >= 0; $i--)
@@ -81,18 +81,18 @@ while (my $candidate = $candidates->next())
 						action_type       => $config->{late_email},
 						row_id            => $candidate->member_id(),
 						}) || die 'Could not queue notification: ' . $!;
-					$candidate->add_group($message->[$i]->{group_id}, undef, 'Added group ' . $message->[$i]->{group_id} . ' due to lapsed payment');
+					$candidate->add_group($message->[$i]->{group_id}, undef, 'lapsed payment');
 					last;
 					}
 				}
 			else
 				{
-				$candidate->remove_group($pc_group_id, undef, "Removed group $pc_group_id due to lapsed payment");
-				$candidate->remove_group($mem_group_id, undef, "Removed group $mem_group_id due to lapsed payment");
+				$candidate->remove_group($pc_group_id, undef, 'lapsed payment');
+				$candidate->remove_group($mem_group_id, undef, 'lapsed payment');
 				while (my $link = $lpc->next())
 					{
-					$link->remove_group($pc_group_id, undef, "Removed group $pc_group_id due to lapsed payment of linked account");
-					$link->remove_group($mem_group_id, undef, "Removed group $mem_group_id due to lapsed payment of linked account");
+					$link->remove_group($pc_group_id, undef, 'lapsed payment of linked account');
+					$link->remove_group($mem_group_id, undef, 'lapsed payment of linked account');
 					}
 				}
 
