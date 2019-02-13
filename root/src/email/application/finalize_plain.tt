@@ -1,20 +1,20 @@
 [%~
 SWITCH application.final_result;
-	CASE 'approved';
-		SET action = 'approved';
+	CASE 'accepted';
+		SET thing = 'approved';
 	CASE 'rejected';
-		SET action = 'rejected';
+		SET thing = 'rejected';
 	CASE 'withdrew';
-		SET action = 'marked as withdrawn';
+		SET thing = 'marked as withdrawn';
 	CASE 'expired';
-		SET action = 'marked as expired';
+		SET thing = 'marked as expired';
 	CASE;
-		SET action = 'done something weird with';
+		SET thing = 'done something weird with';
 END;
 ~%]
 Hello Leadership,
 
-[% action.queuing_member.fname %] [% action.queuing_member.lname %] has [% action %] this application.
+[% action.queuing_member.fname %] [% action.queuing_member.lname %] has [% thing %] this application.
 
 Sincerely,
 intweb
