@@ -25,12 +25,12 @@
 							<input type="radio" name="reason" value="other" />
 							Other
 						</label><br />
-						<input type="text"id="other_reason" name="other_reason" style="display: none" class="form-control" />
+						<input type="text" id="other_reason" name="other_reason" style="display: none" class="form-control" />
 					</div>
 					<div class="input-group u-w-100">
 						<label class="u-w-100">
 							Do you have any comments to share with us?<br />
-							<textarea class="u-w-100" rows="6"></textarea>
+							<textarea class="u-w-100" rows="6" name="comments"></textarea>
 						</label>
 					</div>
 				</div>
