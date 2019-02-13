@@ -41,6 +41,11 @@ __PACKAGE__->belongs_to(
 	'HiveWeb::Schema::Result::Survey',
 	{ 'foreign.survey_id' => 'self.survey_id' },
 );
+__PACKAGE__->has_many(
+	'answers',
+	'HiveWeb::Schema::Result::SurveyAnswer',
+	{ 'foreign.survey_response_id' => 'self.survey_response_id' },
+);
 
 __PACKAGE__->meta->make_immutable;
 

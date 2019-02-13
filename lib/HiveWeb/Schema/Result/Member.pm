@@ -179,8 +179,8 @@ __PACKAGE__->has_many
 
 __PACKAGE__->has_many
 	(
-	'surveys',
-	'HiveWeb::Schema::Result::Survey',
+	'survey_responses',
+	'HiveWeb::Schema::Result::SurveyResponse',
 	{ 'foreign.member_id' => 'self.member_id' },
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
