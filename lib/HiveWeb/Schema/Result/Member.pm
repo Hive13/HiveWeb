@@ -376,14 +376,14 @@ sub add_group
 
 sub remove_group
 	{
-	my ($self, $group_id, $changing_id, $note_extra) = @_;
+	my ($self, $group_id, $changing_id, $notes_extra) = @_;
 
 	$group_id    = $group_id->mgroup_id() if (ref($group_id));
 	$changing_id = $changing_id->member_id() if (ref($changing_id));
 	my $notes    = "Removed group $group_id";
 	if ($notes_extra)
 		{
-		$notes =. " - $notes_extra";
+		$notes .= " - $notes_extra";
 		}
 
 	my $mg = $self->find_related('member_mgroups', { mgroup_id => $group_id });
