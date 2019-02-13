@@ -128,7 +128,7 @@ schema:
           type: NORMAL
       name: access_log
       options: []
-      order: 26
+      order: 28
     action:
       constraints:
         - deferrable: 1
@@ -226,7 +226,7 @@ schema:
           type: NORMAL
       name: action
       options: []
-      order: 16
+      order: 18
     application:
       constraints:
         - deferrable: 1
@@ -481,7 +481,7 @@ schema:
           type: NORMAL
       name: application
       options: []
-      order: 17
+      order: 19
     audit_log:
       constraints:
         - deferrable: 1
@@ -597,7 +597,7 @@ schema:
           type: NORMAL
       name: audit_log
       options: []
-      order: 18
+      order: 20
     badge:
       constraints:
         - deferrable: 1
@@ -664,7 +664,7 @@ schema:
           type: NORMAL
       name: badge
       options: []
-      order: 19
+      order: 21
     curse:
       constraints:
         - deferrable: 1
@@ -843,7 +843,7 @@ schema:
           type: NORMAL
       name: curse_action
       options: []
-      order: 11
+      order: 12
     device:
       constraints:
         - deferrable: 1
@@ -998,7 +998,7 @@ schema:
           type: NORMAL
       name: device_item
       options: []
-      order: 20
+      order: 22
     image:
       constraints:
         - deferrable: 1
@@ -1092,7 +1092,7 @@ schema:
       indices: []
       name: image
       options: []
-      order: 12
+      order: 13
     ipn_message:
       constraints:
         - deferrable: 1
@@ -1190,7 +1190,7 @@ schema:
           type: NORMAL
       name: ipn_message
       options: []
-      order: 21
+      order: 23
     item:
       constraints:
         - deferrable: 1
@@ -1315,7 +1315,7 @@ schema:
           type: NORMAL
       name: item_mgroup
       options: []
-      order: 22
+      order: 24
     lamp_bulb:
       constraints:
         - deferrable: 1
@@ -1410,7 +1410,7 @@ schema:
           type: NORMAL
       name: lamp_bulb
       options: []
-      order: 23
+      order: 25
     lamp_bulb_preset:
       constraints:
         - deferrable: 1
@@ -1496,7 +1496,7 @@ schema:
           type: NORMAL
       name: lamp_bulb_preset
       options: []
-      order: 31
+      order: 34
     lamp_color:
       constraints:
         - deferrable: 1
@@ -1766,7 +1766,7 @@ schema:
           type: NORMAL
       name: member_curse
       options: []
-      order: 27
+      order: 29
     member_mgroup:
       constraints:
         - deferrable: 1
@@ -1842,7 +1842,7 @@ schema:
           type: NORMAL
       name: member_mgroup
       options: []
-      order: 28
+      order: 30
     members:
       constraints:
         - deferrable: 1
@@ -2090,7 +2090,7 @@ schema:
           type: NORMAL
       name: members
       options: []
-      order: 13
+      order: 14
     mgroup:
       constraints:
         - deferrable: 1
@@ -2225,7 +2225,7 @@ schema:
           type: NORMAL
       name: payment
       options: []
-      order: 29
+      order: 31
     reset_token:
       constraints:
         - deferrable: 1
@@ -2304,7 +2304,7 @@ schema:
           type: NORMAL
       name: reset_token
       options: []
-      order: 24
+      order: 26
     session:
       constraints:
         - deferrable: 1
@@ -2451,7 +2451,7 @@ schema:
           type: NORMAL
       name: sign_in_log
       options: []
-      order: 25
+      order: 27
     soda_status:
       constraints:
         - deferrable: 1
@@ -2538,7 +2538,7 @@ schema:
           type: NORMAL
       name: soda_status
       options: []
-      order: 14
+      order: 15
     soda_type:
       constraints:
         - deferrable: 1
@@ -2856,7 +2856,7 @@ schema:
           type: NORMAL
       name: storage_request
       options: []
-      order: 33
+      order: 36
     storage_slot:
       constraints:
         - deferrable: 1
@@ -2989,7 +2989,7 @@ schema:
           type: NORMAL
       name: storage_slot
       options: []
-      order: 32
+      order: 35
     storage_slot_type:
       constraints:
         - deferrable: 1
@@ -3039,6 +3039,313 @@ schema:
       name: storage_slot_type
       options: []
       order: 10
+    survey:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        survey_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_id
+          order: 1
+          size:
+            - 16
+        title:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: title
+          order: 2
+          size:
+            - 0
+      indices: []
+      name: survey
+      options: []
+      order: 11
+    survey_answer:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_answer_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - survey_question_id
+          match_type: ''
+          name: survey_answer_fk_survey_question_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - survey_question_id
+          reference_table: survey_question
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - survey_response_id
+          match_type: ''
+          name: survey_answer_fk_survey_response_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - survey_response_id
+          reference_table: survey_response
+          type: FOREIGN KEY
+      fields:
+        answer_text:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: answer_text
+          order: 4
+          size:
+            - 0
+        survey_answer_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_answer_id
+          order: 1
+          size:
+            - 16
+        survey_question_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_question_id
+          order: 3
+          size:
+            - 16
+        survey_response_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_response_id
+          order: 2
+          size:
+            - 16
+      indices:
+        - fields:
+            - survey_question_id
+          name: survey_answer_idx_survey_question_id
+          options: []
+          type: NORMAL
+        - fields:
+            - survey_response_id
+          name: survey_answer_idx_survey_response_id
+          options: []
+          type: NORMAL
+      name: survey_answer
+      options: []
+      order: 37
+    survey_question:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_question_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - survey_id
+          match_type: ''
+          name: survey_question_fk_survey_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - survey_id
+          reference_table: survey
+          type: FOREIGN KEY
+      fields:
+        question_text:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: question_text
+          order: 4
+          size:
+            - 0
+        sort_order:
+          data_type: integer
+          default_value: 1000
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_order
+          order: 3
+          size:
+            - 0
+        survey_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_id
+          order: 2
+          size:
+            - 16
+        survey_question_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_question_id
+          order: 1
+          size:
+            - 16
+      indices:
+        - fields:
+            - survey_id
+          name: survey_question_idx_survey_id
+          options: []
+          type: NORMAL
+      name: survey_question
+      options: []
+      order: 16
+    survey_response:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_response_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: survey_response_fk_member_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_id
+          match_type: ''
+          name: survey_response_fk_survey_id
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - survey_id
+          reference_table: survey
+          type: FOREIGN KEY
+      fields:
+        created_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: created_at
+          order: 4
+          size:
+            - 0
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 3
+          size:
+            - 16
+        survey_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_id
+          order: 2
+          size:
+            - 16
+        survey_response_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_response_id
+          order: 1
+          size:
+            - 16
+      indices:
+        - fields:
+            - member_id
+          name: survey_response_idx_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - survey_id
+          name: survey_response_idx_survey_id
+          options: []
+          type: NORMAL
+      name: survey_response
+      options: []
+      order: 32
     temp_log:
       constraints:
         - deferrable: 1
@@ -3122,7 +3429,7 @@ schema:
           type: NORMAL
       name: temp_log
       options: []
-      order: 15
+      order: 17
     vend_log:
       constraints:
         - deferrable: 1
@@ -3238,7 +3545,7 @@ schema:
           type: NORMAL
       name: vend_log
       options: []
-      order: 30
+      order: 33
   triggers: {}
   views: {}
 translator:
@@ -3278,6 +3585,10 @@ translator:
       - StorageRequest
       - StorageSlot
       - StorageSlotType
+      - Survey
+      - SurveyAnswer
+      - SurveyQuestion
+      - SurveyResponse
       - TempLog
       - VendLog
   parser_type: SQL::Translator::Parser::DBIx::Class

@@ -177,6 +177,14 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'surveys',
+	'HiveWeb::Schema::Result::Survey',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->belongs_to
 	(
 	'link',

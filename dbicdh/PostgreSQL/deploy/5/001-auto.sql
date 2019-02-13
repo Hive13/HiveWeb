@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Feb 11 17:41:56 2019
+-- Created on Wed Feb 13 16:46:21 2019
 -- 
 ;
 --
@@ -120,6 +120,16 @@ CREATE TABLE "storage_slot_type" (
 
 ;
 --
+-- Table: survey
+--
+CREATE TABLE "survey" (
+  "survey_id" uuid NOT NULL,
+  "title" character varying,
+  PRIMARY KEY ("survey_id")
+);
+
+;
+--
 -- Table: curse_action
 --
 CREATE TABLE "curse_action" (
@@ -188,6 +198,19 @@ CREATE TABLE "soda_status" (
   PRIMARY KEY ("soda_id")
 );
 CREATE INDEX "soda_status_idx_soda_type_id" on "soda_status" ("soda_type_id");
+
+;
+--
+-- Table: survey_question
+--
+CREATE TABLE "survey_question" (
+  "survey_question_id" uuid NOT NULL,
+  "survey_id" uuid NOT NULL,
+  "sort_order" integer DEFAULT 1000 NOT NULL,
+  "question_text" character varying NOT NULL,
+  PRIMARY KEY ("survey_question_id")
+);
+CREATE INDEX "survey_question_idx_survey_id" on "survey_question" ("survey_id");
 
 ;
 --
@@ -423,6 +446,20 @@ CREATE INDEX "payment_idx_member_id" on "payment" ("member_id");
 
 ;
 --
+-- Table: survey_response
+--
+CREATE TABLE "survey_response" (
+  "survey_response_id" uuid NOT NULL,
+  "survey_id" uuid NOT NULL,
+  "member_id" uuid NOT NULL,
+  "created_at" timestamp with time zone DEFAULT current_timestamp NOT NULL,
+  PRIMARY KEY ("survey_response_id")
+);
+CREATE INDEX "survey_response_idx_member_id" on "survey_response" ("member_id");
+CREATE INDEX "survey_response_idx_survey_id" on "survey_response" ("survey_id");
+
+;
+--
 -- Table: vend_log
 --
 CREATE TABLE "vend_log" (
@@ -492,6 +529,20 @@ CREATE INDEX "storage_request_idx_type_id" on "storage_request" ("type_id");
 
 ;
 --
+-- Table: survey_answer
+--
+CREATE TABLE "survey_answer" (
+  "survey_answer_id" uuid NOT NULL,
+  "survey_response_id" uuid NOT NULL,
+  "survey_question_id" uuid NOT NULL,
+  "answer_text" character varying NOT NULL,
+  PRIMARY KEY ("survey_answer_id")
+);
+CREATE INDEX "survey_answer_idx_survey_question_id" on "survey_answer" ("survey_question_id");
+CREATE INDEX "survey_answer_idx_survey_response_id" on "survey_answer" ("survey_response_id");
+
+;
+--
 -- Foreign Key Definitions
 --
 
@@ -518,6 +569,10 @@ ALTER TABLE "members" ADD CONSTRAINT "members_fk_member_id" FOREIGN KEY ("member
 ;
 ALTER TABLE "soda_status" ADD CONSTRAINT "soda_status_fk_soda_type_id" FOREIGN KEY ("soda_type_id")
   REFERENCES "soda_type" ("soda_type_id") DEFERRABLE;
+
+;
+ALTER TABLE "survey_question" ADD CONSTRAINT "survey_question_fk_survey_id" FOREIGN KEY ("survey_id")
+  REFERENCES "survey" ("survey_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
 ALTER TABLE "temp_log" ADD CONSTRAINT "temp_log_fk_item_id" FOREIGN KEY ("item_id")
@@ -628,6 +683,14 @@ ALTER TABLE "payment" ADD CONSTRAINT "payment_fk_member_id" FOREIGN KEY ("member
   REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
+ALTER TABLE "survey_response" ADD CONSTRAINT "survey_response_fk_member_id" FOREIGN KEY ("member_id")
+  REFERENCES "members" ("member_id") DEFERRABLE;
+
+;
+ALTER TABLE "survey_response" ADD CONSTRAINT "survey_response_fk_survey_id" FOREIGN KEY ("survey_id")
+  REFERENCES "survey" ("survey_id") ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE;
+
+;
 ALTER TABLE "vend_log" ADD CONSTRAINT "vend_log_fk_device_id" FOREIGN KEY ("device_id")
   REFERENCES "device" ("device_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
@@ -670,5 +733,13 @@ ALTER TABLE "storage_request" ADD CONSTRAINT "storage_request_fk_slot_id" FOREIG
 ;
 ALTER TABLE "storage_request" ADD CONSTRAINT "storage_request_fk_type_id" FOREIGN KEY ("type_id")
   REFERENCES "storage_slot_type" ("type_id");
+
+;
+ALTER TABLE "survey_answer" ADD CONSTRAINT "survey_answer_fk_survey_question_id" FOREIGN KEY ("survey_question_id")
+  REFERENCES "survey_question" ("survey_question_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+;
+ALTER TABLE "survey_answer" ADD CONSTRAINT "survey_answer_fk_survey_response_id" FOREIGN KEY ("survey_response_id")
+  REFERENCES "survey_response" ("survey_response_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
