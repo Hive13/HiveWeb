@@ -79,9 +79,9 @@ sub finalize :Local :Args(0)
 						my $group = $c->model('DB::MGroup')->find({ name => 'pending_applications' }) || die;
 						$member->remove_group($group, $c->user());
 						}
-					elsif ($action eq 'add_to_members')
+					elsif ($action eq 'add_to_pending_payments')
 						{
-						my $group = $c->model('DB::MGroup')->find({ name => 'members' }) || die;
+						my $group = $c->model('DB::MGroup')->find({ name => 'pending_payments' }) || die;
 						$member->add_group($group, $c->user());
 						}
 					elsif ($action eq 'add_soda_credit')
