@@ -70,7 +70,7 @@
 			{
 			welcome =>
 				{
-				temp_plain => 'email/welcome.tt',
+				temp_plain => 'email/member/welcome_plain.tt',
 				subject    => 'Welcome to Hive13',
 				},
 			confirm_cancel =>
