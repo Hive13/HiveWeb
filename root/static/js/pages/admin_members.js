@@ -727,26 +727,32 @@ function edit(member_id)
 			for (i = 0; i < data.member.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
 
-			if (data.member.paypal_email === null)
+			if ("link" in data && data.link)
 				{
-				$("input#different_paypal").prop("checked", false);
-				$("input#paypal_email").val("");
+				$("div#pay_div").css("display", "none");
+				$("div#link_div").css("display", "");
+				$("div#link_div div").html("This account is linked to " + data.link.fname + " " + data.link.lname + ". Please visit that acconut to edit payment and link info.");
 				}
 			else
 				{
-				$("input#different_paypal").prop("checked", true);
-				$("input#paypal_email").val(data.member.paypal_email);
-				}
+				$("div#pay_div").css("display", "");
+				$("div#link_div").css("display", "none");
+				if (data.member.paypal_email === null)
+					{
+					$("input#different_paypal").prop("checked", false);
+					$("input#paypal_email").val("");
+					}
+				else
+					{
+					$("input#different_paypal").prop("checked", true);
+					$("input#paypal_email").val(data.member.paypal_email);
+					}
 
-			if (data.linked.length)
-				{
-				$("div#linked_div").css("display", "");
-				$div = $("div#linked_div div").empty();
+				$div = $("div#linked_div").empty();
 				for (i = 0; i < data.linked.length; i++)
-					$div.append("<i class=\"fas fa-link\"></i> " + data.linked[i].fname + " " + data.linked[i].lname + "<br />");
+					$div.append("<i class=\"fas fa-link\"></i>" + data.linked[i].fname + " " + data.linked[i].lname
+						+ " <i class=\"fas fa-minus link-delete anchor-style text-warning\" id=\"" + data.linked[i].member_id + "\"></i>");
 				}
-			else
-				$("div#linked_div").css("display", "none");
 			
 			badge.set(data.badges);
 			paypal_checkbox();
