@@ -80,6 +80,8 @@ sub info :Local :Args(0)
 	$out->{badges}   = [ $member->badges() ];
 	$out->{member}   = $member;
 	$out->{linked}   = [ $member->linked_members() ];
+	$out->{link}     = $member->link()
+		if ($member->link());
 	$out->{response} = \1;
 	}
 

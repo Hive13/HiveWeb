@@ -189,7 +189,7 @@ __PACKAGE__->belongs_to
 	(
 	'link',
 	'HiveWeb::Schema::Result::Member',
-	{ 'foreign.linked_member_id' => 'self.member_id' },
+	{ 'foreign.member_id' => 'self.linked_member_id' },
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 __PACKAGE__->has_many
