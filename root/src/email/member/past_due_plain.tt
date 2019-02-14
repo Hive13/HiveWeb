@@ -2,7 +2,7 @@ Hello [% member.fname %],
 
 Your Membership dues are past due.  If you wish to cancel your Membership, please visit [% base_url _ 'member/cancel' %] to confirm.
 
-If this is not intentional, don't worry.  This sometimes happens due to issues such as a credit card expiring.  If you need to re-subscribe, just visit [% base_url _ 'member/pay' %] and you'll see the subscribe button.
+If this is not intentional, don't worry.  This sometimes happens due to issues such as a credit card expiring.  Please login to PayPal to view any notifications and if needed, visit [% base_url _ 'member/pay' %] and use the subscribe button to recreate your subscription.
 
 Your Membership will be automatically terminated on [% member.term_date.strftime('%x') %] unless you make a payment.
 
