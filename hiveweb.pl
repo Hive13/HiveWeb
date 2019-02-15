@@ -51,6 +51,11 @@
 			Host  => 'smtp.gmail.com',
 			SSL   => 1
 			},
+		notify_term =>
+			{
+			temp_plain => 'email/member/notify_term_plain.tt',
+			subject    => 'Member is Resigning',
+			},
 		forgot =>
 			{
 			temp_plain => 'email/forgot_password_plain.tt',
@@ -82,11 +87,6 @@
 				{
 				temp_plain => 'email/member/notify_cancel_plain.tt',
 				subject    => 'Member Subscription Cancelled',
-				},
-			notify_term =>
-				{
-				temp_plain => 'email/member/notify_term_plain.tt',
-				subject    => 'Member is Resigning',
 				},
 			},
 		},

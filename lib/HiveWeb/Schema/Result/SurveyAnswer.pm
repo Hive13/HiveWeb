@@ -25,6 +25,8 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('survey_answer_id');
 __PACKAGE__->uuid_columns('survey_answer_id');
+__PACKAGE__->resultset_attributes({ join => 'survey_question', order_by => 'survey_question.sort_order' });
+
 
 __PACKAGE__->belongs_to(
 	'survey_question',
