@@ -1,14 +1,24 @@
 function Editor(options)
 	{
 	var div, self = this;
-	this.options = $.extend({ height: 2 }, options);
+	this.options = $.extend(
+		{
+		height:  2,
+		id:      "badge_id",
+		name:    "badge",
+		display: function(val) { return val.badge_number; },
+		get:     function($item) { return { id: $item.attr("id"), val: $item.val() }; }
+		}, options);
+	if (!("plural" in this.options))
+		this.options.plural = this.options.name + "s";
+
 	this.$div =$(
 		[
 		"<div>",
 			"<div class=\"badge-select\">",
-				"<select size=\"" + options.height + "\" multiple=\"multiple\"></select><br />",
-				"<button title=\"Add Editor\" class=\"btn btn-xs btn-success add\"><span class=\"fas fa-plus\"></span></button>",
-				"<button title=\"Delete Editor\" class=\"btn btn-xs btn-danger delete\" disabled><span class=\"fas fa-minus\"></span></button>",
+				"<select size=\"" + this.options.height + "\" multiple=\"multiple\"></select><br />",
+				"<button title=\"Add " + this.options.name + "\" class=\"btn btn-xs btn-success add\"><span class=\"fas fa-plus\"></span></button>",
+				"<button title=\"Delete " + this.options.name + "\" class=\"btn btn-xs btn-danger delete\" disabled><span class=\"fas fa-minus\"></span></button>",
 			"</div>",
 			"<div class=\"badge-edit\" class=\"u-mw-100\" style=\"display: none\">",
 				"<input type=\"number\" class=\"u-mw-100\" /><br />",
@@ -41,14 +51,11 @@ Editor.prototype.dirty = function ()
 
 Editor.prototype.get = function ()
 	{
-	var badges = [];
+	var self  = this;
+	var items = [];
 
-	this.$div.find("select option").each(function ()
-		{
-		var $this = $(this);
-		badges.push({ id: $this.attr("id"), val: $this.val() });
-		});
-	return badges;
+	this.$div.find("select option").each(function () { items.push(self.options.get($(this))); });
+	return items;
 	};
 
 Editor.prototype.save = function ()
@@ -89,30 +96,31 @@ Editor.prototype.edit = function (badge_id)
 
 Editor.prototype.delete = function ()
 	{
-	var $badges =	this.$div.find("select option:selected");
+	var $items = this.$div.find("select option:selected");
 
-	if ($badges.length <= 0)
+	if ($items.length <= 0)
 		return;
-	if (!confirm("Are you sure you want to delete " + $badges.length + ($badges.length == 1 ? " badge?" : " badges?")))
+	if (!confirm("Are you sure you want to delete " + $items.length + " " + ($items.length == 1 ? this.options.name : this.options.plural) + "?"))
 		return;
 
 	this.dirty();
-	$badges.remove();
+	$items.remove();
 	}
 
-Editor.prototype.set = function (badges)
+Editor.prototype.set = function (items)
 	{
-	var i, $option, $select;
+	var i, $option, $select, text;
 
 	this.cancel();
 	$select = this.$div.find("select").empty();
 
-	for (i = 0; i < badges.length; i++)
+	for (i = 0; i < items.length; i++)
 		{
+		text = this.options.display(items[i]);
 		$option = $("<option />")
-			.attr("id", badges[i].badge_id)
-			.attr("value", badges[i].badge_number)
-			.text(badges[i].badge_number);
+			.attr("id", items[i][this.options.id])
+			.attr("value", items[i].badge_number)
+			.text(text);
 		$select.append($option);
 		}
 	};

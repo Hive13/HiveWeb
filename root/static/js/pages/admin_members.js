@@ -1,4 +1,4 @@
-var badge;
+var badge, link;
 var order      = "lname";
 var dir        = "ASC";
 var all_groups = [];
@@ -69,6 +69,16 @@ $(function()
 			{
 			$edit_dialogue.data("dirty", true);
 			}
+		});
+
+	link = new Editor(
+		{
+		$parent: $("div#linked_div"),
+		id:      "member_id",
+		name:    "link",
+		display: function (val) { return val.fname + " " + val.lname; },
+		dirty:   function () { $edit_dialogue.data("dirty", true); },
+		get:     function ($item) { return $item.attr("id"); }
 		});
 
 	$filter.find("input[name=paypal]").click(function ()
@@ -620,7 +630,8 @@ function save_member()
 		paypal_email: null,
 		member_image_id: member_image_id || null,
 		member_id: member_id,
-		badges: badge.get()
+		badges: badge.get(),
+		links:  link.get()
 		};
 
 	$("input.group[type=\"checkbox\"]:checked").each(function()
@@ -748,10 +759,7 @@ function edit(member_id)
 					$("input#paypal_email").val(data.member.paypal_email);
 					}
 
-				$div = $("div#linked_div").empty();
-				for (i = 0; i < data.linked.length; i++)
-					$div.append("<i class=\"fas fa-link\"></i>" + data.linked[i].fname + " " + data.linked[i].lname
-						+ " <i class=\"fas fa-minus link-delete anchor-style text-warning\" id=\"" + data.linked[i].member_id + "\"></i>");
+				link.set(data.linked);
 				}
 			
 			badge.set(data.badges);
