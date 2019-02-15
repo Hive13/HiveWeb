@@ -146,7 +146,7 @@ function display_pending_applications(data)
 				})
 			;
 
-		badge = new Badge({ $parent: $dialogue.find("div.badge-div") });
+		badge = new Editor({ $parent: $dialogue.find("div.badge-div") });
 
 		$dialogue.find("button.accept").click(function ()
 			{

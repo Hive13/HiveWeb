@@ -1,4 +1,4 @@
-var badge;
+var badge, link;
 var order      = "lname";
 var dir        = "ASC";
 var all_groups = [];
@@ -56,19 +56,78 @@ var columns    =
 
 $(function()
 	{
-	var
+	var $select,
 		$table         = $("table#hive-member-table"),
 		$nav           = $("nav.hive-member-pagination"),
 		$edit_dialogue = $("div#edit_dialogue"),
 		$filter        = $("div#filter_dialogue");
 
-	badge = new Badge(
+	badge = new Editor(
 		{
 		$parent: $("div#badges div.panel-body"),
 		dirty: function()
 			{
 			$edit_dialogue.data("dirty", true);
 			}
+		});
+
+	link = new Editor(
+		{
+		$parent: $("div#linked_div"),
+		id:      "member_id",
+		name:    "link",
+		display: function (val) { return val.fname + " " + val.lname; },
+		dirty:   function () { $edit_dialogue.data("dirty", true); },
+		get:     function ($item) { return $item.attr("id"); },
+		new:     function ($select) { return $("<option />").attr("id", $select.val()).text($select.text()); },
+		entry:   "<select class=\"link-new\" name=\"member\" data-placeholder=\"Start typing the member's name\" class=\"u-w-100\"></select>"
+		});
+
+	$select = link.$div.find("select.link-new");
+	$select.select2(
+		{
+		dropdownParent: $select.parent(),
+		width: "100%",
+		ajax:
+			{
+			url: "/api/admin/members/search",
+			dataType: "json",
+			delay: 250,
+			method: "POST",
+			processData: false,
+			contentType: "application/json",
+			data: function (params)
+				{
+				var query =
+					{
+					name: params.term,
+					page: params.page
+					};
+
+				return JSON.stringify(query);
+				},
+			processResults: function (data, params)
+				{
+				var r, i, items = [];
+				params.page = params.page || 1;
+
+				for (i = 0; i < data.members.length; i++)
+					items.push(
+						{
+						id:   data.members[i].member_id,
+						text: data.members[i].fname + " " + data.members[i].lname
+						});
+				r =
+					{
+					results: items,
+					pagination: { more: ((params.page * 10) < data.count) }
+					};
+
+				return r;
+				}
+			},
+		minimumInputLength: 1,
+		placeholder: "Type a member's name",
 		});
 
 	$filter.find("input[name=paypal]").click(function ()
@@ -620,7 +679,8 @@ function save_member()
 		paypal_email: null,
 		member_image_id: member_image_id || null,
 		member_id: member_id,
-		badges: badge.get()
+		badges: badge.get(),
+		links:  link.get()
 		};
 
 	$("input.group[type=\"checkbox\"]:checked").each(function()
@@ -727,27 +787,30 @@ function edit(member_id)
 			for (i = 0; i < data.member.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
 
-			if (data.member.paypal_email === null)
+			if ("link" in data && data.link)
 				{
-				$("input#different_paypal").prop("checked", false);
-				$("input#paypal_email").val("");
+				$("div#pay_div").css("display", "none");
+				$("div#link_div").css("display", "");
+				$("div#link_div div").html("This account is linked to " + data.link.fname + " " + data.link.lname + ". Please visit that acconut to edit payment and link info.");
 				}
 			else
 				{
-				$("input#different_paypal").prop("checked", true);
-				$("input#paypal_email").val(data.member.paypal_email);
+				$("div#pay_div").css("display", "");
+				$("div#link_div").css("display", "none");
+				if (data.member.paypal_email === null)
+					{
+					$("input#different_paypal").prop("checked", false);
+					$("input#paypal_email").val("");
+					}
+				else
+					{
+					$("input#different_paypal").prop("checked", true);
+					$("input#paypal_email").val(data.member.paypal_email);
+					}
+
+				link.set(data.linked);
 				}
 
-			if (data.linked.length)
-				{
-				$("div#linked_div").css("display", "");
-				$div = $("div#linked_div div").empty();
-				for (i = 0; i < data.linked.length; i++)
-					$div.append("<i class=\"fas fa-link\"></i> " + data.linked[i].fname + " " + data.linked[i].lname + "<br />");
-				}
-			else
-				$("div#linked_div").css("display", "none");
-			
 			badge.set(data.badges);
 			paypal_checkbox();
 			$dialogue.find("#edit_label").text(title);
