@@ -1,4 +1,4 @@
-function Badge(options)
+function Editor(options)
 	{
 	var div, self = this;
 	this.options = $.extend({ height: 2 }, options);
@@ -7,8 +7,8 @@ function Badge(options)
 		"<div>",
 			"<div class=\"badge-select\">",
 				"<select size=\"" + options.height + "\" multiple=\"multiple\"></select><br />",
-				"<button title=\"Add Badge\" class=\"btn btn-xs btn-success add\"><span class=\"fas fa-plus\"></span></button>",
-				"<button title=\"Delete Badge\" class=\"btn btn-xs btn-danger delete\" disabled><span class=\"fas fa-minus\"></span></button>",
+				"<button title=\"Add Editor\" class=\"btn btn-xs btn-success add\"><span class=\"fas fa-plus\"></span></button>",
+				"<button title=\"Delete Editor\" class=\"btn btn-xs btn-danger delete\" disabled><span class=\"fas fa-minus\"></span></button>",
 			"</div>",
 			"<div class=\"badge-edit\" class=\"u-mw-100\" style=\"display: none\">",
 				"<input type=\"number\" class=\"u-mw-100\" /><br />",
@@ -30,7 +30,7 @@ function Badge(options)
 	this.options.$parent.append(this.$div);
 	}
 
-Badge.prototype.dirty = function ()
+Editor.prototype.dirty = function ()
 	{
 	if (!("dirty" in this.options))
 		return;
@@ -39,7 +39,7 @@ Badge.prototype.dirty = function ()
 		this.options.dirty();
 	};
 
-Badge.prototype.get = function ()
+Editor.prototype.get = function ()
 	{
 	var badges = [];
 
@@ -51,7 +51,7 @@ Badge.prototype.get = function ()
 	return badges;
 	};
 
-Badge.prototype.save = function ()
+Editor.prototype.save = function ()
 	{
 	var badge_number = this.$div.find("input").val();
 	var $option = $("<option />")
@@ -63,7 +63,7 @@ Badge.prototype.save = function ()
 	this.cancel();
 	};
 
-Badge.prototype.cancel = function ()
+Editor.prototype.cancel = function ()
 	{
 	this.$div.find(".badge-edit").css("display", "none");
 	this.$div.find(".badge-select").css("opacity", "1")
@@ -72,7 +72,7 @@ Badge.prototype.cancel = function ()
 		this.$focus.focus();
 	};
 
-Badge.prototype.edit = function (badge_id)
+Editor.prototype.edit = function (badge_id)
 	{
 	var $sdiv     = this.$div.find("div.badge-select");
 	var $div      = this.$div.find("div.badge-edit");
@@ -87,7 +87,7 @@ Badge.prototype.edit = function (badge_id)
 	$edit.focus();
 	};
 
-Badge.prototype.delete = function ()
+Editor.prototype.delete = function ()
 	{
 	var $badges =	this.$div.find("select option:selected");
 
@@ -100,7 +100,7 @@ Badge.prototype.delete = function ()
 	$badges.remove();
 	}
 
-Badge.prototype.set = function (badges)
+Editor.prototype.set = function (badges)
 	{
 	var i, $option, $select;
 

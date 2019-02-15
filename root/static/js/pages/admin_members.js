@@ -62,7 +62,7 @@ $(function()
 		$edit_dialogue = $("div#edit_dialogue"),
 		$filter        = $("div#filter_dialogue");
 
-	badge = new Badge(
+	badge = new Editor(
 		{
 		$parent: $("div#badges div.panel-body"),
 		dirty: function()
