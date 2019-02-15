@@ -56,7 +56,7 @@ var columns    =
 
 $(function()
 	{
-	var
+	var $select,
 		$table         = $("table#hive-member-table"),
 		$nav           = $("nav.hive-member-pagination"),
 		$edit_dialogue = $("div#edit_dialogue"),
@@ -78,7 +78,56 @@ $(function()
 		name:    "link",
 		display: function (val) { return val.fname + " " + val.lname; },
 		dirty:   function () { $edit_dialogue.data("dirty", true); },
-		get:     function ($item) { return $item.attr("id"); }
+		get:     function ($item) { return $item.attr("id"); },
+		new:     function ($select) { return $("<option />").attr("id", $select.val()).text($select.text()); },
+		entry:   "<select class=\"link-new\" name=\"member\" data-placeholder=\"Start typing the member's name\" class=\"u-w-100\"></select>"
+		});
+
+	$select = link.$div.find("select.link-new");
+	$select.select2(
+		{
+		dropdownParent: $select.parent(),
+		width: "100%",
+		ajax:
+			{
+			url: "/api/admin/members/search",
+			dataType: "json",
+			delay: 250,
+			method: "POST",
+			processData: false,
+			contentType: "application/json",
+			data: function (params)
+				{
+				var query =
+					{
+					name: params.term,
+					page: params.page
+					};
+
+				return JSON.stringify(query);
+				},
+			processResults: function (data, params)
+				{
+				var r, i, items = [];
+				params.page = params.page || 1;
+
+				for (i = 0; i < data.members.length; i++)
+					items.push(
+						{
+						id:   data.members[i].member_id,
+						text: data.members[i].fname + " " + data.members[i].lname
+						});
+				r =
+					{
+					results: items,
+					pagination: { more: ((params.page * 10) < data.count) }
+					};
+
+				return r;
+				}
+			},
+		minimumInputLength: 1,
+		placeholder: "Type a member's name",
 		});
 
 	$filter.find("input[name=paypal]").click(function ()
@@ -761,7 +810,7 @@ function edit(member_id)
 
 				link.set(data.linked);
 				}
-			
+
 			badge.set(data.badges);
 			paypal_checkbox();
 			$dialogue.find("#edit_label").text(title);
