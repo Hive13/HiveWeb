@@ -84,7 +84,6 @@
 									</div>
 									<h6>Linked Accounts</h6>
 									<div id="linked_div"></div>
-									<button class="btn btn-success link-add"><i class="fas fa-plus"></i>Add Link</button>
 								</div>
 								<div id="link_div">
 									<h5>Linked Account</h5>
