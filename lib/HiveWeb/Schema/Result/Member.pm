@@ -423,7 +423,16 @@ sub expire_date
 
 	my $payment = $self->find_related('payments', {}, { select => { max => 'payment_date' }, as => 'payment_date' }) || die $!;
 	my $date    = $payment->payment_date() // return;
-	return $date->add({ months => 1});
+	return $date->add({ months => 1 });
+	}
+
+sub term_date
+	{
+	my $self = shift;
+
+	my $payment = $self->find_related('payments', {}, { select => { max => 'payment_date' }, as => 'payment_date' }) || die $!;
+	my $date    = $payment->payment_date() // return;
+	return $date->add({ days => 90 });
 	}
 
 sub admin_class

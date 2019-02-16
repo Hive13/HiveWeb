@@ -91,6 +91,23 @@ while (my $action = $queue->next())
 				return;
 				}
 			}
+		elsif ($type eq 'notify.term')
+			{
+			my $survey = $schema->resultset('SurveyResponse')->find($action->row_id());
+			if (!$survey)
+				{
+				warn 'Cannot find referenced survey ' . $action->row_id();
+				return;
+				}
+			$message->{to}         = $mail_config->{notify_to};
+			$message->{temp_plain} = $mail_config->{notify_term}->{temp_plain};
+			$message->{subject}    = $mail_config->{notify_term}->{subject};
+			$message->{stash}      =
+				{
+				survey   => $survey,
+				base_url => $config->{base_url},
+				};
+			}
 		elsif ($type eq 'storage.assign')
 			{
 			my $slot = $schema->resultset('StorageSlot')->find($action->row_id());

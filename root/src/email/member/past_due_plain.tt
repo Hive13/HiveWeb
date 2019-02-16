@@ -1,0 +1,12 @@
+Hello [% member.fname %],
+
+Your Membership dues are past due.  If you wish to cancel your Membership, please visit [% base_url _ 'member/cancel' %] to confirm.
+
+If this is not intentional, don't worry.  This sometimes happens due to issues such as a credit card expiring.  Please login to PayPal to view any notifications and if needed, visit [% base_url _ 'member/pay' %] and use the subscribe button to recreate your subscription.
+
+Your Membership will be automatically terminated on [% member.term_date.strftime('%x') %] unless you make a payment.
+
+Thank you,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

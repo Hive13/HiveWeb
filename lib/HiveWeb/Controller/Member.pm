@@ -204,12 +204,6 @@ sub cancel :Local :Args(0)
 
 	$c->model('DB')->txn_do(sub
 		{
-		$c->model('DB::Action')->create(
-			{
-			queuing_member_id => $member_id,
-			action_type       => 'member.notify_term',
-			row_id            => $member_id,
-			}) || die 'Could not queue notification: ' . $!;
 		my $expired = $c->model('DB::Payment')->find({ member_id => $member_id },
 			{
 			select => \"max(payment_date) + interval '1 month' <= now()",
@@ -236,6 +230,12 @@ sub cancel :Local :Args(0)
 		$response->create_related('answers', { survey_question_id => '6560957a-b1ca-4757-93e3-313c5a22679a', answer_text => $form->{comments} }) || die $!;
 		$response->create_related('answers', { survey_question_id => '6f38821c-1905-4d75-bd71-0ad21b2f187c', answer_text => $reason }) || die $!;
 
+		$c->model('DB::Action')->create(
+			{
+			queuing_member_id => $member_id,
+			action_type       => 'notify.term',
+			row_id            => $response->survey_response_id(),
+			}) || die 'Could not queue notification: ' . $!;
 		$c->flash()->{auto_toast} =
 			{
 			title => 'Resignation Submitted',

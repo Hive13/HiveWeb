@@ -2,7 +2,7 @@ Hello [% member.fname %],
 
 We've noticed your PayPal subscription has been cancelled.  If this is intentional, please visit [% base_url _ 'member/cancel' %] to confirm.
 
-If this is not intentional, don't worry.  This sometimes happens due to issues such as a credit card expiring.  If you need to re-subscribe, just visit [% base_url _ 'member/pay' %] and you'll see the subscribe button.
+If this is not intentional, please login to PayPal to view and correct any notifications such as an expired credit card.  If you need to re-subscribe, just visit [% base_url _ 'member/pay' %] and you'll see the subscribe button.  If you have any questions, contact our Treasurer at treasurer@hive13.org.
 
 Thank you,
 intweb

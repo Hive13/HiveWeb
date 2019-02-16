@@ -19,7 +19,7 @@
 				uri  => Catalyst.uri_for('/member/profile'),
 				text => 'My Profile',
 				});
-			IF Catalyst.check_user_roles('members');
+			IF Catalyst.check_any_user_role('members', 'pending_payments');
 				links.push(
 					{
 					uri  => Catalyst.uri_for('/member/pay'),
@@ -32,7 +32,7 @@
 			uri  => Catalyst.uri_for('/logout'),
 			text => 'Sign Out',
 			});
-		IF Catalyst.check_user_roles('testers') || !Catalyst.check_any_user_role('members', 'pending_applications');
+		IF Catalyst.check_user_roles('testers') || !Catalyst.check_any_user_role('members', 'pending_applications', 'pending_payments');
 			links.push(
 				{
 				uri  => Catalyst.uri_for('/application'),
