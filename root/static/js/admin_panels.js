@@ -102,8 +102,8 @@ function display_pending_applications(data)
 										"Remove person from <code>pending_applications</code> group",
 									"</label><br />",
 									"<label class=\"one-line action-hide action-accepted\">",
-										"<input type=\"checkbox\" name=\"add_to_members\" checked />",
-										"Add person to <code>members</code> group",
+										"<input type=\"checkbox\" name=\"add_to_pending_payments\" checked />",
+										"Add person to <code>pending_payments</code> group",
 									"</label><br />",
 									"<label class=\"one-line action-hide action-accepted\">",
 										"<input type=\"checkbox\" name=\"add_soda_credit\" checked />",
@@ -146,7 +146,7 @@ function display_pending_applications(data)
 				})
 			;
 
-		badge = new Badge({ $parent: $dialogue.find("div.badge-div") });
+		badge = new Editor({ $parent: $dialogue.find("div.badge-div") });
 
 		$dialogue.find("button.accept").click(function ()
 			{
