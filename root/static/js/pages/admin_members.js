@@ -671,13 +671,13 @@ function save_member()
 	{
 	var $this = $(this).parents(".modal"), groups = [], member_id = $this.data("member_id");
 	var soda_credits = $this.find("input#soda_credits").val();
-	var member_image_id = $this.data("picture").get_image_id();
+	var member_image_id = $this.data("picture").get_image_id() || null;
 	var data =
 		{
 		groups: groups,
 		vend_credits: soda_credits,
 		paypal_email: null,
-		member_image_id: member_image_id || null,
+		member_image_id: member_image_id,
 		member_id: member_id,
 		badges: badge.get(),
 		links:  link.get()
@@ -700,6 +700,7 @@ function save_member()
 		success: function (data)
 			{
 			$this.data("dirty", false);
+			$this.data("member_image_id", member_image_id);
 			$this.modal("hide");
 			}
 		});
