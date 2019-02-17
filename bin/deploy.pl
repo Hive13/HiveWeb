@@ -7,8 +7,8 @@ use lib $FindBin::Bin . '/../lib';
 use HiveWeb;
 use HiveWeb::Schema;
 
-my $c           = HiveWeb->new || die $!;
-my $config      = $c->config();
+my $c      = HiveWeb->new || die $!;
+my $config = $c->config();
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
 
 my $dh = DH->new(
@@ -26,8 +26,8 @@ $dh->prepare_deploy();
 
 $dh->prepare_upgrade(
 	{
-	from_version => 5,
-	to_version   => 6,
+	from_version => $HiveWeb::Schema::VERSION - 1,
+	to_version   => $HiveWeb::Schema::VERSION,
 	});
 
 #$dh->install();

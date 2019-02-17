@@ -67,6 +67,8 @@ __PACKAGE__->add_columns(
 	},
 	'final_result',
 	{ data_type => 'character varying', is_nullable => 1, },
+	'helper',
+	{ data_type => 'character varying', is_nullable => 1, },
 );
 
 __PACKAGE__->set_primary_key('application_id');
@@ -116,6 +118,7 @@ sub TO_JSON
 		app_turned_in_at => $self->app_turned_in_at(),
 		decided_at       => $self->decided_at(),
 		final_result     => $self->final_result(),
+		helper           => $self->helper(),
 		};
 	}
 1;
