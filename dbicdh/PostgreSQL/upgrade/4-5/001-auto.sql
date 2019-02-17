@@ -8,7 +8,7 @@ CREATE TABLE "ipn_message" (
   "ipn_message_id" uuid NOT NULL,
   "member_id" uuid,
   "received_at" timestamp with time zone DEFAULT current_timestamp NOT NULL,
-  "txn_id" character varying NOT NULL,
+  "txn_id" character varying,
   "payer_email" character varying NOT NULL,
   "raw" text NOT NULL,
   PRIMARY KEY ("ipn_message_id")
@@ -104,8 +104,11 @@ ALTER TABLE audit_log ALTER COLUMN changing_member_id DROP NOT NULL;
 ALTER TABLE members ADD COLUMN linked_member_id uuid;
 
 ;
-ALTER TABLE members ADD CONSTRAINT members_fk_member_id FOREIGN KEY (member_id)
-  REFERENCES members (linked_member_id) DEFERRABLE;
+CREATE INDEX members_idx_linked_member_id on members (linked_member_id);
+
+;
+ALTER TABLE members ADD CONSTRAINT members_fk_linked_member_id FOREIGN KEY (linked_member_id)
+  REFERENCES members (member_id) DEFERRABLE;
 
 ;
 
