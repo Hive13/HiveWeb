@@ -105,7 +105,7 @@ sub ipn :Local :Args(0)
 			{
 			my $parameters = $c->request()->parameters();
 			my $payer      = $parameters->{payer_email};
-			my $type       = $parameters->{payment_type};
+			my $type       = $parameters->{txn_type};
 			my $json       = encode_json($parameters);
 
 			my $member = $c->model('DB::Member')->find({ email => $payer });
@@ -136,18 +136,20 @@ sub ipn :Local :Args(0)
 				{
 				$log->error('Cannot locate member in message ' . $message->ipn_message_id());
 				}
-
-			if ($type eq 'echeck' || $type eq 'subscr_payment')
-				{
-				$self->subscr_payment($c, $member, $parameters, $message);
-				}
-			elsif ($type eq 'subscr_cancel')
-				{
-				$self->subscr_cancel($c, $member, $parameters, $message);
-				}
 			else
 				{
-				$log->error('Unknown payment type in message ' . $message->ipn_message_id());
+				if ($type eq 'echeck' || $type eq 'subscr_payment')
+					{
+					$self->subscr_payment($c, $member, $parameters, $message);
+					}
+				elsif ($type eq 'subscr_cancel')
+					{
+					$self->subscr_cancel($c, $member, $parameters, $message);
+					}
+				else
+					{
+					$log->error('Unknown payment type in message ' . $message->ipn_message_id());
+					}
 				}
 
 			# Verify the transaction with PayPal

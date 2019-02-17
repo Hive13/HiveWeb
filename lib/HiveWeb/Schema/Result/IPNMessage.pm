@@ -25,7 +25,7 @@ __PACKAGE__->add_columns(
     original      => { default_value => \'now()' },
   },
 	'txn_id',
-  { data_type => 'character varying', is_nullable => 0 },
+  { data_type => 'character varying', is_nullable => 1 },
 	'payer_email',
   { data_type => 'character varying', is_nullable => 0 },
 	'raw',
