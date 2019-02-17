@@ -241,7 +241,8 @@ sub edit :Local :Args(0)
 			if (exists($in->{member_image_id}))
 				{
 				my $image_id = $in->{member_image_id};
-				if ($image_id ne $member->member_image_id())
+				my $current  = $member->member_image_id();
+				if (defined($image_id) != defined($current) || (defined($image_id) && defined($current) && $image_id ne $current))
 					{
 					$member->create_related('changed_audits',
 						{
@@ -254,8 +255,9 @@ sub edit :Local :Args(0)
 				}
 			if (exists($in->{paypal_email}))
 				{
-				my $paypal = $in->{paypal_email};
-				if (defined($member->paypal_email()) != defined($paypal) || $member->paypal_email() ne $paypal)
+				my $paypal  = $in->{paypal_email};
+				my $current = $member->paypal_email();
+				if (defined($current) != defined($paypal) || (defined($paypal) && defined($current) && $current ne $paypal))
 					{
 					$member->create_related('changed_audits',
 						{
