@@ -5,6 +5,9 @@ The app may be viewed at [% base_url %]application/[% application.application_id
 [%~ IF application.picture_id %]
 There has been a picture attached to the application.
 [%~ END %]
+[%~ IF application.helper %]
+[% application.helper %] helped [% application.member.fname %] with the application.
+[%~ END %]
 
 This thread is provided to discuss this member's application.  New threads are created for each application.
 If the application is updated - for example, a picture is attached or the signed form is turned in or scanned in - I'll post an update to this thread.
