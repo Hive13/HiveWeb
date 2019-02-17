@@ -114,7 +114,7 @@ sub access :Local
 
 	if ($version >= 2)
 		{
-		my $nonce     = $data->{nonce};
+		my $nonce     = $data->{nonce} // '';
 		my $exp_nonce = uc(unpack('H*', $device->nonce()));
 		my $new_nonce = random_bytes(16);
 		$device->update({ nonce => $new_nonce });
