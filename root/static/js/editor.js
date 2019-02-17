@@ -35,7 +35,7 @@ function Editor(options)
 	this.$div.find("button.cancel").click(function () { self.cancel(); });
 	this.$div.find("button.ok").click(function () { self.save(); });
 	this.$div.find("input").keydown(key_handler({ enter: function () { self.save(); }, esc: function () { self.cancel() } }));
-	this.$div.find("select").keydown(key_handler({ del: function() { self.delete(); }, ins: function() { self.edit(undefined); } })).change(function ()
+	this.$div.find("select.editor-list").keydown(key_handler({ del: function() { self.delete(); }, ins: function() { self.edit(undefined); } })).change(function ()
 		{
 		self.$div.find("button.delete").attr("disabled", $(this).find("option:selected").length <= 0);
 		return false;
@@ -93,7 +93,7 @@ Editor.prototype.edit = function (id)
 
 Editor.prototype.delete = function ()
 	{
-	var $items = this.$div.find("select option:selected");
+	var $items = this.$div.find("select.editor-list option:selected");
 
 	if ($items.length <= 0)
 		return;
@@ -109,7 +109,7 @@ Editor.prototype.set = function (items)
 	var i, $option, $select, text;
 
 	this.cancel();
-	$select = this.$div.find("select").empty();
+	$select = this.$div.find("select.editor-list").empty();
 
 	for (i = 0; i < items.length; i++)
 		{
