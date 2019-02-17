@@ -199,6 +199,8 @@ sub edit :Local :Args(0)
 				my %current_links = map { $_->member_id() => $_ } $member->linked_members();
 				foreach my $linked_id (@{ $in->{links} })
 					{
+					die 'Cannot link to self'
+						if ($linked_id eq $member_id);
 					if ($current_links{$linked_id})
 						{
 						delete($current_links{$linked_id});
@@ -215,10 +217,10 @@ sub edit :Local :Args(0)
 						$new_link->create_related('changed_audits',
 							{
 							change_type        => 'add_link',
-							notes              => 'Linked to account ' . $member->member_id(),
+							notes              => 'Linked to account ' . $member_id,
 							changing_member_id => $c->user()->member_id(),
 							});
-						$new_link->update({ linked_member_id => $member->member_id() });
+						$new_link->update({ linked_member_id => $member_id });
 						}
 					}
 				foreach my $linked_member_id (keys(%current_links))
@@ -232,7 +234,7 @@ sub edit :Local :Args(0)
 					$current_links{$linked_member_id}->create_related('changed_audits',
 						{
 						change_type        => 'delete_link',
-						notes              => 'Unlinked from account ' . $member->member_id(),
+						notes              => 'Unlinked from account ' . $member_id,
 						changing_member_id => $c->user()->member_id(),
 						});
 					$current_links{$linked_member_id}->update({ linked_member_id => undef });
@@ -301,7 +303,7 @@ sub edit :Local :Args(0)
 		}
 	catch
 		{
-		$out->{data} = 'Could not update member profile.';
+		$out->{data} = 'Could not update member profile: ' . $_;
 		};
 	}
 
