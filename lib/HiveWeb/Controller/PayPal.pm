@@ -50,12 +50,15 @@ sub subscr_payment
 			rows     => 1,
 			});
 
-		$c->model('DB::Action')->create(
+		if ($application)
 			{
-			queuing_member_id => $member->member_id(),
-			action_type       => 'application.pay',
-			row_id            => $application->application_id(),
-			}) || die 'Could not queue notification: ' . $!;
+			$c->model('DB::Action')->create(
+				{
+				queuing_member_id => $member->member_id(),
+				action_type       => 'application.pay',
+				row_id            => $application->application_id(),
+				}) || die 'Could not queue notification: ' . $!;
+			}
 
 		$c->model('DB::Action')->create(
 			{
@@ -63,6 +66,25 @@ sub subscr_payment
 			action_type       => 'member.welcome',
 			row_id            => $payment->payment_id(),
 			}) || die 'Could not queue notification: ' . $!;
+
+		my $slack = $c->config()->{slack};
+		my $slack_invite =
+			{
+			first_name => $member->fname(),
+			last_name  => $member->lname(),
+			channels   => join(',', @{ $slack->{channels} }),
+			email      => $member->email(),
+			token      => $slack->{token},
+			};
+
+		my $ua = LWP::UserAgent->new();
+		$ua->agent(sprintf("HiveWeb/%s (%s)", $HiveWeb::VERSION, $ua->agent));
+		my $response = $ua->post($slack->{api}, $slack_invite);
+		my $slack_result = decode_json($response->content());
+		if (!$slack_result->{ok})
+			{
+			$c->log()->error('Cannot invite ' . $member->member_id() . ' to Slack: ' . $slack_result->{error});
+			}
 		}
 	}
 

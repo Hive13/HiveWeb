@@ -24,6 +24,16 @@
 		public_key => 'pk_live_FI8RhhPdbD6tTjAHtPbkrVi5',
 		secret_key => '< put secret key here >',
 		},
+	slack =>
+		{
+		token => '<a LEGACY token>',
+		channels =>
+			[
+			'C04Q9C12L',
+			'C04Q9C12U',
+			],
+		api => 'https://slack.com/api/users.admin.invite',
+		},
 	cancellations =>
 		{
 		message_groups =>
