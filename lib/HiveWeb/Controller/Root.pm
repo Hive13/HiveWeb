@@ -151,34 +151,30 @@ sub login :Local
 		}
 
 	my $params = $c->request()->params();
+	my $users  = $c->model('DB::Member')->search(
+		{
+			-or =>
+				[
+				{ handle => $params->{email} },
+				{ email  => $params->{email} },
+				],
+		}) || die $!;
 
-	my $user = $c->authenticate(
+	my $user = $users->single() || die $!;
+
+	my $success = $c->authenticate(
 		{
 		password     => $params->{password},
-		'dbix_class' =>
-			{
-			searchargs =>
-				[
-					{
-						'-or' =>
-							[
-							{ handle => $params->{email} },
-							{ email  => $params->{email} },
-							],
-					},
-					{
-					}
-				]
-			},
+		'dbix_class' => { result => $user },
 		});
 	my $log  = $c->model('DB::SignInLog')->create(
 		{
 		email     => $params->{email},
-		valid     => $user ? 1 : 0,
+		valid     => $success ? 1 : 0,
 		member_id => $user ? $user->member_id() : undef,
 		remote_ip => $c->request()->address(),
 		}) || die $!;
-	if ($user)
+	if ($success)
 		{
 		if ($user->totp_secret())
 			{
