@@ -365,28 +365,43 @@ function handle_slot(slot, selected_id)
 		html += " - <span class=\"profile-link\" data-member-id=\"" + slot.member.member_id + "\">" + slot.member.fname + " " + slot.member.lname + "</span>";
 
 	html += "</span></li>";
-	return html;
+	return { html: html, assigned: !!slot.member_id };
 	}
 
 function handle_location(loc, show_depth, selected_id)
 	{
-	var i, ret = "<li class=\"storage-location"
-		+ (loc.location_id == selected_id ? " selected" : "")
-		+ "\" " + (((show_depth) > 0) ? "" : "style=\"display: none\"")
-		+ " data-sort-order=\"" + loc.sort_order + "\" data-name=\"" + loc.name + "\" data-parent-id=\"" + loc.parent_id + "\""
-		+ " id=\"" + loc.location_id + "\"><span><i class=\"fas"
-		+ (((show_depth - 1) > 0) ? " fa-minus" : " fa-plus")
-		+ "\"></i>" + loc.name + "</span><ul>";
+	var i, slot, cloc, c_html = "", html,
+		ret = { assigned: 0, free: 0 };
 
 	if ("children" in loc && loc.children.length > 0)
 		for (i = 0; i < loc.children.length; i++)
-			ret += handle_location(loc.children[i], show_depth - 1, selected_id);
+			{
+			cloc = handle_location(loc.children[i], show_depth - 1, selected_id);
+			c_html       += cloc.html;
+			ret.free     += cloc.free;
+			ret.assigned += cloc.assigned;
+			}
 
 	if ("slots" in loc && loc.slots.length > 0)
 		for (i = 0; i < loc.slots.length; i++)
-			ret += handle_slot(loc.slots[i], selected_id);
+			{
+			slot = handle_slot(loc.slots[i], selected_id);
+			c_html += slot.html;
+			if (slot.assigned)
+				ret.assigned++;
+			else
+				ret.free++;
+			}
 
-	return ret + "</ul></li>";
+	ret.html = "<li class=\"storage-location"
+	+ (loc.location_id == selected_id ? " selected" : "")
+	+ "\" " + (((show_depth) > 0) ? "" : "style=\"display: none\"")
+	+ " data-sort-order=\"" + loc.sort_order + "\" data-name=\"" + loc.name + "\" data-parent-id=\"" + loc.parent_id + "\""
+	+ " id=\"" + loc.location_id + "\"><span><i class=\"fas"
+	+ (((show_depth - 1) > 0) ? " fa-minus" : " fa-plus")
+	+ "\"></i>" + loc.name + " (" + ret.assigned + "/" + (ret.assigned + ret.free) + ")</span><ul>" + c_html + "</ul></li>";
+
+	return ret;
 	}
 
 function load_storage()
@@ -409,7 +424,8 @@ function load_storage()
 
 	api.success = function (data)
 		{
-		var tree = "<ul>" + handle_location(data.locations, 2, selected_id) + "</ul>";
+		var loc = handle_location(data.locations, 2, selected_id);
+		var tree = "<ul>" + loc.html + "</ul>";
 
 		$div.empty().append($tree).append($reqs);
 		$tree.html(tree);
