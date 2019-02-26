@@ -1,3 +1,60 @@
+var heatmap_panel;
+
+function display_heatmap_data(data)
+	{
+	var i, j, v, color, hour, panel = this;
+	var d = data.accesses;
+
+	html = "<table class=\"heatmap\"><thead><tr><th></th><th>S</th><th>M</th><th>T</th><th>W</th><th>R</th><th>F</th><th>S</th></tr></thead><tbody>";
+
+	for (i = 0; i < 96; i++)
+		{
+		html += "<tr>";
+		if (!(i % 4))
+			{
+			hour = (i / 4) % 12;
+			if (!hour)
+				hour = 12;
+			html += "<td class=\"time\" rowspan=\"4\">" + hour + ":00</td>";
+			}
+		for (j = 0; j < 7; j++)
+			{
+			v = d[j][i];
+
+			html += "<td class=\"point\" style=\"background: ";
+			switch (heatmap_panel.ldata.scheme)
+				{
+				case "jet":
+					color = (100 - v) * 2.4;
+					html += "hsl(" + color + ", 100%, 50%)";
+					break;
+				default:
+					if (v <= 60)
+						{
+						color = (60 - v) * (255 / 60);
+						html += "rgb(255, 255, " + parseInt(color) + ")";
+						}
+					else if (v <= 90)
+						{
+						color = (90 - v) * (255 / 30);
+						html += "rgb(255, " + parseInt(color) + ", 0)";
+						}
+					else
+						{
+						color = (100 - v) * (128 / 10);
+						html += "rgb(255, 0, " + parseInt(color) + ")";
+						}
+					break;
+				}
+			html += ";\"></td>";
+			}
+		html += "</tr>";
+		}
+
+	html += "</tbody></table>";
+	this.$panel.find(".panel-body").html(html);
+	}
+
 function display_storage_data(data)
 	{
 	var self = this, i, dt, request, html = "<a href=\"/storage/request\">Request a new spot</a><br /><br />";
@@ -118,4 +175,148 @@ $(function()
 		load_path:      "/storage/list",
 		refresh:        false
 		});
+
+	heatmap_panel = new Panel(
+		{
+		panel_class:    "heatmap",
+		panel_function: display_heatmap_data,
+		refresh:        false,
+		load_path:      "/heatmap",
+		ldata:
+			{
+			scale:  "lin",
+			scheme: "jet",
+			range:  "all"
+			}
+		});
+
+	heatmap_panel.$settings_dialogue =
+		$([
+		"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
+			"<div class=\"modal-dialog\" role=\"document\">",
+				"<div class=\"modal-content\">",
+					"<div class=\"modal-header\">",
+						"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+						"<h3 class=\"modal-title\">Heatmap Settings</h3>",
+					"</div>",
+					"<div class=\"modal-body\">",
+						"<div class=\"row\">",
+							"<div class=\"col-xs-12 col-md-6\">",
+								"<div class=\"panel panel-success\">",
+									"<div class=\"panel-heading\">",
+										"<h4>Scale</h4>",
+									"</div>",
+									"<div class=\"panel-body\">",
+										"<label>",
+											"<input type=\"radio\" name=\"scale\" value=\"lin\"" + (heatmap_panel.ldata.scale === "lin" ? " checked" : "") + " />",
+											" Linear",
+										"</label><br />",
+										"<label>",
+											"<input type=\"radio\" name=\"scale\" value=\"log\"" + (heatmap_panel.ldata.scale === "log" ? " checked" : "") + " />",
+											" Logarithmic",
+										"</label>",
+									"</div>",
+								"</div>",
+							"</div>",
+							"<div class=\"col-xs-12 col-md-6\">",
+								"<div class=\"panel panel-success\">",
+									"<div class=\"panel-heading\">",
+										"<h4>Color Gradient</h4>",
+									"</div>",
+									"<div class=\"panel-body\">",
+										"<label>",
+											"<input type=\"radio\" name=\"scheme\" value=\"jet\"" + (heatmap_panel.ldata.scheme === "jet" ? " checked" : "") + " />",
+											" Jet (5-color)",
+										"</label><br />",
+										"<label>",
+											"<input type=\"radio\" name=\"scheme\" value=\"yel\"" + (heatmap_panel.ldata.scheme === "yel" ? " checked" : "") + " />",
+											" White &rarr; Yellow &rarr; Red",
+										"</label>",
+									"</div>",
+								"</div>",
+							"</div>",
+						"</div>",
+						"<div class=\"row\">",
+							"<div class=\"col-xs-12\">",
+								"<div class=\"panel panel-info\">",
+									"<div class=\"panel-heading\">",
+										"<h4>Date Range</h4>",
+									"</div>",
+									"<div class=\"panel-body\">",
+										"<div class=\"two-column\">",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"all\"" + (heatmap_panel.ldata.range === "all" ? " checked" : "") + " />",
+												" All",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"year\"" + (heatmap_panel.ldata.range === "year" ? " checked" : "") + " />",
+												" Past Year",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"half_year\"" + (heatmap_panel.ldata.range === "half_year" ? " checked" : "") + " />",
+												" Past Six Months",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"quarter\"" + (heatmap_panel.ldata.range === "quarter" ? " checked" : "") + " />",
+												" Past Three Months",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"month\"" + (heatmap_panel.ldata.range === "month" ? " checked" : "") + " />",
+												" Past Month",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"custom\"" + (heatmap_panel.ldata.range === "custom" ? " checked" : "") + " />",
+												" Custom Range",
+											"</label>",
+										"</div>",
+										"<div class=\"input-group input-daterange\" style=\"display: none\">",
+											"<input type=\"text\" class=\"form-control datepicker\" id=\"start_date\" />",
+											"<div class=\"input-group-addon\">to</div>",
+											"<input type=\"text\" class=\"form-control datepicker\" id=\"end_date\" />",
+										"</div>",
+									"</div>",
+								"</div>",
+							"</div>",
+						"</div>",
+					"</div>",
+					"<div class=\"modal-footer\">",
+						"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+						"<button type=\"button\" class=\"btn btn-primary accept\">Update</button>",
+					"</div>",
+				"</div>",
+			"</div>",
+		"</div>"
+		].join(""));
+
+	heatmap_panel.$settings_dialogue.find(".input-daterange").datepicker(
+		{
+		inputs: heatmap_panel.$settings_dialogue.find(".input-daterange input")
+		});
+	heatmap_panel.$settings_dialogue.find("input[name=range]").change(function ()
+		{
+		heatmap_panel.$settings_dialogue.find("div.input-daterange").css("display", $(this).val() == "custom" ? "" : "none");
+		});
+	heatmap_panel.$settings_dialogue.find("button.accept").click(function ()
+		{
+		var $this       = heatmap_panel.$settings_dialogue,
+			settings      = heatmap_panel.ldata;
+		settings.scale  = $this.find("input[name=scale]:checked").val();
+		settings.scheme = $this.find("input[name=scheme]:checked").val();
+		settings.range  = $this.find("input[name=range]:checked").val();
+		if (settings.range === "custom")
+			{
+			settings.end_date   = $this.find("input#end_date").datepicker("getDate");
+			settings.start_date = $this.find("input#start_date").datepicker("getDate");
+			}
+		else
+			{
+			delete settings.start_date;
+			delete settings.end_date;
+			}
+		$this.modal("hide");
+		heatmap_panel.load_panel_data();
+		});
+
+	heatmap_panel.$panel.find("div.panel-heading").prepend($("<span class=\"fas fa-cog u-f-r anchor-style\" id=\"heatmap_settings\"></span>"));
+	heatmap_panel.$panel.on("click", "#heatmap_settings", function () { heatmap_panel.$settings_dialogue.modal("show"); });
 	});

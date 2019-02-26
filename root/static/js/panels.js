@@ -50,7 +50,10 @@ Panel.prototype.load_panel_data = function()
 
 	if (this.ldata)
 		{
-		api.data = this.ldata();
+		if (typeof(this.ldata) === 'function')
+			api.data = this.ldata();
+		else
+			api.data = this.ldata;
 		api.type = "POST";
 		}
 
