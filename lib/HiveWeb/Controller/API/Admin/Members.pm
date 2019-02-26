@@ -76,21 +76,12 @@ sub info :Local :Args(0)
 		return;
 		}
 
-	my @badges = $member->badges();
-	my @obadges;
-	foreach my $badge (@badges)
-		{
-		push(@obadges,
-			{
-			badge_id     => $badge->badge_id(),
-			badge_number => $badge->badge_number()
-			});
-		}
-	my @slots = $member->list_slots();
-
-	$out->{slots}    = \@slots;
-	$out->{badges}   = \@obadges;
+	$out->{slots}    = [ $member->list_slots() ];
+	$out->{badges}   = [ $member->badges() ];
 	$out->{member}   = $member;
+	$out->{linked}   = [ $member->linked_members() ];
+	$out->{link}     = $member->link()
+		if ($member->link());
 	$out->{response} = \1;
 	}
 
@@ -203,10 +194,57 @@ sub edit :Local :Args(0)
 					my $badge = $member->create_related('badges', { badge_number => $badge_number });
 					}
 				}
+			if (exists($in->{links}))
+				{
+				my %current_links = map { $_->member_id() => $_ } $member->linked_members();
+				foreach my $linked_id (@{ $in->{links} })
+					{
+					die 'Cannot link to self'
+						if ($linked_id eq $member_id);
+					if ($current_links{$linked_id})
+						{
+						delete($current_links{$linked_id});
+						}
+					else
+						{
+						my $new_link = $c->model('DB::Member')->find($linked_id) || die "Invalid Member ID $linked_id";
+						$member->create_related('changed_audits',
+							{
+							change_type        => 'add_linked',
+							notes              => 'Linked account ' . $linked_id,
+							changing_member_id => $c->user()->member_id(),
+							});
+						$new_link->create_related('changed_audits',
+							{
+							change_type        => 'add_link',
+							notes              => 'Linked to account ' . $member_id,
+							changing_member_id => $c->user()->member_id(),
+							});
+						$new_link->update({ linked_member_id => $member_id });
+						}
+					}
+				foreach my $linked_member_id (keys(%current_links))
+					{
+					$member->create_related('changed_audits',
+						{
+						change_type        => 'delete_linked',
+						notes              => 'Unlinked account ' . $linked_member_id,
+						changing_member_id => $c->user()->member_id(),
+						});
+					$current_links{$linked_member_id}->create_related('changed_audits',
+						{
+						change_type        => 'delete_link',
+						notes              => 'Unlinked from account ' . $member_id,
+						changing_member_id => $c->user()->member_id(),
+						});
+					$current_links{$linked_member_id}->update({ linked_member_id => undef });
+					}
+				}
 			if (exists($in->{member_image_id}))
 				{
 				my $image_id = $in->{member_image_id};
-				if ($image_id ne $member->member_image_id())
+				my $current  = $member->member_image_id();
+				if (defined($image_id) != defined($current) || (defined($image_id) && defined($current) && $image_id ne $current))
 					{
 					$member->create_related('changed_audits',
 						{
@@ -219,8 +257,9 @@ sub edit :Local :Args(0)
 				}
 			if (exists($in->{paypal_email}))
 				{
-				my $paypal = $in->{paypal_email};
-				if (defined($member->paypal_email()) != defined($paypal) || $member->paypal_email() ne $paypal)
+				my $paypal  = $in->{paypal_email};
+				my $current = $member->paypal_email();
+				if (defined($current) != defined($paypal) || (defined($paypal) && defined($current) && $current ne $paypal))
 					{
 					$member->create_related('changed_audits',
 						{
@@ -249,26 +288,13 @@ sub edit :Local :Args(0)
 			foreach my $group (@groups)
 				{
 				my $group_id = $group->mgroup_id();
-				if ($new_groups{$group_id} && !$member->find_related('member_mgroups', { mgroup_id => $group_id }))
+				if ($new_groups{$group_id})
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'add_group',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Added group ' . $group_id
-						});
-					$member->create_related('member_mgroups', { mgroup_id => $group_id });
+					$member->add_group($group_id, $c->user());
 					}
-				my $mg;
-				if (!$new_groups{$group_id} && ($mg = $member->find_related('member_mgroups', { mgroup_id => $group_id })))
+				else
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'remove_group',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Removed group ' . $group_id
-						});
-					$mg->delete();
+					$member->remove_group($group_id, $c->user());
 					}
 				}
 			$out->{response} = \1;
@@ -277,7 +303,7 @@ sub edit :Local :Args(0)
 		}
 	catch
 		{
-		$out->{data} = 'Could not update member profile.';
+		$out->{data} = 'Could not update member profile: ' . $_;
 		};
 	}
 
@@ -364,6 +390,32 @@ sub index :Path :Args(0)
 
 	$filters->{member_image_id} = ($in->{filters}->{photo} ? { '!=' => undef } : undef)
 		if (defined($in->{filters}->{photo}));
+
+	if (defined(my $linked = $in->{filters}->{linked}))
+		{
+		my $main_query = $c->model('DB::Member')->search({ linked_member_id => { '-ident' => 'me.member_id' } }, { alias => 'links' })->count_rs()->as_query();
+		if ($linked eq 'sub')
+			{
+			$filters->{linked_member_id} = { '!=' => undef };
+			}
+		elsif ($linked eq 'main')
+			{
+			$filters->{$$main_query->[0]} = { '>=' => 1 };
+			}
+		elsif ($linked eq 'no')
+			{
+			$filters->{linked_member_id} = undef;
+			$filters->{$$main_query->[0]} = 0;
+			}
+		elsif ($linked eq 'yes')
+			{
+			$filters->{'-or'} =
+				[
+				{ linked_member_id  => { '!=' => undef} },
+				{ $$main_query->[0] => { '>=' => 1} },
+				];
+			}
+		}
 
 	if (defined(my $pp = $in->{filters}->{paypal}))
 		{

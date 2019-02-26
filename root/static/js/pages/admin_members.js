@@ -1,4 +1,4 @@
-var badge;
+var badge, link;
 var order      = "lname";
 var dir        = "ASC";
 var all_groups = [];
@@ -11,7 +11,8 @@ var filters    =
 	group_type:    null,
 	group_list:    null,
 	storage_type:  null,
-	storage_value: null
+	storage_value: null,
+	linked:        null
 	}
 var columns    =
 	[
@@ -55,19 +56,78 @@ var columns    =
 
 $(function()
 	{
-	var
+	var $select,
 		$table         = $("table#hive-member-table"),
 		$nav           = $("nav.hive-member-pagination"),
 		$edit_dialogue = $("div#edit_dialogue"),
 		$filter        = $("div#filter_dialogue");
 
-	badge = new Badge(
+	badge = new Editor(
 		{
 		$parent: $("div#badges div.panel-body"),
 		dirty: function()
 			{
 			$edit_dialogue.data("dirty", true);
 			}
+		});
+
+	link = new Editor(
+		{
+		$parent: $("div#linked_div"),
+		id:      "member_id",
+		name:    "link",
+		display: function (val) { return val.fname + " " + val.lname; },
+		dirty:   function () { $edit_dialogue.data("dirty", true); },
+		get:     function ($item) { return $item.attr("id"); },
+		new:     function ($select) { return $("<option />").attr("id", $select.val()).text($select.text()); },
+		entry:   "<select class=\"link-new\" name=\"member\" data-placeholder=\"Start typing the member's name\" class=\"u-w-100\"></select>"
+		});
+
+	$select = link.$div.find("select.link-new");
+	$select.select2(
+		{
+		dropdownParent: $select.parent(),
+		width: "100%",
+		ajax:
+			{
+			url: "/api/admin/members/search",
+			dataType: "json",
+			delay: 250,
+			method: "POST",
+			processData: false,
+			contentType: "application/json",
+			data: function (params)
+				{
+				var query =
+					{
+					name: params.term,
+					page: params.page
+					};
+
+				return JSON.stringify(query);
+				},
+			processResults: function (data, params)
+				{
+				var r, i, items = [];
+				params.page = params.page || 1;
+
+				for (i = 0; i < data.members.length; i++)
+					items.push(
+						{
+						id:   data.members[i].member_id,
+						text: data.members[i].fname + " " + data.members[i].lname
+						});
+				r =
+					{
+					results: items,
+					pagination: { more: ((params.page * 10) < data.count) }
+					};
+
+				return r;
+				}
+			},
+		minimumInputLength: 1,
+		placeholder: "Type a member's name",
 		});
 
 	$filter.find("input[name=paypal]").click(function ()
@@ -86,7 +146,8 @@ $(function()
 			photo         = $filter.find("input[name=photo]:checked").val(),
 			group_type    = $filter.find("input[name=group_filter]:checked").val(),
 			storage_value = parseInt($filter.find("input#storage_value").val()) || 0,
-			storage_type  = $filter.find("input[name=storage_type]:checked").val();
+			storage_type  = $filter.find("input[name=storage_type]:checked").val(),
+			linked        = $filter.find("input[name=linked]:checked").val();
 
 		$filter.modal("hide").find("input[name=paypal]:checked").each(function ()
 			{
@@ -114,6 +175,10 @@ $(function()
 			filters.group_type = null;
 		else
 			filters.group_type = group_type;
+		if (linked === "null")
+			filters.linked = null;
+		else
+			filters.linked = linked;
 		$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
 		if (!group_list.length)
 			filters.group_list = null;
@@ -154,6 +219,10 @@ $(function()
 			$filter.find("input[name=group_filter][value=null]").prop("checked", true);
 		else
 			$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
+		if (filters.linked === null)
+			$filter.find("input[name=linked][value=null]").prop("checked", true);
+		else
+			$filter.find("input[name=linked][value=" + filters.linked + "]").prop("checked", true);
 		if (filters.group_list)
 			for (i = 0; i < filters.group_list.length; i++)
 				$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
@@ -377,6 +446,22 @@ function set_top_html(count)
 		html += "</span>";
 		}
 
+	if (filters.linked !== null)
+		{
+		html += " <span class=\"label label-info\">Linked: ";
+		if (filters.linked === "main")
+			html += "Main Account";
+		else if (filters.linked === "sub")
+			html += "Linked Account";
+		else if (filters.linked === "yes")
+			html += "Either Main or Linked Account";
+		else if (filters.linked === "no")
+			html += "No";
+		else
+			html += "???";
+		html += "</span>";
+		}
+
 	if (filters.group_type !== null)
 		{
 		html += " <span class=\"label label-info\">";
@@ -586,15 +671,16 @@ function save_member()
 	{
 	var $this = $(this).parents(".modal"), groups = [], member_id = $this.data("member_id");
 	var soda_credits = $this.find("input#soda_credits").val();
-	var member_image_id = $this.data("picture").get_image_id();
+	var member_image_id = $this.data("picture").get_image_id() || null;
 	var data =
 		{
 		groups: groups,
 		vend_credits: soda_credits,
 		paypal_email: null,
-		member_image_id: member_image_id || null,
+		member_image_id: member_image_id,
 		member_id: member_id,
-		badges: badge.get()
+		badges: badge.get(),
+		links:  link.get()
 		};
 
 	$("input.group[type=\"checkbox\"]:checked").each(function()
@@ -614,6 +700,7 @@ function save_member()
 		success: function (data)
 			{
 			$this.data("dirty", false);
+			$this.data("member_image_id", member_image_id);
 			$this.modal("hide");
 			}
 		});
@@ -649,7 +736,7 @@ function edit(member_id)
 		success_toast: false,
 		success: function (data)
 			{
-			var i, $option, $soda_credits, $remove, date_obj, html, ac, dc, phone;
+			var i, $option, $soda_credits, $remove, date_obj, html, ac, dc, phone, $div;
 			var $info   = $dialogue.find("div#info_div div.panel-body");
 			$dialogue.data("member_image_id", data.member.member_image_id);
 			var picture = new Picture(
@@ -701,17 +788,30 @@ function edit(member_id)
 			for (i = 0; i < data.member.groups.length; i++)
 				$("input.group[type=\"checkbox\"][value=\"" + data.member.groups[i] + "\"]").prop("checked", true);
 
-			if (data.member.paypal_email === null)
+			if ("link" in data && data.link)
 				{
-				$("input#different_paypal").prop("checked", false);
-				$("input#paypal_email").val("");
+				$("div#pay_div").css("display", "none");
+				$("div#link_div").css("display", "");
+				$("div#link_div div").html("This account is linked to " + data.link.fname + " " + data.link.lname + ". Please visit that acconut to edit payment and link info.");
 				}
 			else
 				{
-				$("input#different_paypal").prop("checked", true);
-				$("input#paypal_email").val(data.member.paypal_email);
+				$("div#pay_div").css("display", "");
+				$("div#link_div").css("display", "none");
+				if (data.member.paypal_email === null)
+					{
+					$("input#different_paypal").prop("checked", false);
+					$("input#paypal_email").val("");
+					}
+				else
+					{
+					$("input#different_paypal").prop("checked", true);
+					$("input#paypal_email").val(data.member.paypal_email);
+					}
+
+				link.set(data.linked);
 				}
-			
+
 			badge.set(data.badges);
 			paypal_checkbox();
 			$dialogue.find("#edit_label").text(title);

@@ -235,7 +235,7 @@ function load_groups()
 function save_group()
 	{
 	var $this = $(this).parents(".modal"), members = [], mgroup_id = $this.data("mgroup_id");
-	var url = "[% Catalyst.uri_for('/api/admin/groups/edit') %]", what, data =
+	var what, data =
 		{
 		members: members
 		};
@@ -258,11 +258,11 @@ function save_group()
 
 	api_json(
 		{
-		url: url,
+		path: "/admin/groups/edit",
 		data: data,
 		what: what,
 		button: $(this),
-		success: function (data) { $this.modal("hide"); }
+		success: function (data) { $this.modal("hide"); load_groups(); }
 		});
 	}
 
@@ -381,7 +381,7 @@ function curse_group(mgroup_id)
 
 		api_json(
 			{
-			url:     "[% Catalyst.uri_for('/api/admin/curses/cast').dquote %]",
+			path:    "/admin/curses/cast",
 			data:    data,
 			what:    "Curse Cast",
 			button:  $ok,
@@ -389,11 +389,12 @@ function curse_group(mgroup_id)
 			});
 		});
 
-	$.ajax(
+	api_json(
 		{
-		dataType: "json",
-		url: "[% Catalyst.uri_for('/api/admin/curses') %]",
-		cache: false,
+		what: "Load Curses",
+		success_toast: false,
+		data: {},
+		path: "/admin/curses",
 		success: function (data)
 			{
 			var i, html = "<option value=\"-1\">Select Curse</option>";

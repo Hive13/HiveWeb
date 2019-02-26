@@ -58,6 +58,56 @@ while (my $action = $queue->next())
 				return;
 				}
 			}
+		elsif ($type =~ s/^member\.//)
+			{
+			my $member = $schema->resultset('Member')->find($action->row_id());
+			if (!$member)
+				{
+				warn 'Cannot find referenced member ' . $action->row_id();
+				return;
+				}
+			my $member_config = $mail_config->{member};
+			if (exists($member_config->{$type}))
+				{
+				if ($type =~ /^notify_/)
+					{
+					$message->{to} = $mail_config->{notify_to};
+					}
+				else
+					{
+					$message->{to} = { $member->email() => $member->fname() . ' ' . $member->lname() };
+					}
+				$message->{temp_plain} = $member_config->{$type}->{temp_plain};
+				$message->{subject}    = $member_config->{$type}->{subject};
+				$message->{stash}      =
+					{
+					member   => $member,
+					base_url => $config->{base_url},
+					};
+				}
+			else
+				{
+				# Unknown action type; leave it alone.
+				return;
+				}
+			}
+		elsif ($type eq 'notify.term')
+			{
+			my $survey = $schema->resultset('SurveyResponse')->find($action->row_id());
+			if (!$survey)
+				{
+				warn 'Cannot find referenced survey ' . $action->row_id();
+				return;
+				}
+			$message->{to}         = $mail_config->{notify_to};
+			$message->{temp_plain} = $mail_config->{notify_term}->{temp_plain};
+			$message->{subject}    = $mail_config->{notify_term}->{subject};
+			$message->{stash}      =
+				{
+				survey   => $survey,
+				base_url => $config->{base_url},
+				};
+			}
 		elsif ($type eq 'storage.assign')
 			{
 			my $slot = $schema->resultset('StorageSlot')->find($action->row_id());

@@ -99,6 +99,7 @@ $(function ()
 				[% INCLUDE column column='zip' title='Zip Code' maxlength=10 value=zip required=1 pattern='\d{5}(?=-?\d{4})?' %]
 				[% INCLUDE column column='contact_name' title='Emergency Contact Name' %]
 				[% INCLUDE column column='contact_phone' title='Emergency Contact Phone' value=contact_phone %]
+				[% INCLUDE column column='helper' title='Which Hive Member, if any, helped you sign up?' %]
 				<tr>
 					<td colspan="2" class="center">
 						[%~ IF other %]

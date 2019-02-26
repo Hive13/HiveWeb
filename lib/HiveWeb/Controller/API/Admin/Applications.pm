@@ -58,7 +58,6 @@ sub finalize :Local :Args(0)
 				action_type       => 'application.finalize',
 				row_id            => $application->application_id(),
 				}) || die 'Could not queue notification: ' . $!;
-			});
 			$member->create_related('changed_audits',
 				{
 				change_type        => 'finalize_application',
@@ -77,27 +76,13 @@ sub finalize :Local :Args(0)
 					$action = lc($action);
 					if ($action eq 'remove_from_group')
 						{
-						my $group    = $c->model('DB::MGroup')->find({ name => 'pending_applications' }) || die;
-						my $group_id = $group->mgroup_id();
-						$member->find_related('member_mgroups', { mgroup_id => $group_id })->delete();
-						$member->create_related('changed_audits',
-							{
-							change_type        => 'remove_group',
-							changing_member_id => $c->user()->member_id(),
-							notes              => 'Removed group ' . $group_id,
-							});
+						my $group = $c->model('DB::MGroup')->find({ name => 'pending_applications' }) || die;
+						$member->remove_group($group, $c->user());
 						}
-					elsif ($action eq 'add_to_members')
+					elsif ($action eq 'add_to_pending_payments')
 						{
-						my $group    = $c->model('DB::MGroup')->find({ name => 'members' }) || die;
-						my $group_id = $group->mgroup_id();
-						$member->create_related('changed_audits',
-							{
-							change_type        => 'add_group',
-							changing_member_id => $c->user()->member_id(),
-							notes              => 'Added group ' . $group_id
-							});
-						$member->find_or_create_related('member_mgroups', { mgroup_id => $group_id }) || die;
+						my $group = $c->model('DB::MGroup')->find({ name => 'pending_payments' }) || die;
+						$member->add_group($group, $c->user());
 						}
 					elsif ($action eq 'add_soda_credit')
 						{
