@@ -64,7 +64,7 @@ sub subscr_payment
 			{
 			queuing_member_id => $member->member_id(),
 			action_type       => 'member.welcome',
-			row_id            => $payment->payment_id(),
+			row_id            => $member->member_id(),
 			}) || die 'Could not queue notification: ' . $!;
 
 		my $slack = $c->config()->{slack};
