@@ -1,0 +1,3811 @@
+---
+schema:
+  procedures: {}
+  tables:
+    access_log:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - access_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - item_id
+          match_type: ''
+          name: access_log_fk_item_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - item_id
+          reference_table: item
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: access_log_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        access_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: access_id
+          order: 1
+          size:
+            - 16
+        access_time:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: access_time
+          order: 2
+          size:
+            - 0
+        badge_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: badge_id
+          order: 6
+          size:
+            - 0
+        granted:
+          data_type: boolean
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: granted
+          order: 5
+          size:
+            - 0
+        item_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: item_id
+          order: 3
+          size:
+            - 16
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 4
+          size:
+            - 16
+      indices:
+        - fields:
+            - item_id
+          name: access_log_idx_item_id
+          options: []
+          type: NORMAL
+        - fields:
+            - member_id
+          name: access_log_idx_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - member_id
+            - access_time
+          name: access_log_member_id_access_time_idx
+          options: []
+          type: NORMAL
+        - fields:
+            - access_time
+          name: recent
+          options: []
+          type: NORMAL
+      name: access_log
+      options: []
+      order: 29
+    action:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - action_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - queuing_member_id
+          match_type: ''
+          name: action_fk_queuing_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        action_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: action_id
+          order: 1
+          size:
+            - 16
+        action_type:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: action_type
+          order: 5
+          size:
+            - 0
+        priority:
+          data_type: interger
+          default_value: 1000
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: priority
+          order: 4
+          size:
+            - 0
+        queued_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: queued_at
+          order: 2
+          size:
+            - 0
+        queuing_member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: queuing_member_id
+          order: 3
+          size:
+            - 16
+        row_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: row_id
+          order: 6
+          size:
+            - 16
+      indices:
+        - fields:
+            - queuing_member_id
+          name: action_idx_queuing_member_id
+          options: []
+          type: NORMAL
+      name: action
+      options: []
+      order: 19
+    application:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - application_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - form_id
+          match_type: ''
+          name: application_fk_form_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - image_id
+          reference_table: image
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: application_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - picture_id
+          match_type: ''
+          name: application_fk_picture_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - image_id
+          reference_table: image
+          type: FOREIGN KEY
+      fields:
+        address1:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: address1
+          order: 3
+          size:
+            - 0
+        address2:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: address2
+          order: 4
+          size:
+            - 0
+        app_turned_in_at:
+          data_type: timestamp with time zone
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: app_turned_in_at
+          order: 15
+          size:
+            - 0
+        application_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: application_id
+          order: 1
+          size:
+            - 16
+        city:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: city
+          order: 5
+          size:
+            - 0
+        contact_name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: contact_name
+          order: 8
+          size:
+            - 0
+        contact_phone:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: contact_phone
+          order: 9
+          size:
+            - 0
+        created_at:
+          data_type: timestamp without time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: created_at
+          order: 13
+          size:
+            - 0
+        decided_at:
+          data_type: timestamp with time zone
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: decided_at
+          order: 17
+          size:
+            - 0
+        final_result:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: final_result
+          order: 18
+          size:
+            - 0
+        form_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: form_id
+          order: 10
+          size:
+            - 16
+        helper:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: helper
+          order: 19
+          size:
+            - 0
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 2
+          size:
+            - 16
+        picture_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: picture_id
+          order: 12
+          size:
+            - 16
+        state:
+          data_type: character
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: state
+          order: 6
+          size:
+            - 2
+        thread_message_id:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: thread_message_id
+          order: 16
+          size:
+            - 0
+        topic_id:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: topic_id
+          order: 11
+          size:
+            - 0
+        updated_at:
+          data_type: timestamp without time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updated_at
+          order: 14
+          size:
+            - 0
+        zip:
+          data_type: character
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: zip
+          order: 7
+          size:
+            - 9
+      indices:
+        - fields:
+            - form_id
+          name: application_idx_form_id
+          options: []
+          type: NORMAL
+        - fields:
+            - member_id
+          name: application_idx_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - picture_id
+          name: application_idx_picture_id
+          options: []
+          type: NORMAL
+      name: application
+      options: []
+      order: 20
+    audit_log:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - audit_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - changed_member_id
+          match_type: ''
+          name: audit_log_fk_changed_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - changing_member_id
+          match_type: ''
+          name: audit_log_fk_changing_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        audit_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: audit_id
+          order: 1
+          size:
+            - 16
+        change_time:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: change_time
+          order: 2
+          size:
+            - 0
+        change_type:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: change_type
+          order: 5
+          size:
+            - 0
+        changed_member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: changed_member_id
+          order: 3
+          size:
+            - 16
+        changing_member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: changing_member_id
+          order: 4
+          size:
+            - 16
+        notes:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: notes
+          order: 6
+          size:
+            - 0
+      indices:
+        - fields:
+            - changed_member_id
+          name: audit_log_idx_changed_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - changing_member_id
+          name: audit_log_idx_changing_member_id
+          options: []
+          type: NORMAL
+      name: audit_log
+      options: []
+      order: 21
+    badge:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - badge_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: badge_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        badge_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: badge_id
+          order: 1
+          size:
+            - 16
+        badge_number:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: badge_number
+          order: 2
+          size:
+            - 0
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 3
+          size:
+            - 16
+      indices:
+        - fields:
+            - member_id
+          name: badge_idx_member_id
+          options: []
+          type: NORMAL
+      name: badge
+      options: []
+      order: 22
+    curse:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - curse_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        curse_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: curse_id
+          order: 1
+          size:
+            - 16
+        display_name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: display_name
+          order: 6
+          size:
+            - 0
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 5
+          size:
+            - 0
+        notification_markdown:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: notification_markdown
+          order: 7
+          size:
+            - 0
+        priority:
+          data_type: integer
+          default_value: !!perl/ref
+            =: 10000
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: priority
+          order: 2
+          size:
+            - 0
+        protect_group_cast:
+          data_type: boolean
+          default_value: !!perl/ref
+            =: true
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: protect_group_cast
+          order: 3
+          size:
+            - 0
+        protect_user_cast:
+          data_type: boolean
+          default_value: !!perl/ref
+            =: true
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: protect_user_cast
+          order: 4
+          size:
+            - 0
+      indices: []
+      name: curse
+      options: []
+      order: 1
+    curse_action:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - curse_action_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - curse_id
+          match_type: ''
+          name: curse_action_fk_curse_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - curse_id
+          reference_table: curse
+          type: FOREIGN KEY
+      fields:
+        action:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: action
+          order: 4
+          size:
+            - 0
+        curse_action_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: curse_action_id
+          order: 1
+          size:
+            - 16
+        curse_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: curse_id
+          order: 2
+          size:
+            - 16
+        message:
+          data_type: text
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: message
+          order: 5
+          size:
+            - 0
+        path:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: path
+          order: 3
+          size:
+            - 0
+      indices:
+        - fields:
+            - curse_id
+          name: curse_action_idx_curse_id
+          options: []
+          type: NORMAL
+      name: curse_action
+      options: []
+      order: 13
+    device:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - device_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        device_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: device_id
+          order: 1
+          size:
+            - 16
+        key:
+          data_type: bytea
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: key
+          order: 2
+          size:
+            - 0
+        max_version:
+          data_type: integer
+          default_value: 1
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: max_version
+          order: 6
+          size:
+            - 0
+        min_version:
+          data_type: integer
+          default_value: 1
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: min_version
+          order: 5
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 3
+          size:
+            - 64
+        nonce:
+          data_type: bytea
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: nonce
+          order: 4
+          size:
+            - 0
+      indices: []
+      name: device
+      options: []
+      order: 2
+    device_item:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - device_id
+            - item_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - device_id
+          match_type: ''
+          name: device_item_fk_device_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - device_id
+          reference_table: device
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - item_id
+          match_type: ''
+          name: device_item_fk_item_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - item_id
+          reference_table: item
+          type: FOREIGN KEY
+      fields:
+        device_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: device_id
+          order: 1
+          size:
+            - 16
+        item_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: item_id
+          order: 2
+          size:
+            - 16
+      indices:
+        - fields:
+            - device_id
+          name: device_item_idx_device_id
+          options: []
+          type: NORMAL
+        - fields:
+            - item_id
+          name: device_item_idx_item_id
+          options: []
+          type: NORMAL
+      name: device_item
+      options: []
+      order: 23
+    image:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - image_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - image_id
+          match_type: ''
+          name: image_fk_image_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_image_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        content_type:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: content_type
+          order: 6
+          size:
+            - 0
+        created_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: created_at
+          order: 4
+          size:
+            - 0
+        image:
+          data_type: bytea
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: image
+          order: 2
+          size:
+            - 0
+        image_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: image_id
+          order: 1
+          size:
+            - 16
+        thumbnail:
+          data_type: bytea
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: thumbnail
+          order: 3
+          size:
+            - 0
+        updated_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updated_at
+          order: 5
+          size:
+            - 0
+      indices: []
+      name: image
+      options: []
+      order: 14
+    ipn_message:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - ipn_message_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: ipn_message_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        ipn_message_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: ipn_message_id
+          order: 1
+          size:
+            - 16
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 2
+          size:
+            - 16
+        payer_email:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: payer_email
+          order: 5
+          size:
+            - 0
+        raw:
+          data_type: text
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: raw
+          order: 6
+          size:
+            - 0
+        received_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: received_at
+          order: 3
+          size:
+            - 0
+        txn_id:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: txn_id
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - member_id
+          name: ipn_message_idx_member_id
+          options: []
+          type: NORMAL
+      name: ipn_message
+      options: []
+      order: 24
+    item:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - item_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        display_name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: display_name
+          order: 3
+          size:
+            - 0
+        item_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: item_id
+          order: 1
+          size:
+            - 16
+        name:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 32
+      indices: []
+      name: item
+      options: []
+      order: 3
+    item_mgroup:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - item_id
+            - mgroup_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - item_id
+          match_type: ''
+          name: item_mgroup_fk_item_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - item_id
+          reference_table: item
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - mgroup_id
+          match_type: ''
+          name: item_mgroup_fk_mgroup_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - mgroup_id
+          reference_table: mgroup
+          type: FOREIGN KEY
+      fields:
+        item_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: item_id
+          order: 1
+          size:
+            - 16
+        mgroup_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: mgroup_id
+          order: 2
+          size:
+            - 16
+      indices:
+        - fields:
+            - item_id
+          name: item_mgroup_idx_item_id
+          options: []
+          type: NORMAL
+        - fields:
+            - mgroup_id
+          name: item_mgroup_idx_mgroup_id
+          options: []
+          type: NORMAL
+      name: item_mgroup
+      options: []
+      order: 25
+    lamp_bulb:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - bulb_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - color_id
+          match_type: ''
+          name: lamp_bulb_fk_color_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - color_id
+          reference_table: lamp_color
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - device_id
+          match_type: ''
+          name: lamp_bulb_fk_device_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - device_id
+          reference_table: device
+          type: FOREIGN KEY
+      fields:
+        bulb_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: bulb_id
+          order: 1
+          size:
+            - 16
+        color_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: color_id
+          order: 3
+          size:
+            - 16
+        device_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: device_id
+          order: 2
+          size:
+            - 16
+        slot:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: slot
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - color_id
+          name: lamp_bulb_idx_color_id
+          options: []
+          type: NORMAL
+        - fields:
+            - device_id
+          name: lamp_bulb_idx_device_id
+          options: []
+          type: NORMAL
+      name: lamp_bulb
+      options: []
+      order: 26
+    lamp_bulb_preset:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - preset_id
+            - bulb_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - bulb_id
+          match_type: ''
+          name: lamp_bulb_preset_fk_bulb_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - bulb_id
+          reference_table: lamp_bulb
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - preset_id
+          match_type: ''
+          name: lamp_bulb_preset_fk_preset_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - preset_id
+          reference_table: lamp_preset
+          type: FOREIGN KEY
+      fields:
+        bulb_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: bulb_id
+          order: 2
+          size:
+            - 16
+        preset_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: preset_id
+          order: 1
+          size:
+            - 16
+        value:
+          data_type: boolean
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 3
+          size:
+            - 0
+      indices:
+        - fields:
+            - bulb_id
+          name: lamp_bulb_preset_idx_bulb_id
+          options: []
+          type: NORMAL
+        - fields:
+            - preset_id
+          name: lamp_bulb_preset_idx_preset_id
+          options: []
+          type: NORMAL
+      name: lamp_bulb_preset
+      options: []
+      order: 36
+    lamp_color:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - color_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        color_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: color_id
+          order: 1
+          size:
+            - 16
+        html_color:
+          data_type: character
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: html_color
+          order: 3
+          size:
+            - 6
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
+      indices: []
+      name: lamp_color
+      options: []
+      order: 4
+    lamp_preset:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - preset_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
+        preset_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: preset_id
+          order: 1
+          size:
+            - 16
+      indices: []
+      name: lamp_preset
+      options: []
+      order: 5
+    member_curse:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_curse_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - curse_id
+          match_type: ''
+          name: member_curse_fk_curse_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - curse_id
+          reference_table: curse
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - issuing_member_id
+          match_type: ''
+          name: member_curse_fk_issuing_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - lifting_member_id
+          match_type: ''
+          name: member_curse_fk_lifting_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: member_curse_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        curse_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: curse_id
+          order: 3
+          size:
+            - 16
+        issued_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: issued_at
+          order: 4
+          size:
+            - 0
+        issuing_member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: issuing_member_id
+          order: 6
+          size:
+            - 16
+        issuing_notes:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: issuing_notes
+          order: 7
+          size:
+            - 0
+        lifted_at:
+          data_type: timestamp with time zone
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: lifted_at
+          order: 5
+          size:
+            - 0
+        lifting_member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: lifting_member_id
+          order: 8
+          size:
+            - 16
+        lifting_notes:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: lifting_notes
+          order: 9
+          size:
+            - 0
+        member_curse_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: member_curse_id
+          order: 1
+          size:
+            - 16
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 2
+          size:
+            - 16
+      indices:
+        - fields:
+            - curse_id
+          name: member_curse_idx_curse_id
+          options: []
+          type: NORMAL
+        - fields:
+            - issuing_member_id
+          name: member_curse_idx_issuing_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - lifting_member_id
+          name: member_curse_idx_lifting_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - member_id
+          name: member_curse_idx_member_id
+          options: []
+          type: NORMAL
+      name: member_curse
+      options: []
+      order: 30
+    member_mgroup:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_id
+            - mgroup_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: member_mgroup_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - mgroup_id
+          match_type: ''
+          name: member_mgroup_fk_mgroup_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - mgroup_id
+          reference_table: mgroup
+          type: FOREIGN KEY
+      fields:
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: member_id
+          order: 1
+          size:
+            - 16
+        mgroup_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: mgroup_id
+          order: 2
+          size:
+            - 16
+      indices:
+        - fields:
+            - member_id
+          name: member_mgroup_idx_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - mgroup_id
+          name: member_mgroup_idx_mgroup_id
+          options: []
+          type: NORMAL
+      name: member_mgroup
+      options: []
+      order: 31
+    member_panel:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_id
+            - panel_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: member_panel_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - panel_id
+          match_type: ''
+          name: member_panel_fk_panel_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - panel_id
+          reference_table: panel
+          type: FOREIGN KEY
+      fields:
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: member_id
+          order: 1
+          size:
+            - 16
+        panel_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: panel_id
+          order: 2
+          size:
+            - 16
+        sort_order:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_order
+          order: 4
+          size:
+            - 0
+        visible:
+          data_type: boolean
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: visible
+          order: 3
+          size:
+            - 0
+      indices:
+        - fields:
+            - member_id
+          name: member_panel_idx_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - panel_id
+          name: member_panel_idx_panel_id
+          options: []
+          type: NORMAL
+      name: member_panel
+      options: []
+      order: 32
+    members:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - email
+          match_type: ''
+          name: index_members_on_email
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - handle
+          match_type: ''
+          name: members_handle_key
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_image_id
+          match_type: ''
+          name: members_fk_member_image_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - image_id
+          reference_table: image
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - linked_member_id
+          match_type: ''
+          name: members_fk_linked_member_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        created_at:
+          data_type: timestamp without time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: created_at
+          order: 10
+          size:
+            - 0
+        door_count:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: door_count
+          order: 14
+          size:
+            - 0
+        email:
+          data_type: citext
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: email
+          order: 4
+          size:
+            - 0
+        encrypted_password:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: encrypted_password
+          order: 7
+          size:
+            - 255
+        fname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: fname
+          order: 2
+          size:
+            - 255
+        handle:
+          data_type: citext
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 1
+          name: handle
+          order: 12
+          size:
+            - 0
+        linked_member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: linked_member_id
+          order: 16
+          size:
+            - 16
+        lname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: lname
+          order: 3
+          size:
+            - 255
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: member_id
+          order: 1
+          size:
+            - 16
+        member_image_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: member_image_id
+          order: 13
+          size:
+            - 16
+        paypal_email:
+          data_type: citext
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: paypal_email
+          order: 5
+          size:
+            - 0
+        phone:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: phone
+          order: 6
+          size:
+            - 0
+        totp_secret:
+          data_type: bytea
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: totp_secret
+          order: 15
+          size:
+            - 0
+        updated_at:
+          data_type: timestamp without time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updated_at
+          order: 11
+          size:
+            - 0
+        vend_credits:
+          data_type: integer
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: vend_credits
+          order: 8
+          size:
+            - 0
+        vend_total:
+          data_type: integer
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: vend_total
+          order: 9
+          size:
+            - 0
+      indices:
+        - fields:
+            - member_image_id
+          name: members_idx_member_image_id
+          options: []
+          type: NORMAL
+        - fields:
+            - linked_member_id
+          name: members_idx_linked_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - fname
+            - lname
+          name: members_fname_lname_idx
+          options: []
+          type: NORMAL
+        - fields:
+            - lname
+            - fname
+          name: members_lname_fname_idx
+          options: []
+          type: NORMAL
+      name: members
+      options: []
+      order: 15
+    mgroup:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - mgroup_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        mgroup_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: mgroup_id
+          order: 1
+          size:
+            - 16
+        name:
+          data_type: char
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 32
+      indices: []
+      name: mgroup
+      options: []
+      order: 6
+    panel:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - panel_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        large:
+          data_type: boolean
+          default_value: f
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: large
+          order: 6
+          size:
+            - 0
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 32
+        panel_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: panel_id
+          order: 1
+          size:
+            - 16
+        permissions:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: permissions
+          order: 5
+          size:
+            - 32
+        sort_order:
+          data_type: integer
+          default_value: 1000
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_order
+          order: 8
+          size:
+            - 0
+        style:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: style
+          order: 4
+          size:
+            - 32
+        title:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: title
+          order: 3
+          size:
+            - 32
+        visible:
+          data_type: boolean
+          default_value: t
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: visible
+          order: 7
+          size:
+            - 0
+      indices: []
+      name: panel
+      options: []
+      order: 7
+    payment:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - payment_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - ipn_message_id
+          match_type: ''
+          name: payment_fk_ipn_message_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - ipn_message_id
+          reference_table: ipn_message
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: payment_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        ipn_message_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: ipn_message_id
+          order: 3
+          size:
+            - 16
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 2
+          size:
+            - 16
+        payment_date:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: payment_date
+          order: 4
+          size:
+            - 0
+        payment_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: payment_id
+          order: 1
+          size:
+            - 16
+      indices:
+        - fields:
+            - ipn_message_id
+          name: payment_idx_ipn_message_id
+          options: []
+          type: NORMAL
+        - fields:
+            - member_id
+          name: payment_idx_member_id
+          options: []
+          type: NORMAL
+      name: payment
+      options: []
+      order: 33
+    reset_token:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - token_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: reset_token_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        created_at:
+          data_type: timestamp without time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: created_at
+          order: 2
+          size:
+            - 0
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 3
+          size:
+            - 16
+        token_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: token_id
+          order: 1
+          size:
+            - 16
+        valid:
+          data_type: boolean
+          default_value: !!perl/ref
+            =: true
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: valid
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - member_id
+          name: reset_token_idx_member_id
+          options: []
+          type: NORMAL
+      name: reset_token
+      options: []
+      order: 27
+    session:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        expires:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: expires
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: char
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 72
+        session_data:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: session_data
+          order: 2
+          size:
+            - 0
+      indices: []
+      name: session
+      options: []
+      order: 8
+    sign_in_log:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - sign_in_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: sign_in_log_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        email:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: email
+          order: 6
+          size:
+            - 0
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 3
+          size:
+            - 16
+        remote_ip:
+          data_type: inet
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: remote_ip
+          order: 5
+          size:
+            - 0
+        sign_in_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: sign_in_id
+          order: 1
+          size:
+            - 16
+        sign_in_time:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: sign_in_time
+          order: 2
+          size:
+            - 0
+        valid:
+          data_type: boolean
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: valid
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - member_id
+          name: sign_in_log_idx_member_id
+          options: []
+          type: NORMAL
+      name: sign_in_log
+      options: []
+      order: 28
+    soda_status:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - soda_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - soda_type_id
+          match_type: ''
+          name: soda_status_fk_soda_type_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - soda_type_id
+          reference_table: soda_type
+          type: FOREIGN KEY
+      fields:
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 32
+        slot_number:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: slot_number
+          order: 4
+          size:
+            - 0
+        soda_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: soda_id
+          order: 1
+          size:
+            - 16
+        soda_type_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: soda_type_id
+          order: 5
+          size:
+            - 16
+        sold_out:
+          data_type: boolean
+          default_value: f
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: sold_out
+          order: 3
+          size:
+            - 0
+      indices:
+        - fields:
+            - soda_type_id
+          name: soda_status_idx_soda_type_id
+          options: []
+          type: NORMAL
+      name: soda_status
+      options: []
+      order: 16
+    soda_type:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - soda_type_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
+        soda_type_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: soda_type_id
+          order: 1
+          size:
+            - 16
+      indices: []
+      name: soda_type
+      options: []
+      order: 9
+    storage_location:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - location_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - parent_id
+          match_type: ''
+          name: storage_location_fk_parent_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - location_id
+          reference_table: storage_location
+          type: FOREIGN KEY
+      fields:
+        location_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: location_id
+          order: 1
+          size:
+            - 16
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 3
+          size:
+            - 32
+        parent_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: parent_id
+          order: 2
+          size:
+            - 16
+        sort_order:
+          data_type: integer
+          default_value: 1000
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_order
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - parent_id
+          name: storage_location_idx_parent_id
+          options: []
+          type: NORMAL
+      name: storage_location
+      options: []
+      order: 10
+    storage_request:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - request_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - deciding_member_id
+          match_type: ''
+          name: storage_request_fk_deciding_member_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: storage_request_fk_member_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - slot_id
+          match_type: ''
+          name: storage_request_fk_slot_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - slot_id
+          reference_table: storage_slot
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - type_id
+          match_type: ''
+          name: storage_request_fk_type_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - type_id
+          reference_table: storage_slot_type
+          type: FOREIGN KEY
+      fields:
+        created_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: created_at
+          order: 3
+          size:
+            - 0
+        decided_at:
+          data_type: timestamp with time zone
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: decided_at
+          order: 9
+          size:
+            - 0
+        deciding_member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: deciding_member_id
+          order: 7
+          size:
+            - 0
+        decision_notes:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: decision_notes
+          order: 8
+          size:
+            - 0
+        hidden:
+          data_type: boolean
+          default_value: f
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: hidden
+          order: 10
+          size:
+            - 0
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 2
+          size:
+            - 16
+        notes:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: notes
+          order: 4
+          size:
+            - 0
+        request_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: request_id
+          order: 1
+          size:
+            - 16
+        slot_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: slot_id
+          order: 6
+          size:
+            - 16
+        status:
+          data_type: character varying
+          default_value: requested
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: status
+          order: 5
+          size:
+            - 0
+        type_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: type_id
+          order: 11
+          size:
+            - 0
+      indices:
+        - fields:
+            - deciding_member_id
+          name: storage_request_idx_deciding_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - member_id
+          name: storage_request_idx_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - slot_id
+          name: storage_request_idx_slot_id
+          options: []
+          type: NORMAL
+        - fields:
+            - type_id
+          name: storage_request_idx_type_id
+          options: []
+          type: NORMAL
+      name: storage_request
+      options: []
+      order: 38
+    storage_slot:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - slot_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - location_id
+          match_type: ''
+          name: storage_slot_fk_location_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - location_id
+          reference_table: storage_location
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: storage_slot_fk_member_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - type_id
+          match_type: ''
+          name: storage_slot_fk_type_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - type_id
+          reference_table: storage_slot_type
+          type: FOREIGN KEY
+      fields:
+        location_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: location_id
+          order: 4
+          size:
+            - 0
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 3
+          size:
+            - 0
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 32
+        slot_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: slot_id
+          order: 1
+          size:
+            - 16
+        sort_order:
+          data_type: integer
+          default_value: 1000
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_order
+          order: 6
+          size:
+            - 0
+        type_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: type_id
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - location_id
+          name: storage_slot_idx_location_id
+          options: []
+          type: NORMAL
+        - fields:
+            - member_id
+          name: storage_slot_idx_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - type_id
+          name: storage_slot_idx_type_id
+          options: []
+          type: NORMAL
+      name: storage_slot
+      options: []
+      order: 37
+    storage_slot_type:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - type_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        can_request:
+          data_type: boolean
+          default_value: t
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: can_request
+          order: 3
+          size:
+            - 0
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
+        type_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: type_id
+          order: 1
+          size:
+            - 16
+      indices: []
+      name: storage_slot_type
+      options: []
+      order: 11
+    survey:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        survey_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_id
+          order: 1
+          size:
+            - 16
+        title:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: title
+          order: 2
+          size:
+            - 0
+      indices: []
+      name: survey
+      options: []
+      order: 12
+    survey_answer:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_answer_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - survey_question_id
+          match_type: ''
+          name: survey_answer_fk_survey_question_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - survey_question_id
+          reference_table: survey_question
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - survey_response_id
+          match_type: ''
+          name: survey_answer_fk_survey_response_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - survey_response_id
+          reference_table: survey_response
+          type: FOREIGN KEY
+      fields:
+        answer_text:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: answer_text
+          order: 4
+          size:
+            - 0
+        survey_answer_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_answer_id
+          order: 1
+          size:
+            - 16
+        survey_question_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_question_id
+          order: 3
+          size:
+            - 16
+        survey_response_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_response_id
+          order: 2
+          size:
+            - 16
+      indices:
+        - fields:
+            - survey_question_id
+          name: survey_answer_idx_survey_question_id
+          options: []
+          type: NORMAL
+        - fields:
+            - survey_response_id
+          name: survey_answer_idx_survey_response_id
+          options: []
+          type: NORMAL
+      name: survey_answer
+      options: []
+      order: 39
+    survey_question:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_question_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - survey_id
+          match_type: ''
+          name: survey_question_fk_survey_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - survey_id
+          reference_table: survey
+          type: FOREIGN KEY
+      fields:
+        question_text:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: question_text
+          order: 4
+          size:
+            - 0
+        sort_order:
+          data_type: integer
+          default_value: 1000
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_order
+          order: 3
+          size:
+            - 0
+        survey_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_id
+          order: 2
+          size:
+            - 16
+        survey_question_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_question_id
+          order: 1
+          size:
+            - 16
+      indices:
+        - fields:
+            - survey_id
+          name: survey_question_idx_survey_id
+          options: []
+          type: NORMAL
+      name: survey_question
+      options: []
+      order: 17
+    survey_response:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_response_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: survey_response_fk_member_id
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_id
+          match_type: ''
+          name: survey_response_fk_survey_id
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - survey_id
+          reference_table: survey
+          type: FOREIGN KEY
+      fields:
+        created_at:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: created_at
+          order: 4
+          size:
+            - 0
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 3
+          size:
+            - 16
+        survey_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_id
+          order: 2
+          size:
+            - 16
+        survey_response_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_response_id
+          order: 1
+          size:
+            - 16
+      indices:
+        - fields:
+            - member_id
+          name: survey_response_idx_member_id
+          options: []
+          type: NORMAL
+        - fields:
+            - survey_id
+          name: survey_response_idx_survey_id
+          options: []
+          type: NORMAL
+      name: survey_response
+      options: []
+      order: 34
+    temp_log:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - temp_log_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - item_id
+          match_type: ''
+          name: temp_log_fk_item_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - item_id
+          reference_table: item
+          type: FOREIGN KEY
+      fields:
+        create_time:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: create_time
+          order: 2
+          size:
+            - 0
+        item_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: item_id
+          order: 3
+          size:
+            - 16
+        temp_log_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: temp_log_id
+          order: 1
+          size:
+            - 16
+        temperature:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: temperature
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - item_id
+          name: temp_log_idx_item_id
+          options: []
+          type: NORMAL
+        - fields:
+            - item_id
+            - create_time
+          name: recent_temp
+          options: []
+          type: NORMAL
+      name: temp_log
+      options: []
+      order: 18
+    vend_log:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - vend_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - device_id
+          match_type: ''
+          name: vend_log_fk_device_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - device_id
+          reference_table: device
+          type: FOREIGN KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - member_id
+          match_type: ''
+          name: vend_log_fk_member_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - member_id
+          reference_table: members
+          type: FOREIGN KEY
+      fields:
+        badge_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: badge_id
+          order: 6
+          size:
+            - 0
+        device_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: device_id
+          order: 3
+          size:
+            - 16
+        member_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: member_id
+          order: 4
+          size:
+            - 16
+        vend_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: vend_id
+          order: 1
+          size:
+            - 16
+        vend_time:
+          data_type: timestamp with time zone
+          default_value: !!perl/ref
+            =: current_timestamp
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: vend_time
+          order: 2
+          size:
+            - 0
+        vended:
+          data_type: boolean
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: vended
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - device_id
+          name: vend_log_idx_device_id
+          options: []
+          type: NORMAL
+        - fields:
+            - member_id
+          name: vend_log_idx_member_id
+          options: []
+          type: NORMAL
+      name: vend_log
+      options: []
+      order: 35
+  triggers: {}
+  views: {}
+translator:
+  add_drop_table: 0
+  filename: ~
+  no_comments: 0
+  parser_args:
+    sources:
+      - AccessLog
+      - Action
+      - Application
+      - AuditLog
+      - Badge
+      - Curse
+      - CurseAction
+      - Device
+      - DeviceItem
+      - IPNMessage
+      - Image
+      - Item
+      - ItemMgroup
+      - LampBulb
+      - LampBulbPreset
+      - LampColor
+      - LampPreset
+      - Member
+      - MemberCurse
+      - MemberMgroup
+      - MemberPanel
+      - Mgroup
+      - Panel
+      - Payment
+      - ResetToken
+      - Session
+      - SignInLog
+      - SodaStatus
+      - SodaType
+      - StorageLocation
+      - StorageRequest
+      - StorageSlot
+      - StorageSlotType
+      - Survey
+      - SurveyAnswer
+      - SurveyQuestion
+      - SurveyResponse
+      - TempLog
+      - VendLog
+  parser_type: SQL::Translator::Parser::DBIx::Class
+  producer_args: {}
+  producer_type: SQL::Translator::Producer::YAML
+  show_warnings: 0
+  trace: 0
+  version: 0.11021
