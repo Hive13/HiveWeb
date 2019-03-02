@@ -22,7 +22,7 @@ __PACKAGE__->add_columns(
   'style',
   { data_type => 'character varying', is_nullable => 0, size => 32 },
   'permissions',
-  { data_type => 'character varying', is_nullable => 0, size => 32 },
+  { data_type => 'character varying', is_nullable => 1, size => 32 },
   'large',
   { data_type => 'boolean', is_nullable => 0, default_value => 'f' },
   'visible',

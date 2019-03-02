@@ -7,6 +7,7 @@ BEGIN;
 CREATE TABLE "member_panel" (
   "member_id" uuid NOT NULL,
   "panel_id" uuid NOT NULL,
+  "style" character varying,
   "visible" boolean,
   "sort_order" integer,
   PRIMARY KEY ("member_id", "panel_id")
@@ -20,7 +21,7 @@ CREATE TABLE "panel" (
   "name" character varying(32) NOT NULL,
   "title" character varying(32) NOT NULL,
   "style" character varying(32) NOT NULL,
-  "permissions" character varying(32) NOT NULL,
+  "permissions" character varying(32),
   "large" boolean DEFAULT 'f' NOT NULL,
   "visible" boolean DEFAULT 't' NOT NULL,
   "sort_order" integer DEFAULT 1000 NOT NULL,

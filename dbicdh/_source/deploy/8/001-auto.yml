@@ -1922,7 +1922,17 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: sort_order
-          order: 4
+          order: 5
+          size:
+            - 0
+        style:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: style
+          order: 3
           size:
             - 0
         visible:
@@ -1932,7 +1942,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: visible
-          order: 3
+          order: 4
           size:
             - 0
       indices:
@@ -2289,7 +2299,7 @@ schema:
         permissions:
           data_type: character varying
           default_value: ~
-          is_nullable: 0
+          is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: permissions

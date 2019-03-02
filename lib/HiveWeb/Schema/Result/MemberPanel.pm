@@ -17,6 +17,8 @@ __PACKAGE__->add_columns(
   { data_type => 'uuid', is_foreign_key => 1, is_nullable => 0, size => 16 },
   'panel_id',
   { data_type => 'uuid', is_foreign_key => 1, is_nullable => 0, size => 16 },
+	'style',
+  { data_type => 'character varying', is_nullable => 1 },
 	'visible',
   { data_type => 'boolean', is_nullable => 1 },
 	'sort_order',
