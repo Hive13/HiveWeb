@@ -98,7 +98,38 @@ sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	$c->stash()->{template} = 'index.tt';
+	my $user      = $c->user();
+	my $panels_rs = $c->model('DB::PanelMember')->search({}, { bind => [ $user->member_id() ] });
+	my $panels    = [];
+
+	while (my $panel = $panels_rs->next())
+		{
+		if (defined(my $perm = $panel->permissions()))
+			{
+			if ($perm eq '' || $perm eq 'user')
+				{
+				next if (!$user);
+				}
+			else
+				{
+				next if (!$c->check_user_roles($perm));
+				}
+			}
+		next if (!$panel->visible());
+		push(@$panels,
+			{
+			name  => $panel->name(),
+			title => $panel->title(),
+			style => $panel->style(),
+			large => $panel->large(),
+			});
+		}
+
+	$c->stash(
+		{
+		template => 'index.tt',
+		panels   => $panels,
+		});
 	}
 
 sub blocked_by_curse :Local :Args(0)

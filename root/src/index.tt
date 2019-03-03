@@ -16,31 +16,6 @@ IF Catalyst.user_exists;
 		END;
 	END;
 END;
-SET panels = [];
-panels.push({ name => 'status', title => 'Current Hive Status', style => 'panel-info', large => 1 });
-IF Catalyst.user_exists;
-	IF Catalyst.check_user_roles('heatmap');
-		panels.push({ name => 'heatmap', title => 'Activity Heatmap', style => 'panel-default' });
-	END;
-	IF Catalyst.check_user_roles('pending_applications');
-		panels.push({ name => 'application', title => 'Application Status', style => 'panel-warning' });
-	END;
-	panels.push({ name => 'soda', title => 'Soda Credits', style => 'panel-default', credits => Catalyst.user.vend_credits });
-	panels.push({ name => 'curse' style => 'panel-danger', title => 'Notifications' });
-	IF Catalyst.check_user_roles('members');
-		panels.push({ name => 'storage' style => 'panel-success', title => 'My Storage Slots' });
-	END;
-	IF Catalyst.check_user_roles('board');
-		panels.push({ name => 'applications' style => 'panel-info', title => 'Pending Applications' });
-		panels.push({ name => 'access' style => 'panel-primary', title => 'Recent Accesses' });
-	END;
-	IF Catalyst.check_user_roles('storage');
-		panels.push({ name => 'storage_status' style => 'panel-info', title => 'Storage Overview' });
-	END;
-	IF Catalyst.check_user_roles('lights');
-		panels.push({ name => 'lights' style => 'panel-warning', title => 'Light Control' });
-	END;
-END;
 SET panel_style  = 'col-xs-12 col-sm-10 col-lg-6 col-sm-offset-1 col-lg-offset-3';
 IF panels.size > 3;
 	SET panel_style = 'col-xs-12 col-lg-4 col-md-6';
@@ -67,9 +42,10 @@ END;
 [%~
 		SWITCH panel.name;
 			CASE 'soda';
+				SET credits = Catalyst.user.vend_credits;
 %]
-				You have [% panel.credits %] soda credit
-				[%~ IF panel.credits != 1 ~%]
+				You have [% credits %] soda credit
+				[%~ IF credits != 1 ~%]
 					s
 				[%~ END =%]
 				remaining.
