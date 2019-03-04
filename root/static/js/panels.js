@@ -105,7 +105,7 @@ function soda_loading($panel)
 $(function()
 	{
 	var $panel = $(".hive-panel-status"),
-		$panels  = $(".panel");
+		$panels  = $(".hive-panels");
 
 	$panel.find(".panel-body").html(
 		  "<table><tr><td>"
@@ -132,21 +132,63 @@ $(function()
 		refresh:       false,
 		});
 
-	$panels.find(".panel-icons:not(.panel-first)").append($("<span class=\"fas fa-chevron-circle-left hive-panel-move-left anchor-style\" />"));
-	$panels.find(".panel-icons:not(.panel-last)").append($("<span class=\"fas fa-chevron-circle-right hive-panel-move-left anchor-style\" />"));
+	$panels.find(".hive-panel:not(.hive-panel-first) .panel-icons").append($("<span class=\"fas fa-chevron-circle-left hive-panel-move-left anchor-style\" />"));
+	$panels.find(".hive-panel:not(.hive-panel-last) .panel-icons").append($("<span class=\"fas fa-chevron-circle-right hive-panel-move-right anchor-style\" />"));
 	$panels.find(".panel-icons").append($("<span class=\"fas fa-times-circle hive-panel-remove anchor-style\" />"));
 
 	$panels.on("click", ".hive-panel-remove", function ()
 		{
-		var $this = $(this), $panel = $this.parents(".panel");
-		var id = $panel.attr("id");
+		var $this = $(this),
+			$panel  = $this.parents(".panel"),
+			id      = $panel.attr("id");
+
 		api_json(
 			{
 			path: "/panel/hide",
-			what: "Relinquish Slot",
+			what: "Hide Panel",
 			data: { panel_id: id },
 			$icon: $this,
 			success: function () { $panel.parent().remove(); },
+			success_toast: false
+			});
+		});
+	$panels.on("click", ".hive-panel-move-left", function ()
+		{
+		var $this = $(this),
+			$panel  = $this.parents(".hive-panel"),
+			$prev   = $panel.prev();
+			id      = $panel.attr("id");
+
+		if (!$prev.length)
+			return;
+
+		api_json(
+			{
+			path: "/panel/move",
+			what: "Move Panel Left",
+			data: { panel_id: id, direction: "left" },
+			$icon: $this,
+			success: function () { $panel.insertBefore($prev); },
+			success_toast: false
+			});
+		});
+	$panels.on("click", ".hive-panel-move-right", function ()
+		{
+		var $this = $(this),
+			$panel  = $this.parents(".hive-panel"),
+			$next   = $panel.next();
+			id      = $panel.attr("id");
+
+		if (!$next.length)
+			return;
+
+		api_json(
+			{
+			path: "/panel/move",
+			what: "Move Panel Right",
+			data: { panel_id: id, direction: "right" },
+			$icon: $this,
+			success: function () { $panel.insertAfter($next); },
 			success_toast: false
 			});
 		});
