@@ -135,4 +135,19 @@ $(function()
 	$panels.find(".panel-icons:not(.panel-first)").append($("<span class=\"fas fa-chevron-circle-left hive-panel-move-left anchor-style\" />"));
 	$panels.find(".panel-icons:not(.panel-last)").append($("<span class=\"fas fa-chevron-circle-right hive-panel-move-left anchor-style\" />"));
 	$panels.find(".panel-icons").append($("<span class=\"fas fa-times-circle hive-panel-remove anchor-style\" />"));
+
+	$panels.on("click", ".hive-panel-remove", function ()
+		{
+		var $this = $(this), $panel = $this.parents(".panel");
+		var id = $panel.attr("id");
+		api_json(
+			{
+			path: "/panel/hide",
+			what: "Relinquish Slot",
+			data: { panel_id: id },
+			$icon: $this,
+			success: function () { $panel.parent().remove(); },
+			success_toast: false
+			});
+		});
 	});
