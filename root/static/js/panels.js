@@ -131,4 +131,8 @@ $(function()
 		load_path:     "/soda/status",
 		refresh:       false,
 		});
+
+	$panels.find(".panel-icons:not(.panel-first)").append($("<span class=\"fas fa-chevron-circle-left hive-panel-move-left anchor-style\" />"));
+	$panels.find(".panel-icons:not(.panel-last)").append($("<span class=\"fas fa-chevron-circle-right hive-panel-move-left anchor-style\" />"));
+	$panels.find(".panel-icons").append($("<span class=\"fas fa-times-circle hive-panel-remove anchor-style\" />"));
 	});
