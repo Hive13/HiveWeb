@@ -13,6 +13,7 @@ __PACKAGE__->table('panels_for_member');
 __PACKAGE__->result_source_instance->is_virtual(1);
 __PACKAGE__->result_source_instance->view_definition('
 	SELECT
+		panel.panel_id,
 		panel.name,
 		panel.title,
 		COALESCE(member_panel.style, panel.style) AS style,
@@ -25,6 +26,8 @@ __PACKAGE__->result_source_instance->view_definition('
 ');
 
 __PACKAGE__->add_columns(
+	'panel_id',
+	{ data_type => 'uuid', is_nullable => 0, size => 32 },
 	'name',
 	{ data_type => 'character varying', is_nullable => 0, size => 32 },
 	'title',

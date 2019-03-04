@@ -118,10 +118,11 @@ sub index :Path :Args(0)
 		next if (!$panel->visible());
 		push(@$panels,
 			{
-			name  => $panel->name(),
-			title => $panel->title(),
-			style => $panel->style(),
-			large => $panel->large(),
+			panel_id => $panel->panel_id(),
+			name     => $panel->name(),
+			title    => $panel->title(),
+			style    => $panel->style(),
+			large    => $panel->large(),
 			});
 		}
 
