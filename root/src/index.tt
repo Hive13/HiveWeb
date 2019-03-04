@@ -24,7 +24,7 @@ ELSIF panels.size > 2;
 END;
 %]
 
-<div class="row">
+<div class="row hive-panels">
 [%~
 	FOREACH panel IN panels;
 		IF panel.large;
@@ -33,8 +33,7 @@ END;
 			SET pstyle = panel_style;
 		END;
 %]
-	<div class="[% pstyle %]">
-		<div id="[% panel.panel_id.dquote %]" class="panel [% panel.style %] hive-panel-[% panel.name %]
+	<div id="[% panel.panel_id.dquote %]" class="hive-panel [% pstyle %]
 		[%~
 			IF loop.first;
 				GET ' hive-panel-first';
@@ -43,6 +42,7 @@ END;
 			END;
 		~%]
 		">
+		<div class="panel [% panel.style %] hive-panel-[% panel.name %]">
 			<div class="panel-heading">
 				<div class="panel-icons u-f-r"></div>
 				<h4>[% panel.title %]</h4>
