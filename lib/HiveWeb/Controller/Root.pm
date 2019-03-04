@@ -99,7 +99,8 @@ sub index :Path :Args(0)
 	my ($self, $c) = @_;
 
 	my $user      = $c->user();
-	my $panels_rs = $c->model('DB::PanelMember')->search({}, { bind => [ $user->member_id() ] });
+	my $member_id = $user ? $user->member_id() : undef;
+	my $panels_rs = $c->model('DB::PanelMember')->search({}, { bind => [ $member_id ] });
 	my $panels    = [];
 
 	while (my $panel = $panels_rs->next())
