@@ -19,10 +19,11 @@ __PACKAGE__->result_source_instance->view_definition('
 		COALESCE(member_panel.style, panel.style) AS style,
 		panel.permissions,
 		panel.large,
-		COALESCE(member_panel.visible, panel.visible) AS visible
+		COALESCE(member_panel.visible, panel.visible) AS visible,
+		COALESCE(member_panel.sort_order, panel.sort_order) AS sort_order
 		FROM panel
 		LEFT JOIN member_panel ON (member_panel.member_id = ? AND member_panel.panel_id = panel.panel_id)
-		ORDER BY COALESCE(member_panel.sort_order, panel.sort_order)
+		ORDER BY 8
 ');
 
 __PACKAGE__->add_columns(
@@ -37,9 +38,11 @@ __PACKAGE__->add_columns(
 	'permissions',
 	{ data_type => 'character varying', is_nullable => 1, size => 32 },
 	'large',
-	{ data_type => 'boolean', is_nullable => 0, default_value => 'f' },
+	{ data_type => 'boolean', is_nullable => 0 },
 	'visible',
-	{ data_type => 'boolean', is_nullable => 0, default_value => 't' },
+	{ data_type => 'boolean', is_nullable => 0 },
+	'sort_order',
+	{ data_type => 'integer', is_nullable => 0 },
 );
 
 __PACKAGE__->meta->make_immutable;
