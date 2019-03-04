@@ -104,7 +104,8 @@ function soda_loading($panel)
 
 $(function()
 	{
-	var $panel = $(".hive-panel-status");
+	var $panel = $(".hive-panel-status"),
+		$panels  = $(".panel");
 
 	$panel.find(".panel-body").html(
 		  "<table><tr><td>"

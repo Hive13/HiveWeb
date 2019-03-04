@@ -34,7 +34,15 @@ END;
 		END;
 %]
 	<div class="[% pstyle %]">
-		<div class="panel [% panel.style %] hive-panel-[% panel.name %]">
+		<div class="panel [% panel.style %] hive-panel-[% panel.name %]
+		[%~
+			IF loop.first;
+				GET ' hive-panel-first';
+			ELSIF loop.last;
+				GET ' hive-panel-last';
+			END;
+		~%]
+		">
 			<div class="panel-heading">
 				<h4>[% panel.title %]</h4>
 			</div>
