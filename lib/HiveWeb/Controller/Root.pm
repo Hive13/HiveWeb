@@ -182,16 +182,18 @@ sub login :Local
 		}
 
 	my $params = $c->request()->params();
+	my $email  = $params->{email} // '';
 	my $users  = $c->model('DB::Member')->search(
 		{
 			-or =>
 				[
-				{ handle => $params->{email} },
-				{ email  => $params->{email} },
+				{ handle => $email },
+				{ email  => $email },
 				],
 		}) || die $!;
 
-	my $user = $users->single() || die $!;
+	my $user = $users->next();
+	$user = undef if ($users->next());
 
 	my $success = $c->authenticate(
 		{
@@ -200,7 +202,7 @@ sub login :Local
 		});
 	my $log  = $c->model('DB::SignInLog')->create(
 		{
-		email     => $params->{email},
+		email     => $email,
 		valid     => $success ? 1 : 0,
 		member_id => $user ? $user->member_id() : undef,
 		remote_ip => $c->request()->address(),
