@@ -34,7 +34,7 @@ END;
 		END;
 %]
 	<div class="[% pstyle %]">
-		<div class="panel [% panel.style %] hive-panel-[% panel.name %]
+		<div id="[% panel.panel_id.dquote %]" class="panel [% panel.style %] hive-panel-[% panel.name %]
 		[%~
 			IF loop.first;
 				GET ' hive-panel-first';
@@ -44,6 +44,7 @@ END;
 		~%]
 		">
 			<div class="panel-heading">
+				<div class="panel-icons u-f-r"></div>
 				<h4>[% panel.title %]</h4>
 			</div>
 			<div class="panel-body">

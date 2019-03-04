@@ -317,6 +317,6 @@ $(function()
 		heatmap_panel.load_panel_data();
 		});
 
-	heatmap_panel.$panel.find("div.panel-heading").prepend($("<span class=\"fas fa-cog u-f-r anchor-style\" id=\"heatmap_settings\"></span>"));
+	heatmap_panel.$panel.find(".panel-icons").prepend($("<span class=\"fas fa-cog anchor-style\" id=\"heatmap_settings\"></span>"));
 	heatmap_panel.$panel.on("click", "#heatmap_settings", function () { heatmap_panel.$settings_dialogue.modal("show"); });
 	});
