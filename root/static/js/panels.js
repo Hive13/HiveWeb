@@ -23,6 +23,9 @@ function Panel(args)
 	if ("ldata" in args)
 		this.ldata = args.ldata;
 
+	if ("init_function" in args && typeof(args.init_function) === "function")
+		args.init_function.call(this);
+
 	this.load_panel_data();
 	}
 
