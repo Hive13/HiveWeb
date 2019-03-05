@@ -24,6 +24,7 @@ ELSIF panels.size > 2;
 END;
 %]
 
+<h3 class="fas fa-plus-circle text-success anchor-style hive-panel-add" title="add-panel"></h3>
 <div class="row hive-panels">
 [%~
 	FOREACH panel IN panels;
