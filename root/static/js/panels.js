@@ -139,7 +139,7 @@ $(function()
 	$panels.on("click", ".hive-panel-remove", function ()
 		{
 		var $this = $(this),
-			$panel  = $this.parents(".panel"),
+			$panel  = $this.parents(".hive-panel"),
 			id      = $panel.attr("id");
 
 		api_json(
@@ -148,7 +148,7 @@ $(function()
 			what: "Hide Panel",
 			data: { panel_id: id },
 			$icon: $this,
-			success: function () { $panel.parent().remove(); },
+			success: function () { $panel.remove(); },
 			success_toast: false
 			});
 		});
