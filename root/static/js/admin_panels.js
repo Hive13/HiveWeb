@@ -274,6 +274,8 @@ function display_pending_applications(data)
 				" - <a class=\"anchor-style accept-picture\">Accept Picture and attach to member's profile</a>" :
 				" - accepted and attached to member's profile"));
 			icons.push("<span class=\"fas fa-user anchor-style show-picture\" title=\"View Picture\"></span>");
+			if (app.picture_id != app.member.member_image_id)
+				icons.push("<span class=\"fas fa-user-tag anchor-style accept-picture\" title=\"Accept Picture and attach to profile\"></span>");
 			}
 		else
 			{
