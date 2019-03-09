@@ -2,9 +2,6 @@
 [%~
 IF Catalyst.user_exists;
 	GET '<script src="' _ Catalyst.uri_for('/static/js/user_panels.js') _ '" type="text/javascript"></script>' _ "\n";
-	IF Catalyst.check_user_roles('board');
-		GET '<script src="' _ Catalyst.uri_for('/static/js/admin_panels.js') _ '" type="text/javascript"></script>' _ "\n";
-	END;
 	FOREACH group IN Catalyst.user.mgroups;
 		SET fname = '/static/js/' _ group.name _ '_panels.js';
 		TRY;
