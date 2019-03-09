@@ -138,6 +138,47 @@ function load_panels()
 	$panels.find(".hive-panel:not(.hive-panel-last) .panel-icons").append($("<span class=\"fas fa-chevron-circle-right hive-panel-move hive-panel-move-right anchor-style\" />"));
 	$panels.find(".panel-icons").append($("<span class=\"fas fa-times-circle hive-panel-remove anchor-style\" />"));
 
+	$(".hive-panel-add").click(function ()
+		{
+		var $this = $(this);
+		var $dialogue =
+			$([
+			"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
+				"<div class=\"modal-dialog\" role=\"document\">",
+					"<div class=\"modal-content\">",
+						"<div class=\"modal-header\">",
+							"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+							"<h3 class=\"modal-title\">Add Panel</h3>",
+						"</div>",
+						"<div class=\"modal-body\">",
+						"</div>",
+						"<div class=\"modal-footer\">",
+							"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+							"<button type=\"button\" class=\"btn btn-primary accept\"><span class=\"fas fa-circle-plus\"></span>Add</button>",
+						"</div>",
+					"</div>",
+				"</div>",
+			"</div>"
+			].join(""));
+
+		var api =
+			{
+			path: "/panel/add",
+			what: "Load Panel Candidates",
+			data: {},
+			success: function ()
+				{
+				$dialogue.modal("show");
+				},
+			success_toast: false
+			};
+		if ($this.hasClass("btn"))
+			api.button = $this;
+		else
+			api.$icon = $this;
+		api_json(api);
+		});
+
 	$panels.on("click", ".hive-panel-remove", function ()
 		{
 		var $this = $(this),

@@ -83,6 +83,40 @@ sub hide :Local :Args(0)
 	$out->{response} = \1;
 	}
 
+sub add :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $user      = $c->user();
+	my $panels_rs = $c->model('DB::PanelMember')->search({}, { bind => [ $user->member_id() ] });
+	my $panels    = [];
+	my $out       = $c->stash()->{out};
+
+	while (my $panel = $panels_rs->next())
+		{
+		if (defined(my $perm = $panel->permissions()))
+			{
+			if ($perm eq '' || $perm eq 'user')
+				{
+				next if (!$user);
+				}
+			else
+				{
+				next if (!$c->check_user_roles($perm));
+				}
+			}
+		next if ($panel->visible());
+		push(@$panels,
+			{
+			panel_id => $panel->panel_id(),
+			title    => $panel->title(),
+			});
+		}
+
+	$out->{panels}   = $panels;
+	$out->{response} = \1;
+	}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
