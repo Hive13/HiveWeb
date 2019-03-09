@@ -25,7 +25,8 @@ END;
 %]
 
 [%~ IF Catalyst.user_exists; %]
-<h3 class="fas fa-plus-circle text-success anchor-style hive-panel-add" title="add-panel"></h3>
+<h3 class="fas fa-plus-circle text-success anchor-style hive-panel-add hidden-sm hidden-xs" title="Add Panel"></h3>
+<button class="hive-panel-add visible-sm visible-xs btn btn-success btn-block u-mb-3"><span class="fas fa-plus-circle"></span>Add Panel</button>
 [%~ END %]
 <div class="row hive-panels">
 [%~
