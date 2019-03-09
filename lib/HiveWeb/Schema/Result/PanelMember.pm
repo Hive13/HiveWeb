@@ -47,4 +47,18 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->meta->make_immutable;
 
+sub can_view
+	{
+	my ($self, $c) = @_;
+
+	my $perm = $self->permissions();
+
+	return 1 if (!defined($perm));
+
+	return !!$c->user()
+		if ($perm eq '' || $perm eq 'user');
+
+	return $c->check_user_roles($perm);
+	}
+
 1;

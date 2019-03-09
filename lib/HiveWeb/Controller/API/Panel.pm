@@ -26,17 +26,7 @@ sub move :Local :Args(0)
 		my $prev;
 		while (my $panel = $panels_rs->next())
 			{
-			if (defined(my $perm = $panel->permissions()))
-				{
-				if ($perm eq '' || $perm eq 'user')
-					{
-					next if (!$user);
-					}
-				else
-					{
-					next if (!$c->check_user_roles($perm));
-					}
-				}
+			next if (!$panel->can_view($c));
 			if ( ($direction eq 'left' && $panel->panel_id() eq $in->{panel_id})
 			  || ($direction eq 'right' && $prev && $prev->panel_id() eq $in->{panel_id}) )
 				{
@@ -87,34 +77,34 @@ sub add :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $user      = $c->user();
-	my $panels_rs = $c->model('DB::PanelMember')->search({}, { bind => [ $user->member_id() ] });
-	my $panels    = [];
+	my $panels_rs = $c->model('DB::PanelMember')->search({}, { bind => [ $c->user()->member_id() ] });
 	my $out       = $c->stash()->{out};
+	my $in        = $c->stash()->{in};
 
-	while (my $panel = $panels_rs->next())
+	if (!$in->{panel_id})
 		{
-		if (defined(my $perm = $panel->permissions()))
+		my $panels = [];
+		while (my $panel = $panels_rs->next())
 			{
-			if ($perm eq '' || $perm eq 'user')
+			next if (!$panel->can_view($c) || $panel->visible());
+			push(@$panels,
 				{
-				next if (!$user);
-				}
-			else
-				{
-				next if (!$c->check_user_roles($perm));
-				}
+				panel_id => $panel->panel_id(),
+				title    => $panel->title(),
+				});
 			}
-		next if ($panel->visible());
-		push(@$panels,
-			{
-			panel_id => $panel->panel_id(),
-			title    => $panel->title(),
-			});
+		$out->{panels}   = $panels;
+		$out->{response} = \1;
 		}
-
-	$out->{panels}   = $panels;
-	$out->{response} = \1;
+	else
+		{
+		my $mp = $c->user()->update_or_create_related('member_panels',
+			{
+			panel_id => $in->{panel_id},
+			visible  => 't',
+			}) || die $!;
+		$out->{response} = \1;
+		}
 	}
 
 __PACKAGE__->meta->make_immutable;

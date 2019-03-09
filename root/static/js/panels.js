@@ -162,6 +162,22 @@ function load_panels()
 			"</div>"
 			].join(""));
 
+		$dialogue.find("button.accept").click(function add_panel()
+			{
+			var $this = $(this), $select = $this.parents(".modal").find("select");
+
+			$this.off("click");
+			api_json(
+				{
+				what:    "Add Panel",
+				path:    "/panel/add",
+				button:  $this,
+				data:    { panel_id: $select.val() },
+				success: function() { location.reload(); },
+				failure: function() { $this.click(add_panel); },
+				});
+			});
+
 		var api =
 			{
 			path: "/panel/add",
@@ -171,7 +187,7 @@ function load_panels()
 				{
 				var $select = $dialogue.find("select"), i;
 				for (i = 0; i < data.panels.length; i++)
-					$select.append($("<option />").attr("value", data.panels[i].panel_id).text(data.panels[i].title));
+					$select.append($("<option />").val(data.panels[i].panel_id).text(data.panels[i].title));
 				$dialogue.modal("show");
 				},
 			success_toast: false

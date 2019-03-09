@@ -147,6 +147,14 @@ __PACKAGE__->has_many
 
 __PACKAGE__->has_many
 	(
+	'member_panels',
+	'HiveWeb::Schema::Result::MemberPanel',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many
+	(
 	'issued_member_curses',
 	'HiveWeb::Schema::Result::MemberCurse',
 	{ 'foreign.issuing_member_id' => 'self.member_id' },

@@ -105,18 +105,7 @@ sub index :Path :Args(0)
 
 	while (my $panel = $panels_rs->next())
 		{
-		if (defined(my $perm = $panel->permissions()))
-			{
-			if ($perm eq '' || $perm eq 'user')
-				{
-				next if (!$user);
-				}
-			else
-				{
-				next if (!$c->check_user_roles($perm));
-				}
-			}
-		next if (!$panel->visible());
+		next if (!$panel->can_view($c) || !$panel->visible());
 		push(@$panels,
 			{
 			panel_id => $panel->panel_id(),
