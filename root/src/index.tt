@@ -1,5 +1,5 @@
 <script src="[% Catalyst.uri_for('/static/js/panels.js') %]" type="text/javascript"></script>
-[%~
+[%
 IF Catalyst.user_exists;
 	GET '<script src="' _ Catalyst.uri_for('/static/js/user_panels.js') _ '" type="text/javascript"></script>' _ "\n";
 	FOREACH group IN Catalyst.user.mgroups;
@@ -125,7 +125,7 @@ END;
 			CASE DEFAULT;
 				GET 'Loading ' _ panel.title _ '...';
 		END;
-%]
+~%]
 			</div>
 		</div>
 	</div>
