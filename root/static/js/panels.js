@@ -151,6 +151,7 @@ function load_panels()
 							"<h3 class=\"modal-title\">Add Panel</h3>",
 						"</div>",
 						"<div class=\"modal-body\">",
+							"<select></select>",
 						"</div>",
 						"<div class=\"modal-footer\">",
 							"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
@@ -166,8 +167,11 @@ function load_panels()
 			path: "/panel/add",
 			what: "Load Panel Candidates",
 			data: {},
-			success: function ()
+			success: function (data)
 				{
+				var $select = $dialogue.find("select"), i;
+				for (i = 0; i < data.panels.length; i++)
+					$select.append($("<option />").attr("value", data.panels[i].panel_id).text(data.panels[i].title));
 				$dialogue.modal("show");
 				},
 			success_toast: false
