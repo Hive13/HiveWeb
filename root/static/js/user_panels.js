@@ -1,4 +1,5 @@
 var heatmap_panel;
+move_panels = true;
 
 function display_heatmap_data(data)
 	{
@@ -22,7 +23,7 @@ function display_heatmap_data(data)
 			v = d[j][i];
 
 			html += "<td class=\"point\" style=\"background: ";
-			switch (heatmap_panel.ldata.scheme)
+			switch (panel.ldata.scheme)
 				{
 				case "jet":
 					color = (100 - v) * 2.4;
@@ -53,6 +54,141 @@ function display_heatmap_data(data)
 
 	html += "</tbody></table>";
 	this.$panel.find(".panel-body").html(html);
+	}
+
+function init_heatmap()
+	{
+	var self = this;
+
+	this.$settings_dialogue =
+		$([
+		"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
+			"<div class=\"modal-dialog\" role=\"document\">",
+				"<div class=\"modal-content\">",
+					"<div class=\"modal-header\">",
+						"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+						"<h3 class=\"modal-title\">Heatmap Settings</h3>",
+					"</div>",
+					"<div class=\"modal-body\">",
+						"<div class=\"row\">",
+							"<div class=\"col-xs-12 col-md-6\">",
+								"<div class=\"panel panel-success\">",
+									"<div class=\"panel-heading\">",
+										"<h4>Scale</h4>",
+									"</div>",
+									"<div class=\"panel-body\">",
+										"<label>",
+											"<input type=\"radio\" name=\"scale\" value=\"lin\"" + (self.ldata.scale === "lin" ? " checked" : "") + " />",
+											" Linear",
+										"</label><br />",
+										"<label>",
+											"<input type=\"radio\" name=\"scale\" value=\"log\"" + (self.ldata.scale === "log" ? " checked" : "") + " />",
+											" Logarithmic",
+										"</label>",
+									"</div>",
+								"</div>",
+							"</div>",
+							"<div class=\"col-xs-12 col-md-6\">",
+								"<div class=\"panel panel-success\">",
+									"<div class=\"panel-heading\">",
+										"<h4>Color Gradient</h4>",
+									"</div>",
+									"<div class=\"panel-body\">",
+										"<label>",
+											"<input type=\"radio\" name=\"scheme\" value=\"jet\"" + (self.ldata.scheme === "jet" ? " checked" : "") + " />",
+											" Jet (5-color)",
+										"</label><br />",
+										"<label>",
+											"<input type=\"radio\" name=\"scheme\" value=\"yel\"" + (self.ldata.scheme === "yel" ? " checked" : "") + " />",
+											" White &rarr; Yellow &rarr; Red",
+										"</label>",
+									"</div>",
+								"</div>",
+							"</div>",
+						"</div>",
+						"<div class=\"row\">",
+							"<div class=\"col-xs-12\">",
+								"<div class=\"panel panel-info\">",
+									"<div class=\"panel-heading\">",
+										"<h4>Date Range</h4>",
+									"</div>",
+									"<div class=\"panel-body\">",
+										"<div class=\"two-column\">",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"all\"" + (self.ldata.range === "all" ? " checked" : "") + " />",
+												" All",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"year\"" + (self.ldata.range === "year" ? " checked" : "") + " />",
+												" Past Year",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"half_year\"" + (self.ldata.range === "half_year" ? " checked" : "") + " />",
+												" Past Six Months",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"quarter\"" + (self.ldata.range === "quarter" ? " checked" : "") + " />",
+												" Past Three Months",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"month\"" + (self.ldata.range === "month" ? " checked" : "") + " />",
+												" Past Month",
+											"</label><br />",
+											"<label>",
+												"<input type=\"radio\" name=\"range\" value=\"custom\"" + (self.ldata.range === "custom" ? " checked" : "") + " />",
+												" Custom Range",
+											"</label>",
+										"</div>",
+										"<div class=\"input-group input-daterange\" style=\"display: none\">",
+											"<input type=\"text\" class=\"form-control datepicker\" id=\"start_date\" />",
+											"<div class=\"input-group-addon\">to</div>",
+											"<input type=\"text\" class=\"form-control datepicker\" id=\"end_date\" />",
+										"</div>",
+									"</div>",
+								"</div>",
+							"</div>",
+						"</div>",
+					"</div>",
+					"<div class=\"modal-footer\">",
+						"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+						"<button type=\"button\" class=\"btn btn-primary accept\">Update</button>",
+					"</div>",
+				"</div>",
+			"</div>",
+		"</div>"
+		].join(""));
+
+	this.$settings_dialogue.find(".input-daterange").datepicker(
+		{
+		inputs: self.$settings_dialogue.find(".input-daterange input")
+		});
+	this.$settings_dialogue.find("input[name=range]").change(function ()
+		{
+		self.$settings_dialogue.find("div.input-daterange").css("display", $(this).val() == "custom" ? "" : "none");
+		});
+	this.$settings_dialogue.find("button.accept").click(function ()
+		{
+		var $this       = self.$settings_dialogue,
+			settings      = self.ldata;
+		settings.scale  = $this.find("input[name=scale]:checked").val();
+		settings.scheme = $this.find("input[name=scheme]:checked").val();
+		settings.range  = $this.find("input[name=range]:checked").val();
+		if (settings.range === "custom")
+			{
+			settings.end_date   = $this.find("input#end_date").datepicker("getDate");
+			settings.start_date = $this.find("input#start_date").datepicker("getDate");
+			}
+		else
+			{
+			delete settings.start_date;
+			delete settings.end_date;
+			}
+		$this.modal("hide");
+		self.load_panel_data();
+		});
+
+	this.$panel.find(".panel-icons").prepend($("<span class=\"fas fa-cog anchor-style\" id=\"heatmap_settings\"></span>"));
+	this.$panel.on("click", "#heatmap_settings", function () { self.$settings_dialogue.modal("show"); });
 	}
 
 function display_storage_data(data)
@@ -159,164 +295,32 @@ function display_curse_data(data)
 	this.$panel.find(".panel-body").html(html);
 	}
 
-$(function()
+register_panel("curse",
 	{
-	var curse_panel = new Panel(
-		{
-		panel_class:    "curse",
-		panel_function: display_curse_data,
-		load_path:      "/curse/list"
-		});
+	panel_name:     "Notifications",
+	panel_function: display_curse_data,
+	load_path:      "/curse/list"
+	});
 
-	var storage_panel = new Panel(
-		{
-		panel_class:    "storage",
-		panel_function: display_storage_data,
-		load_path:      "/storage/list",
-		refresh:        false
-		});
+register_panel("storage",
+	{
+	panel_name:     "Storage",
+	panel_function: display_storage_data,
+	load_path:      "/storage/list",
+	refresh:        false
+	});
 
-	heatmap_panel = new Panel(
+register_panel("heatmap",
+	{
+	panel_name:     "Hive Activity",
+	panel_function: display_heatmap_data,
+	init_function:  init_heatmap,
+	refresh:        false,
+	load_path:      "/heatmap",
+	ldata:
 		{
-		panel_class:    "heatmap",
-		panel_function: display_heatmap_data,
-		refresh:        false,
-		load_path:      "/heatmap",
-		ldata:
-			{
-			scale:  "lin",
-			scheme: "jet",
-			range:  "all"
-			}
-		});
-
-	heatmap_panel.$settings_dialogue =
-		$([
-		"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
-			"<div class=\"modal-dialog\" role=\"document\">",
-				"<div class=\"modal-content\">",
-					"<div class=\"modal-header\">",
-						"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
-						"<h3 class=\"modal-title\">Heatmap Settings</h3>",
-					"</div>",
-					"<div class=\"modal-body\">",
-						"<div class=\"row\">",
-							"<div class=\"col-xs-12 col-md-6\">",
-								"<div class=\"panel panel-success\">",
-									"<div class=\"panel-heading\">",
-										"<h4>Scale</h4>",
-									"</div>",
-									"<div class=\"panel-body\">",
-										"<label>",
-											"<input type=\"radio\" name=\"scale\" value=\"lin\"" + (heatmap_panel.ldata.scale === "lin" ? " checked" : "") + " />",
-											" Linear",
-										"</label><br />",
-										"<label>",
-											"<input type=\"radio\" name=\"scale\" value=\"log\"" + (heatmap_panel.ldata.scale === "log" ? " checked" : "") + " />",
-											" Logarithmic",
-										"</label>",
-									"</div>",
-								"</div>",
-							"</div>",
-							"<div class=\"col-xs-12 col-md-6\">",
-								"<div class=\"panel panel-success\">",
-									"<div class=\"panel-heading\">",
-										"<h4>Color Gradient</h4>",
-									"</div>",
-									"<div class=\"panel-body\">",
-										"<label>",
-											"<input type=\"radio\" name=\"scheme\" value=\"jet\"" + (heatmap_panel.ldata.scheme === "jet" ? " checked" : "") + " />",
-											" Jet (5-color)",
-										"</label><br />",
-										"<label>",
-											"<input type=\"radio\" name=\"scheme\" value=\"yel\"" + (heatmap_panel.ldata.scheme === "yel" ? " checked" : "") + " />",
-											" White &rarr; Yellow &rarr; Red",
-										"</label>",
-									"</div>",
-								"</div>",
-							"</div>",
-						"</div>",
-						"<div class=\"row\">",
-							"<div class=\"col-xs-12\">",
-								"<div class=\"panel panel-info\">",
-									"<div class=\"panel-heading\">",
-										"<h4>Date Range</h4>",
-									"</div>",
-									"<div class=\"panel-body\">",
-										"<div class=\"two-column\">",
-											"<label>",
-												"<input type=\"radio\" name=\"range\" value=\"all\"" + (heatmap_panel.ldata.range === "all" ? " checked" : "") + " />",
-												" All",
-											"</label><br />",
-											"<label>",
-												"<input type=\"radio\" name=\"range\" value=\"year\"" + (heatmap_panel.ldata.range === "year" ? " checked" : "") + " />",
-												" Past Year",
-											"</label><br />",
-											"<label>",
-												"<input type=\"radio\" name=\"range\" value=\"half_year\"" + (heatmap_panel.ldata.range === "half_year" ? " checked" : "") + " />",
-												" Past Six Months",
-											"</label><br />",
-											"<label>",
-												"<input type=\"radio\" name=\"range\" value=\"quarter\"" + (heatmap_panel.ldata.range === "quarter" ? " checked" : "") + " />",
-												" Past Three Months",
-											"</label><br />",
-											"<label>",
-												"<input type=\"radio\" name=\"range\" value=\"month\"" + (heatmap_panel.ldata.range === "month" ? " checked" : "") + " />",
-												" Past Month",
-											"</label><br />",
-											"<label>",
-												"<input type=\"radio\" name=\"range\" value=\"custom\"" + (heatmap_panel.ldata.range === "custom" ? " checked" : "") + " />",
-												" Custom Range",
-											"</label>",
-										"</div>",
-										"<div class=\"input-group input-daterange\" style=\"display: none\">",
-											"<input type=\"text\" class=\"form-control datepicker\" id=\"start_date\" />",
-											"<div class=\"input-group-addon\">to</div>",
-											"<input type=\"text\" class=\"form-control datepicker\" id=\"end_date\" />",
-										"</div>",
-									"</div>",
-								"</div>",
-							"</div>",
-						"</div>",
-					"</div>",
-					"<div class=\"modal-footer\">",
-						"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
-						"<button type=\"button\" class=\"btn btn-primary accept\">Update</button>",
-					"</div>",
-				"</div>",
-			"</div>",
-		"</div>"
-		].join(""));
-
-	heatmap_panel.$settings_dialogue.find(".input-daterange").datepicker(
-		{
-		inputs: heatmap_panel.$settings_dialogue.find(".input-daterange input")
-		});
-	heatmap_panel.$settings_dialogue.find("input[name=range]").change(function ()
-		{
-		heatmap_panel.$settings_dialogue.find("div.input-daterange").css("display", $(this).val() == "custom" ? "" : "none");
-		});
-	heatmap_panel.$settings_dialogue.find("button.accept").click(function ()
-		{
-		var $this       = heatmap_panel.$settings_dialogue,
-			settings      = heatmap_panel.ldata;
-		settings.scale  = $this.find("input[name=scale]:checked").val();
-		settings.scheme = $this.find("input[name=scheme]:checked").val();
-		settings.range  = $this.find("input[name=range]:checked").val();
-		if (settings.range === "custom")
-			{
-			settings.end_date   = $this.find("input#end_date").datepicker("getDate");
-			settings.start_date = $this.find("input#start_date").datepicker("getDate");
-			}
-		else
-			{
-			delete settings.start_date;
-			delete settings.end_date;
-			}
-		$this.modal("hide");
-		heatmap_panel.load_panel_data();
-		});
-
-	heatmap_panel.$panel.find(".panel-icons").prepend($("<span class=\"fas fa-cog anchor-style\" id=\"heatmap_settings\"></span>"));
-	heatmap_panel.$panel.on("click", "#heatmap_settings", function () { heatmap_panel.$settings_dialogue.modal("show"); });
+		scale:  "lin",
+		scheme: "jet",
+		range:  "all"
+		}
 	});

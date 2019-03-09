@@ -59,13 +59,10 @@ function display_application_status(data)
 		});
 	}
 
-$(function()
+register_panel("application",
 	{
-	var application_panel = new Panel(
-		{
-		panel_class:    "application",
-		panel_function: display_application_status,
-		load_path:      "/application/status",
-		refresh:        false
-		});
+	panel_name:     "Application Status",
+	panel_function: display_application_status,
+	load_path:      "/application/status",
+	refresh:        false
 	});

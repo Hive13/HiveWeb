@@ -24,7 +24,9 @@ ELSIF panels.size > 2;
 END;
 %]
 
+[%~ IF Catalyst.user_exists; %]
 <h3 class="fas fa-plus-circle text-success anchor-style hive-panel-add" title="add-panel"></h3>
+[%~ END %]
 <div class="row hive-panels">
 [%~
 	FOREACH panel IN panels;

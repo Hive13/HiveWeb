@@ -28,13 +28,10 @@ function display_storage_status_data(data)
 	this.$panel.find(".panel-body").html(html);
 	}
 
-$(function()
+register_panel("storage_status",
 	{
-	var storage_admin_panel = new Panel(
-		{
-		panel_class:    "storage_status",
-		panel_function: display_storage_status_data,
-		load_path:      "/admin/storage/status",
-		refresh:        false
-		});
+	panel_name:     "Storage Status",
+	panel_function: display_storage_status_data,
+	load_path:      "/admin/storage/status",
+	refresh:        false
 	});

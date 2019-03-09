@@ -1,9 +1,11 @@
+var panels = {};
+var move_panels = false;
 
-function Panel(args)
+function Panel($panel, args)
 	{
 	this.refresh = true;
-	this.name    = args.panel_class;
-	this.$panel  = $(".hive-panel-" + this.name);
+	this.name    = args.panel_name;
+	this.$panel  = $panel;
 	this.display = args.panel_function;
 	this.timeout = 60000;
 
@@ -105,6 +107,46 @@ function soda_loading($panel)
 	this.$panel.find("h3.soda + div").html(loading_icon());
 	}
 
+function register_panel(panel_class, options)
+	{
+	panels[panel_class] = options;
+	}
+
+function load_panels()
+	{
+	$(".hive-panels > .hive-panel").each(function ()
+		{
+		var i, $this = $(this), $panel = $this.find(".panel")
+		var classes = $panel.prop("classList"), panel_class;
+		for (i = 0; i < classes.length; i++)
+			if (classes[i].substring(0, 11) === "hive-panel-")
+				{
+				panel_class = classes[i].substring(11);
+				break;
+				}
+		if (panel_class === undefined || !(panel_class in panels))
+			return;
+		new Panel($panel, panels[panel_class]);
+		});
+	}
+
+register_panel("status",
+	{
+	panel_name:     "Hive Status",
+	panel_function: display_temp_data,
+	load_function:  temperature_loading,
+	load_path:      "/temperature/current"
+	});
+/*
+	var soda_panel = new Panel(
+		{
+		panel_class:   "status",
+		panel_function: display_soda_data,
+		load_function: soda_loading,
+		load_path:     "/soda/status",
+		refresh:       false,
+		});
+*/
 $(function()
 	{
 	var $panel = $(".hive-panel-status"),
@@ -118,22 +160,10 @@ $(function()
 		+ "</td></tr></table>"
 	);
 
-	var temp_panel = new Panel(
-		{
-		panel_class:    "status",
-		panel_function: display_temp_data,
-		load_function:  temperature_loading,
-		load_path:      "/temperature/current"
-		});
+	load_panels();
 
-	var soda_panel = new Panel(
-		{
-		panel_class:   "status",
-		panel_function: display_soda_data,
-		load_function: soda_loading,
-		load_path:     "/soda/status",
-		refresh:       false,
-		});
+	if (!move_panels)
+		return;
 
 	$panels.find(".hive-panel:not(.hive-panel-first) .panel-icons").append($("<span class=\"fas fa-chevron-circle-left hive-panel-move-left anchor-style\" />"));
 	$panels.find(".hive-panel:not(.hive-panel-last) .panel-icons").append($("<span class=\"fas fa-chevron-circle-right hive-panel-move-right anchor-style\" />"));
