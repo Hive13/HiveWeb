@@ -66,9 +66,10 @@ Panel.prototype.load_panel_data = function()
 	api_json(api);
 	}
 
-function display_temp_data(data)
+function display_status(data)
 	{
 	var $temp_div = this.$panel.find("h3.temperature + div"), html = "";
+	var $soda_div = this.$panel.find("h3.soda + div"), i, soda;
 
 	for (i = 0; i < data.temps.length; i++)
 		{
@@ -76,11 +77,8 @@ function display_temp_data(data)
 		html += temp.display_name + ": " + temp.value.toFixed(1) + "&deg;F<br />";
 		}
 	$temp_div.html(html);
-	}
 
-function display_soda_data(data)
-	{
-	var $temp_div = this.$panel.find("h3.soda + div"), html = "<div class=\"row\">", i, soda;
+	html = "<div class=\"row\">";
 
 	for (i = 0; i < data.sodas.length; i++)
 		{
@@ -94,17 +92,13 @@ function display_soda_data(data)
 		}
 
 	html += "</div>";
-	$temp_div.html(html);
+	$soda_div.html(html);
 	}
 
-function temperature_loading()
-	{
-	this.$panel.find("h3.temperature + div").html(loading_icon());
-	}
-
-function soda_loading($panel)
+function status_loading($panel)
 	{
 	this.$panel.find("h3.soda + div").html(loading_icon());
+	this.$panel.find("h3.temperature + div").html(loading_icon());
 	}
 
 function register_panel(panel_class, options)
@@ -251,20 +245,11 @@ function load_panels()
 register_panel("status",
 	{
 	panel_name:     "Hive Status",
-	panel_function: display_temp_data,
-	load_function:  temperature_loading,
-	load_path:      "/temperature/current"
+	panel_function: display_status,
+	load_function:  status_loading,
+	load_path:      "/status"
 	});
-/*
-	var soda_panel = new Panel(
-		{
-		panel_class:   "status",
-		panel_function: display_soda_data,
-		load_function: soda_loading,
-		load_path:     "/soda/status",
-		refresh:       false,
-		});
-*/
+
 $(function()
 	{
 	var $panel = $(".hive-panel-status"),
