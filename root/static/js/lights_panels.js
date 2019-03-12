@@ -207,13 +207,10 @@ function display_lights(data)
 		});
 	}
 
-$(function()
+register_panel("lights",
 	{
-	var light_panel = new Panel(
-		{
-		panel_class:    "lights",
-		panel_function: display_lights,
-		load_path:      "/lights/status",
-		refresh:        false
-		});
+	panel_name:     "Light Control",
+	panel_function: display_lights,
+	load_path:      "/lights/status",
+	refresh:        false
 	});

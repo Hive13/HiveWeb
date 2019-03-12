@@ -24,6 +24,14 @@ function display_access_data(data)
 	this.$panel.find(".panel-body").html(html);
 	}
 
+function init_access_data()
+	{
+	this.$panel.on("click", "ol li", function()
+		{
+		$(this).toggleClass("shown");
+		});
+	}
+
 function init_pending_applications()
 	{
 	var self = this;
@@ -328,26 +336,19 @@ function display_pending_applications(data)
 	this.$panel.find(".panel-body").html(html);
 	}
 
-$(function()
+register_panel("access",
 	{
-	var access_panel = new Panel(
-		{
-		panel_class:    "access",
-		panel_function: display_access_data,
-		load_path:      "/admin/accesslog/recent"
-		});
+	panel_class:    "Access",
+	panel_function: display_access_data,
+	init_function:  init_access_data,
+	load_path:      "/admin/accesslog/recent"
+	});
 
-	var pending_applications_panel = new Panel(
-		{
-		panel_class:    "applications",
-		panel_function: display_pending_applications,
-		init_function:  init_pending_applications,
-		load_path:      "/admin/applications/pending",
-		refresh:        false
-		});
-
-	$("div.panel.hive-panel-access").on("click", "ol li", function()
-		{
-		$(this).toggleClass("shown");
-		});
+register_panel("applications",
+	{
+	panel_name:     "Applications",
+	panel_function: display_pending_applications,
+	init_function:  init_pending_applications,
+	load_path:      "/admin/applications/pending",
+	refresh:        false
 	});
