@@ -1,0 +1,108 @@
+package HiveWeb::Controller::Admin::Reports;
+use Moose;
+use namespace::autoclean;
+
+BEGIN { extends 'Catalyst::Controller'; }
+
+sub index :Path :Args(0)
+	{
+	my ($self, $c) = @_;
+	}
+
+sub member :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $badge_query = $c->model('DB::Badge')->search(
+		{ member_id => { ident => 'me.member_id' } },
+		{ alias => 'badges' }
+		)->count_rs()->as_query() || die $!;
+	my $pay_date_query = $c->model('DB::Payment')->search(
+		{ member_id => { ident => 'me.member_id' } },
+		{
+		alias   => 'payment', 
+		columns => { pay_date => \'EXTRACT(DAYS FROM NOW() - MAX(payment_date))' },
+		})->as_query() || die $!;
+	my $pay_query = $c->model('DB::Payment')->search(
+		{ member_id => { ident => 'me.member_id' } },
+		{
+		alias   => 'pay_date', 
+		columns => { pay_date => { max => 'payment_date' } },
+		})->as_query() || die $!;
+	my $member_query = $c->model('DB::MemberMgroup')->search(
+		{
+		name      => 'members',
+		member_id => { ident => 'me.member_id' },
+		},
+		{ alias => 'mem_group', join => 'mgroup' }
+		)->count_rs()->as_query() || die $!;
+
+	my $members = $c->model('DB::Member')->search({},
+		{
+		'+select' => [ $pay_date_query, $pay_query, $member_query, $badge_query ],
+		'+as'     => [ 'days_since_paid', 'pay_date', 'is_member', 'badge_count' ],
+		},
+		);
+	
+	my $categories = {};
+	
+	while (my $member = $members->next())
+		{
+		my $category;
+		my $days_paid = $member->get_column('days_since_paid');
+		my $is_paid   = defined($days_paid) && $days_paid < 31;
+		my $is_member = $member->get_column('is_member') > 0;
+		my $has_badge = $member->get_column('badge_count') > 0;
+
+		if ($is_paid && $is_member)
+			{
+			if ($has_badge)
+				{
+				$category = 'confirmed';
+				}
+			else
+				{
+				$category = 'no_badge';
+				}
+			}
+		elsif (!$is_paid && $is_member)
+			{
+			my $paypal = $member->paypal_email();
+			if (defined($paypal) && $paypal !~ /@/)
+				{
+				$category = 'override';
+				}
+			elsif (defined($days_paid))
+				{
+				$category = 'expired'
+				}
+			else
+				{
+				$category = 'unpaid';
+				}
+			}
+		elsif ($is_paid && !$is_member)
+			{
+			$category = 'no_access';
+			}
+
+		if ($category)
+			{
+			$categories->{$category} //= [];
+			push(@{ $categories->{$category} },
+				{
+				fname        => $member->fname(),
+				lname        => $member->lname(),
+				email        => $member->email(),
+				paypal_email => $member->paypal_email(),
+				pay_date     => $member->get_column('pay_date'),
+				created_at   => $member->created_at(),
+				});
+			}
+		}
+	$c->stash()->{categories} = $categories;
+	}
+
+__PACKAGE__->meta->make_immutable;
+
+1;

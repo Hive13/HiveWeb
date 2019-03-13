@@ -1,0 +1,135 @@
+[%~
+SET colors =
+	{
+	green  => '#77dd77',
+	red    => '#ff6961',
+	lred   => '#ff9999',
+	yellow => '#fdfd96',
+	blue   => '#ADD8E6',
+	};
+
+SET labels =
+	{
+	fname                 => 'First Name',
+	lname                 => 'Last Name',
+	paypal_received_email => 'Paypal Email',
+	pay_date              => 'Last Payment',
+	paypal_email          => 'Listed Paypal Email',
+	email                 => 'Listed Email',
+	item_number           => 'Payment Type',
+	payment_status        => 'Status',
+	paid_at               => 'Payment Received',
+	created_at            => 'Account Created',
+	payer_email           => 'Payer Email',
+	};
+
+BLOCK category;
+	DEFAULT columns=['fname', 'lname', 'pay_date'] sort='lname';
+IF !members OR members.size < 1;
+	RETURN;
+END;
+%]
+<table class="report-table">
+	<thead>
+		<tr class="title">
+			<th bgcolor="[% colors.$color %]" colspan="[% columns.size %]">
+				[%~ title ~%]
+			</th>
+		</tr>
+		[%~ IF tagline.length %]
+		<tr class="tagline">
+			<th colspan="[% columns.size %]">
+				[%~ tagline ~%]
+			</th>
+		</tr>
+		[%~ END %]
+		<tr>
+			[%~ FOREACH column IN columns %]
+			<th>[% IF labels.$column.defined; GET labels.$column; ELSE; GET column; END; %]</th>
+			[%~ END %]
+		</tr>
+	</thead>
+	<tbody>
+	[%~ FOREACH member IN members.sort(sort) %]
+		<tr>
+		[%~ FOREACH column IN columns %]
+			<td>
+				[%~ member.$column %]
+			</td>
+		[%~ END %]
+		</tr>
+	[%~ END %]
+	</tbody>
+</table>
+[%~ END %]
+
+<style>
+table.report-table
+	{
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid black;
+	}
+
+table.report-table tr.title th
+	{
+	font-size: xx-large;
+	font-weight: bold;
+	font-family: monospace;
+	}
+
+table.report-table tr.tagline th
+	{
+	font-size: x-large;
+	font-style: italic;
+	font-weight: bold;
+	font-family: monospace;
+	}
+
+table.report-table td,
+table.report-table th
+	{
+	border: 1px solid black;
+	}
+</style>
+
+[%~
+INCLUDE category
+	members = categories.unpaid
+	color   ='red'
+	title   = 'Unpaid Members'
+	tagline = 'Member has not yet paid or has not added the correct paypal address to their account.'
+	columns = ['fname', 'lname', 'email', 'paypal_email', 'created_at'];
+
+INCLUDE category
+	members = categories.no_access
+	color   ='yellow'
+	title   = 'No Access'
+	tagline = 'Paid account not currently in "Members" group. Member cannot currently access the space.';
+
+INCLUDE category
+	members = categories.no_badge
+	color   ='yellow'
+	title   = 'No Badge'
+	tagline = 'Active and Paid accounts with no badges assigned. Member cannot currently access the space.';
+
+INCLUDE category
+	members = categories.expired
+	color   ='yellow'
+	title   = 'Lapsed Payments'
+	tagline = 'Member has access to the space, payments are no longer being received';
+
+INCLUDE category
+	members = categories.override
+	color   ='blue'
+	title   = 'Non-Standard Payment Method'
+	tagline = 'Member is paying via a method other than PayPal.'
+	columns = ['fname', 'lname', 'email', 'paypal_email'];
+
+INCLUDE category
+	members = categories.confirmed
+	color   = 'green'
+	title   = 'Confirmed Members';
+%]
+
+[%~ # vim:set filetype=tt2html: %]
