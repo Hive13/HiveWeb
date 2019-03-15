@@ -2,6 +2,8 @@ package HiveWeb::Controller::Admin::Reports;
 use Moose;
 use namespace::autoclean;
 use JSON;
+use DateTime::TimeZone;
+use DateTime::Format::Strptime;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -13,6 +15,9 @@ sub index :Path :Args(0)
 sub member :Local :Args(0)
 	{
 	my ($self, $c) = @_;
+	my $dtp        = $c->model('DB')->storage()->datetime_parser();
+	my $tz         = DateTime::TimeZone->new(name => 'America/Los_Angeles');
+	my $payment_p  = DateTime::Format::Strptime->new( pattern => '%H:%M:%S %b %d, %Y', time_zone => $tz);
 
 	my $badge_query = $c->model('DB::Badge')->search(
 		{ member_id => { ident => 'me.member_id' } },
@@ -111,7 +116,7 @@ sub member :Local :Args(0)
 			payment_type   => $data->{item_name},
 			payment_status => $data->{payment_status},
 			payer_email    => $unknown->payer_email(),
-			paid_at        => $data->{payment_date},
+			paid_at        => $payment_p->parse_datetime($data->{payment_date}),
 			});
 		}
 

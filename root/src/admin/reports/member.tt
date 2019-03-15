@@ -10,16 +10,16 @@ SET colors =
 
 SET labels =
 	{
-	fname          => 'First Name',
-	lname          => 'Last Name',
-	pay_date       => 'Last Payment',
-	paypal_email   => 'Listed Paypal Email',
-	email          => 'Listed Email',
-	payment_type   => 'Payment Type',
-	payment_status => 'Status',
-	paid_at        => 'Payment Received',
-	created_at     => 'Account Created',
-	payer_email    => 'Payer Email',
+	fname          => { name => 'First Name' },
+	lname          => { name => 'Last Name' },
+	pay_date       => { name => 'Last Payment', date => 1 },
+	paypal_email   => { name => 'Listed Paypal Email' },
+	email          => { name => 'Listed Email' },
+	payment_type   => { name => 'Payment Type' },
+	payment_status => { name => 'Status' },
+	paid_at        => { name => 'Payment Received', date => 1 },
+	created_at     => { name => 'Account Created', date => 1 },
+	payer_email    => { name => 'Payer Email' },
 	};
 
 BLOCK category;
@@ -44,17 +44,23 @@ END;
 		[%~ END %]
 		<tr>
 			[%~ FOREACH column IN columns %]
-			<th>[% IF labels.$column.defined; GET labels.$column; ELSE; GET column; END; %]</th>
+			<th>[% IF labels.$column.defined; GET labels.$column.name; ELSE; GET column; END; %]</th>
 			[%~ END %]
 		</tr>
 	</thead>
 	<tbody>
 	[%~ FOREACH member IN members.sort(sort) %]
 		<tr>
-		[%~ FOREACH column IN columns %]
-			<td>
-				[%~ member.$column %]
-			</td>
+		[%~
+			FOREACH column IN columns;
+				SET info = labels.$column;
+				IF info.date;
+					SET data = member.$column.strftime('%D %r');
+				ELSE;
+					SET data = member.$column;
+				END;
+		%]
+			<td>[%~ data ~%]</td>
 		[%~ END %]
 		</tr>
 	[%~ END %]
