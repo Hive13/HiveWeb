@@ -1,6 +1,7 @@
 package HiveWeb::Controller::Admin::Reports;
 use Moose;
 use namespace::autoclean;
+use JSON;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -20,13 +21,13 @@ sub member :Local :Args(0)
 	my $pay_date_query = $c->model('DB::Payment')->search(
 		{ member_id => { ident => 'me.member_id' } },
 		{
-		alias   => 'payment', 
+		alias   => 'payment',
 		columns => { pay_date => \'EXTRACT(DAYS FROM NOW() - MAX(payment_date))' },
 		})->as_query() || die $!;
 	my $pay_query = $c->model('DB::Payment')->search(
 		{ member_id => { ident => 'me.member_id' } },
 		{
-		alias   => 'pay_date', 
+		alias   => 'pay_date',
 		columns => { pay_date => { max => 'payment_date' } },
 		})->as_query() || die $!;
 	my $member_query = $c->model('DB::MemberMgroup')->search(
@@ -41,11 +42,10 @@ sub member :Local :Args(0)
 		{
 		'+select' => [ $pay_date_query, $pay_query, $member_query, $badge_query ],
 		'+as'     => [ 'days_since_paid', 'pay_date', 'is_member', 'badge_count' ],
-		},
-		);
-	
+		});
+
 	my $categories = {};
-	
+
 	while (my $member = $members->next())
 		{
 		my $category;
@@ -100,6 +100,21 @@ sub member :Local :Args(0)
 				});
 			}
 		}
+
+	my $unknowns = $c->model('DB::IPNMessage')->search({ member_id => undef });
+	while (my $unknown = $unknowns->next())
+		{
+		my $data = decode_json($unknown->raw());
+		next if ($data->{txn_type} eq 'subscr_signup' || $data->{txn_type} eq 'subscr_modify');
+		push(@{ $categories->{unknown} },
+			{
+			payment_type   => $data->{item_name},
+			payment_status => $data->{payment_status},
+			payer_email    => $unknown->payer_email(),
+			paid_at        => $data->{payment_date},
+			});
+		}
+
 	$c->stash()->{categories} = $categories;
 	}
 

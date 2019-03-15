@@ -10,16 +10,16 @@ SET colors =
 
 SET labels =
 	{
-	fname                 => 'First Name',
-	lname                 => 'Last Name',
-	pay_date              => 'Last Payment',
-	paypal_email          => 'Listed Paypal Email',
-	email                 => 'Listed Email',
-	item_number           => 'Payment Type',
-	payment_status        => 'Status',
-	paid_at               => 'Payment Received',
-	created_at            => 'Account Created',
-	payer_email           => 'Payer Email',
+	fname          => 'First Name',
+	lname          => 'Last Name',
+	pay_date       => 'Last Payment',
+	paypal_email   => 'Listed Paypal Email',
+	email          => 'Listed Email',
+	payment_type   => 'Payment Type',
+	payment_status => 'Status',
+	paid_at        => 'Payment Received',
+	created_at     => 'Account Created',
+	payer_email    => 'Payer Email',
 	};
 
 BLOCK category;
@@ -105,7 +105,7 @@ INCLUDE category
 	color   ='red'
 	title   = 'Unknown Payments'
 	tagline = 'Membership payments being received from someone without an intweb account.'
-	columns = ['item_number', 'payment_status', 'paid_at', 'payer_email']
+	columns = ['payment_type', 'payment_status', 'paid_at', 'payer_email'];
 
 INCLUDE category
 	members = categories.no_access
