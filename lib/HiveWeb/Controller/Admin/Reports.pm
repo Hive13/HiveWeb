@@ -43,10 +43,11 @@ sub member :Local :Args(0)
 		{ alias => 'mem_group', join => 'mgroup' }
 		)->count_rs()->as_query() || die $!;
 
-	my $members = $c->model('DB::Member')->search({},
+	my $members = $c->model('DB::Member')->search({ 'me.linked_member_id' => undef },
 		{
 		'+select' => [ $pay_date_query, $pay_query, $member_query, $badge_query ],
 		'+as'     => [ 'days_since_paid', 'pay_date', 'is_member', 'badge_count' ],
+		prefetch  => 'linked_members',
 		});
 
 	my $categories = {};
@@ -95,6 +96,18 @@ sub member :Local :Args(0)
 			{
 			$categories->{$category} //= [];
 			my $pay_date = $member->get_column('pay_date');
+			my $linked   = [];
+
+			foreach my $link (@{ [ $member->linked_members() ] })
+				{
+				push(@$linked,
+					{
+					fname      => $link->fname(),
+					lname      => $link->lname(),
+					email      => $link->email(),
+					created_at => $link->created_at(),
+					});
+				}
 			if (defined($pay_date))
 				{
 				$pay_date = $dtp->parse_timestamp_with_time_zone($pay_date);
@@ -107,6 +120,7 @@ sub member :Local :Args(0)
 				paypal_email => $member->paypal_email(),
 				pay_date     => $pay_date,
 				created_at   => $member->created_at(),
+				linked       => $linked,
 				});
 			}
 		}
