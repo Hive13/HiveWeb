@@ -142,7 +142,7 @@ sub member :Local :Args(0)
 	$c->stash()->{categories} = $categories;
 	$c->stash(
 		{
-		show_pii => 0,
+		show_pii => 1,
 		full     => 1,
 		});
 	}
