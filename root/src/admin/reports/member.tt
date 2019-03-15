@@ -1,4 +1,7 @@
 [%~
+
+SET show_pii = 0;
+
 SET colors =
 	{
 	green  => '#77dd77',
@@ -13,13 +16,13 @@ SET labels =
 	fname          => { name => 'First Name' },
 	lname          => { name => 'Last Name' },
 	pay_date       => { name => 'Last Payment', date => 1 },
-	paypal_email   => { name => 'Listed Paypal Email' },
-	email          => { name => 'Listed Email' },
+	paypal_email   => { name => 'Listed Paypal Email', pii => 1 },
+	email          => { name => 'Listed Email', pii => 1 },
 	payment_type   => { name => 'Payment Type' },
 	payment_status => { name => 'Status' },
 	paid_at        => { name => 'Payment Received', date => 1 },
 	created_at     => { name => 'Account Created', date => 1 },
-	payer_email    => { name => 'Payer Email' },
+	payer_email    => { name => 'Payer Email', pii => 1 },
 	};
 
 BLOCK category;
@@ -27,24 +30,46 @@ BLOCK category;
 IF !members OR members.size < 1;
 	RETURN;
 END;
+SET size = 0;
+FOREACH column IN columns;
+	SET info = labels.$column;
+	IF info.pii AND !show_pii;
+		NEXT;
+	END;
+	SET size = size + 1;
+END;
 %]
 <table class="report-table">
 	<thead>
 		<tr class="title">
-			<th bgcolor="[% colors.$color %]" colspan="[% columns.size %]">
+			<th bgcolor="[% colors.$color %]" colspan="[% size %]">
 				[%~ '(' _ members.size _ ')' _ title ~%]
 			</th>
 		</tr>
 		[%~ IF tagline.length %]
 		<tr class="tagline">
-			<th colspan="[% columns.size %]">
+			<th colspan="[% size %]">
 				[%~ tagline ~%]
 			</th>
 		</tr>
 		[%~ END %]
 		<tr>
-			[%~ FOREACH column IN columns %]
-			<th>[% IF labels.$column.defined; GET labels.$column.name; ELSE; GET column; END; %]</th>
+			[%~
+				FOREACH column IN columns;
+					SET info = labels.$column;
+					IF info.pii AND !show_pii;
+						NEXT;
+					END;
+				%]
+			<th>
+				[%~
+					IF info.name.defined;
+						GET info.name;
+					ELSE;
+						GET column;
+					END;
+				~%]
+			</th>
 			[%~ END %]
 		</tr>
 	</thead>
@@ -54,6 +79,9 @@ END;
 		[%~
 			FOREACH column IN columns;
 				SET info = labels.$column;
+				IF info.pii AND !show_pii;
+					NEXT;
+				END;
 				IF info.date;
 					SET data = member.$column.strftime('X%m/X%d/%y X%I:%M %p').replace('X0', 'X').replace('X', '');
 				ELSE;
@@ -73,6 +101,11 @@ table.report-table
 	{
 	/*border-collapse: collapse;*/
 	border: 1px solid black;
+	}
+
+table.report-table + table.report-table
+	{
+	margin-top: 20px;
 	}
 
 table.report-table tr.title th
