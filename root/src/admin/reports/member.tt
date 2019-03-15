@@ -55,7 +55,7 @@ END;
 			FOREACH column IN columns;
 				SET info = labels.$column;
 				IF info.date;
-					SET data = member.$column.strftime('%D %r');
+					SET data = member.$column.strftime('X%m/X%d/%y X%I:%M %p').replace('X0', 'X').replace('X', '');
 				ELSE;
 					SET data = member.$column;
 				END;

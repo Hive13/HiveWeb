@@ -94,13 +94,18 @@ sub member :Local :Args(0)
 		if ($category)
 			{
 			$categories->{$category} //= [];
+			my $pay_date = $member->get_column('pay_date');
+			if (defined($pay_date))
+				{
+				$pay_date = $dtp->parse_timestamp_with_time_zone($pay_date);
+				}
 			push(@{ $categories->{$category} },
 				{
 				fname        => $member->fname(),
 				lname        => $member->lname(),
 				email        => $member->email(),
 				paypal_email => $member->paypal_email(),
-				pay_date     => $member->get_column('pay_date'),
+				pay_date     => $pay_date,
 				created_at   => $member->created_at(),
 				});
 			}
