@@ -1,6 +1,7 @@
 [%~
 
 SET show_pii = 0;
+SET full     = 0;
 
 SET colors =
 	{
@@ -30,7 +31,7 @@ BLOCK category;
 IF !members OR members.size < 1;
 	RETURN;
 END;
-SET size = 0;
+SET size = 1;
 FOREACH column IN columns;
 	SET info = labels.$column;
 	IF info.pii AND !show_pii;
@@ -60,8 +61,13 @@ END;
 					IF info.pii AND !show_pii;
 						NEXT;
 					END;
+					IF loop.first;
+						SET col = ' colspan="2"';
+					ELSE;
+						SET col = '';
+					END;
 				%]
-			<th>
+			<th [%~ col ~%]>
 				[%~
 					IF info.name.defined;
 						GET info.name;
@@ -87,49 +93,38 @@ END;
 				ELSE;
 					SET data = member.$column;
 				END;
+				IF loop.first;
+					SET col = ' colspan="2"';
+				ELSE;
+					SET col = '';
+				END;
+		%]
+			<td [%~ col ~%] >[%~ data ~%]</td>
+		[%~ END %]
+		[%~ FOREACH link IN member.linked %]
+		</tr>
+		<tr>
+			<td class="link">&#x21D2;</td>
+		[%~
+			FOREACH column IN columns;
+				SET info = labels.$column;
+				IF info.pii AND !show_pii;
+					NEXT;
+				END;
+				IF info.date;
+					SET data = link.$column.strftime('X%m/X%d/%y X%I:%M %p').replace('X0', 'X').replace('X', '');
+				ELSE;
+					SET data = link.$column;
+				END;
 		%]
 			<td>[%~ data ~%]</td>
+			[%~ END %]
 		[%~ END %]
 		</tr>
 	[%~ END %]
 	</tbody>
 </table>
 [%~ END %]
-
-<style>
-table.report-table
-	{
-	/*border-collapse: collapse;*/
-	border: 1px solid black;
-	}
-
-table.report-table + table.report-table
-	{
-	margin-top: 20px;
-	}
-
-table.report-table tr.title th
-	{
-	font-size: xx-large;
-	font-weight: bold;
-	font-family: monospace;
-	}
-
-table.report-table tr.tagline th
-	{
-	font-size: x-large;
-	font-style: italic;
-	font-weight: bold;
-	font-family: monospace;
-	}
-
-table.report-table td,
-table.report-table th
-	{
-	border: 1px solid black;
-	padding: 1px;
-	}
-</style>
 
 [%~
 INCLUDE category
@@ -164,17 +159,19 @@ INCLUDE category
 	title   = 'Lapsed Payments'
 	tagline = 'Member has access to the space, payments are no longer being received';
 
-INCLUDE category
-	members = categories.override
-	color   ='blue'
-	title   = 'Non-Standard Payment Method'
-	tagline = 'Member is paying via a method other than PayPal.'
-	columns = ['fname', 'lname', 'email', 'paypal_email'];
+IF full;
+	INCLUDE category
+		members = categories.override
+		color   ='blue'
+		title   = 'Non-Standard Payment Method'
+		tagline = 'Member is paying via a method other than PayPal.'
+		columns = ['fname', 'lname', 'email', 'paypal_email'];
 
-INCLUDE category
-	members = categories.confirmed
-	color   = 'green'
-	title   = 'Confirmed Members';
+	INCLUDE category
+		members = categories.confirmed
+		color   = 'green'
+		title   = 'Confirmed Members';
+END;
 %]
 
 [%~ # vim:set filetype=tt2html: %]
