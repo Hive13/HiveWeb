@@ -1,8 +1,5 @@
 [%~
 
-SET show_pii = 0;
-SET full     = 0;
-
 SET colors =
 	{
 	green  => '#77dd77',
@@ -23,7 +20,7 @@ SET labels =
 	payment_status => { name => 'Status' },
 	paid_at        => { name => 'Payment Received', date => 1 },
 	created_at     => { name => 'Account Created', date => 1 },
-	payer_email    => { name => 'Payer Email', pii => 1 },
+	payer_email    => { name => 'Payer Email' },
 	};
 
 BLOCK category;

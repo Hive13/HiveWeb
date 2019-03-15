@@ -140,6 +140,11 @@ sub member :Local :Args(0)
 		}
 
 	$c->stash()->{categories} = $categories;
+	$c->stash(
+		{
+		show_pii => 0,
+		full     => 1,
+		});
 	}
 
 __PACKAGE__->meta->make_immutable;
