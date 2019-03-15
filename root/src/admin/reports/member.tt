@@ -12,7 +12,6 @@ SET labels =
 	{
 	fname                 => 'First Name',
 	lname                 => 'Last Name',
-	paypal_received_email => 'Paypal Email',
 	pay_date              => 'Last Payment',
 	paypal_email          => 'Listed Paypal Email',
 	email                 => 'Listed Email',
@@ -24,7 +23,7 @@ SET labels =
 	};
 
 BLOCK category;
-	DEFAULT columns=['fname', 'lname', 'pay_date'] sort='lname';
+	DEFAULT columns=['fname', 'lname', 'paypal_email', 'pay_date'] sort='lname';
 IF !members OR members.size < 1;
 	RETURN;
 END;
@@ -33,7 +32,7 @@ END;
 	<thead>
 		<tr class="title">
 			<th bgcolor="[% colors.$color %]" colspan="[% columns.size %]">
-				[%~ title ~%]
+				[%~ '(' _ members.size _ ')' _ title ~%]
 			</th>
 		</tr>
 		[%~ IF tagline.length %]
@@ -66,8 +65,7 @@ END;
 <style>
 table.report-table
 	{
-	width: 100%;
-	border-collapse: collapse;
+	/*border-collapse: collapse;*/
 	border: 1px solid black;
 	}
 
@@ -90,6 +88,7 @@ table.report-table td,
 table.report-table th
 	{
 	border: 1px solid black;
+	padding: 1px;
 	}
 </style>
 
@@ -100,6 +99,13 @@ INCLUDE category
 	title   = 'Unpaid Members'
 	tagline = 'Member has not yet paid or has not added the correct paypal address to their account.'
 	columns = ['fname', 'lname', 'email', 'paypal_email', 'created_at'];
+
+INCLUDE category
+	members = categories.unknown
+	color   ='red'
+	title   = 'Unknown Payments'
+	tagline = 'Membership payments being received from someone without an intweb account.'
+	columns = ['item_number', 'payment_status', 'paid_at', 'payer_email']
 
 INCLUDE category
 	members = categories.no_access
