@@ -94,7 +94,7 @@ sub subscr_payment
 				{
 				type    => 'slack.invite_error',
 				message => 'Cannot invite ' . $member->member_id() . ' to Slack: ' . $slack_result->{error}
-				});;
+				});
 			}
 		}
 	}
@@ -169,6 +169,10 @@ sub process
 		elsif ($type eq 'subscr_cancel')
 			{
 			$self->subscr_cancel();
+			}
+		elsif ($type eq 'subscr_modify' || $type eq 'subscr_signup')
+			{
+			# Just ignore these
 			}
 		else
 			{
