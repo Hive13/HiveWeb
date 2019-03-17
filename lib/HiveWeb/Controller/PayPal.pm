@@ -2,114 +2,9 @@ package HiveWeb::Controller::PayPal;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
-use LWP::UserAgent;
 use JSON;
-use DateTime::TimeZone;
-use DateTime::Format::Strptime;
 
 BEGIN { extends 'Catalyst::Controller' }
-
-sub subscr_payment
-	{
-	my ($self, $c, $member, $parameters, $message) = @_;
-
-	return if ($parameters->{payment_status} ne 'Completed');
-
-	my $schema = $message->result_source()->schema();
-
-	my $existing = $schema->resultset('Payment')->search(
-		{ 'ipn_message.txn_id' => $parameters->{txn_id} },
-		{ join => 'ipn_message'}
-		)->count();
-	if ($existing)
-		{
-		$c->log()->error('Payment already exists for IPN Message ' . $message->ipn_message_id());
-		return;
-		}
-
-	my $tz         = DateTime::TimeZone->new(name => 'America/Los_Angeles');
-	my $payment_p  = DateTime::Format::Strptime->new( pattern => '%H:%M:%S %b %d, %Y', time_zone => $tz);
-	my $payment_dt = $payment_p->parse_datetime($parameters->{payment_date});
-	my $payment    = $member->create_related('payments',
-		{
-		ipn_message_id => $message->ipn_message_id(),
-		payment_date   => $payment_dt,
-		}) || die;
-
-	my $pending = $member->search_related('member_mgroups', { 'mgroup.name' => 'pending_payments' }, { join => 'mgroup' });
-	if ($pending->count())
-		{
-		$pending->delete();
-		my $new_group = $schema->resultset('Mgroup')->find({ name => 'members' }) || die;
-		$member->find_or_create_related('member_mgroups', { mgroup_id => $new_group->mgroup_id() });
-
-		my $application = $member->find_related('applications',
-			{
-			decided_at => { '!=' => undef},
-			},
-			{
-			order_by => { -desc => 'updated_at' },
-			rows     => 1,
-			});
-
-		if ($application)
-			{
-			$schema->resultset('Action')->create(
-				{
-				queuing_member_id => $member->member_id(),
-				action_type       => 'application.pay',
-				row_id            => $application->application_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			}
-
-		$schema->resultset('Action')->create(
-			{
-			queuing_member_id => $member->member_id(),
-			action_type       => 'member.welcome',
-			row_id            => $member->member_id(),
-			}) || die 'Could not queue notification: ' . $!;
-
-		my $slack = $c->config()->{slack};
-		my $slack_invite =
-			{
-			first_name => $member->fname(),
-			last_name  => $member->lname(),
-			channels   => join(',', @{ $slack->{channels} }),
-			email      => $member->email(),
-			token      => $slack->{token},
-			};
-
-		my $ua = LWP::UserAgent->new();
-		$ua->agent(sprintf("HiveWeb/%s (%s)", $HiveWeb::VERSION, $ua->agent));
-		my $response = $ua->post($slack->{api}, $slack_invite);
-		my $slack_result = decode_json($response->content());
-		if (!$slack_result->{ok})
-			{
-			$c->log()->error('Cannot invite ' . $member->member_id() . ' to Slack: ' . $slack_result->{error});
-			}
-		}
-	}
-
-sub subscr_cancel
-	{
-	my ($self, $c, $member, $parameters, $message) = @_;
-
-	my $schema = $message->result_source()->schema();
-
-	$schema->resultset('Action')->create(
-		{
-		queuing_member_id => $member->member_id(),
-		action_type       => 'member.confirm_cancel',
-		row_id            => $member->member_id(),
-		}) || die 'Could not queue notification: ' . $!;
-
-	$schema->resultset('Action')->create(
-		{
-		queuing_member_id => $member->member_id(),
-		action_type       => 'member.notify_cancel',
-		row_id            => $member->member_id(),
-		}) || die 'Could not queue notification: ' . $!;
-	}
 
 sub index :Path :Args(0)
 	{
@@ -122,7 +17,6 @@ sub ipn :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 	my $response   = $c->response();
-	my $log        = $c->log();
 
 	$response->content_type('text/plain');
 	try
@@ -131,7 +25,6 @@ sub ipn :Local :Args(0)
 			{
 			my $parameters = $c->request()->parameters();
 			my $payer      = $parameters->{payer_email};
-			my $type       = $parameters->{txn_type};
 			my $json       = encode_json($parameters);
 
 			my $member = $c->model('DB::Member')->find({ email => $payer });
@@ -144,7 +37,11 @@ sub ipn :Local :Args(0)
 					}
 				elsif (scalar(@members) > 1)
 					{
-					$log->error("Multiple members with one PayPal e-mail: $json");
+					$c->model('DB::Log')->new_log(
+						{
+						type    => 'ipn.multiple_members',
+						message => "Multiple members with one PayPal e-mail: $json",
+						});
 					$member = $members[0];
 					}
 				}
@@ -155,27 +52,20 @@ sub ipn :Local :Args(0)
 				member_id   => $member_id,
 				txn_id      => $parameters->{txn_id},
 				payer_email => $payer,
-				raw         => encode_json($parameters),
+				raw         => $json,
 				}) || die;
 
 			if (!$member)
 				{
-				$log->error('Cannot locate member in message ' . $message->ipn_message_id());
+				$c->model('DB::Log')->new_log(
+					{
+					type    => 'ipn.unknown_email',
+					message => 'Cannot locate member in message ' . $message->ipn_message_id(),
+					});
 				}
 			else
 				{
-				if ($type eq 'echeck' || $type eq 'subscr_payment')
-					{
-					$self->subscr_payment($c, $member, $parameters, $message);
-					}
-				elsif ($type eq 'subscr_cancel')
-					{
-					$self->subscr_cancel($c, $member, $parameters, $message);
-					}
-				else
-					{
-					$log->error('Unknown payment type in message ' . $message->ipn_message_id());
-					}
+				$message->process();
 				}
 
 			# Verify the transaction with PayPal
