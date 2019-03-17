@@ -93,6 +93,23 @@ __PACKAGE__->belongs_to(
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
+sub update
+	{
+	my $self  = shift;
+	my $attrs = shift;
+
+	if (ref($attrs) eq 'HASH')
+		{
+		$attrs->{updated_at} = \'current_timestamp';
+		}
+	else
+		{
+		die;
+		}
+
+	return $self->next::method($attrs);
+	}
+
 __PACKAGE__->meta->make_immutable;
 
 sub TO_JSON
