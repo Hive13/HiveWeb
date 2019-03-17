@@ -26,5 +26,6 @@ The new Hive internal Web
 * libconvert-base32-perl
 * libimager-qrcode-perl
 * libauthen-oath-perl
+* libemail-address-xs-perl
 * cssmin
 * node-less
