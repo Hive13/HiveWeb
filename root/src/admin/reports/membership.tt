@@ -1,0 +1,49 @@
+<div class="row">
+	<div class="col-lg-6 col-md-8 col-sm-10 col-xs-12 col-sm-offset-1 col-md-offset-2 col-md-offset-3">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				<h3>Neat Membership Information</h3>
+			</div>
+			<div class="panel-body">
+				<table class="report-table report-table-center u-margin-center">
+					<thead>
+						<tr>
+							<th>Subscription Name</th>
+							<th>Member Count</th>
+						</tr>
+					</thead>
+					<tbody>
+						[%~ FOREACH type IN totals.sort %]
+						<tr>
+							<td>[% type %]</td>
+							<td>[% totals.$type %]</td>
+						</tr>
+						[%~ END %]
+					</tbody>
+				</table>
+				<table class="report-table u-w-100">
+					<thead>
+						<tr>
+							<th colspan="2" class="u-text-center">Non-PayPal Members</th>
+						</tr>
+						<tr>
+							<th>Member Name</th>
+							<th>Payment Information</th>
+						</tr>
+					</thead>
+					<tbody>
+						[%~ FOREACH member IN non_paypal %]
+						<tr>
+							<td>[% member.fname %] [% member.lname %]</td>
+							<td>[% member.paypal_email %]</td>
+						</tr>
+						[%~ END %]
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+[%~ # vim:set filetype=tt2html: %]

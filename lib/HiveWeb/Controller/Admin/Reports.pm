@@ -147,6 +147,40 @@ sub member :Local :Args(0)
 		});
 	}
 
+sub membership :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $payments_rs = $c->model('DB::Payment')->search(
+		{
+		payment_date => { '>=' => '2019-02-01', '<' => '2019-03-01' },
+		},
+		{
+		prefetch => 'ipn_message',
+		select   => 'ipn_message.raw',
+		as       => 'raw',
+		})->hashref();
+
+	my $totals = {};
+	while (my $payment = $payments_rs->next())
+		{
+		my $parameters = decode_json($payment->{raw});
+
+		if (defined(my $item = $parameters->{item_number}))
+			{
+			$totals->{$item}++;
+			}
+		}
+
+	my @non_paypal_members = $c->model('DB::Member')->active()->non_paypal()->hashref();
+
+	$c->stash(
+		{
+		non_paypal => \@non_paypal_members,
+		totals     => $totals,
+		});
+	}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
