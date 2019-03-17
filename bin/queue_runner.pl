@@ -9,6 +9,15 @@ use HiveWeb;
 use HiveWeb::Schema;
 use UUID;
 use MIME::Base64;
+use Getopt::Long;
+
+my $do_smtp = 0;
+my $delete  = 0;
+
+GetOptions(
+	'email'  => \$do_smtp,
+	'delete' => \$delete,
+);
 
 my $c           = HiveWeb->new || die $!;
 my $config      = $c->config();
@@ -17,6 +26,24 @@ my $mail_config = $config->{email};
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
 
 my $queue = $schema->resultset('Action')->search({}, { order_by => ['priority', 'queued_at'] }) || die $!;
+my $smtp;
+
+if ($do_smtp)
+	{
+	$smtp = Net::SMTP->new(%{$mail_config->{'Net::SMTP'}});
+	die "Could not connect to server\n"
+		if !$smtp;
+
+	if (exists($mail_config->{auth}))
+		{
+		$smtp->auth($mail_config->{from}, $mail_config->{auth})
+			|| die "Authentication failed!\n";
+		}
+	}
+else
+	{
+	warn 'Skipping SMTP';
+	}
 
 while (my $action = $queue->next())
 	{
@@ -187,16 +214,6 @@ while (my $action = $queue->next())
 			return;
 			}
 
-		my $smtp = Net::SMTP->new(%{$mail_config->{'Net::SMTP'}});
-		die "Could not connect to server\n"
-			if !$smtp;
-
-		if (exists($mail_config->{auth}))
-			{
-			$smtp->auth($mail_config->{from}, $mail_config->{auth})
-				|| die "Authentication failed!\n";
-			}
-
 		if (ref($message->{to}) ne 'ARRAY')
 			{
 			if (exists($message->{to_name}))
@@ -226,17 +243,33 @@ while (my $action = $queue->next())
 				$to_header = '<' . $to . '>';
 				}
 
-			$smtp->mail('<' . $message->{from} . ">\n");
-			$smtp->to('<' . $to_env . ">\n");
-			$smtp->data();
-			$smtp->datasend('From: "' . $message->{from_name} . '" <' . $message->{from} . ">\n");
-			$smtp->datasend('To: ' . $to_header . "\n");
-			$smtp->datasend('Subject: ' . $message->{subject} . "\n");
-			$smtp->datasend("\n");
-			$smtp->datasend($body . "\n");
-			$smtp->dataend();
+			if ($do_smtp)
+				{
+				$smtp->mail('<' . $message->{from} . ">\n");
+				$smtp->to('<' . $to_env . ">\n");
+				$smtp->data();
+				$smtp->datasend('From: "' . $message->{from_name} . '" <' . $message->{from} . ">\n");
+				$smtp->datasend('To: ' . $to_header . "\n");
+				$smtp->datasend('Subject: ' . $message->{subject} . "\n");
+				$smtp->datasend("\n");
+				$smtp->datasend($body . "\n");
+				$smtp->dataend();
+				}
+			else
+				{
+				print('From: "' . $message->{from_name} . '" <' . $message->{from} . ">\n");
+				print('To: ' . $to_header . "\n");
+				print('Subject: ' . $message->{subject} . "\n");
+				print("\n");
+				print($body . "\n");
+				}
 			}
-		$smtp->quit();
-		$action->delete();
+		$action->delete()
+			if ($delete);
 		});
+	}
+
+if ($do_smtp)
+	{
+	$smtp->quit();
 	}
