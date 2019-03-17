@@ -15,7 +15,7 @@ my $schema  = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) |
 my $queue   = $schema->resultset('Action')->search({ action_type => 'paypal.refresh' }) || die $!;
 my $pending = $queue->count();
 
-#return if !$pending;
+return if !$pending;
 
 my $candidates = $schema->resultset('IPNMessage')->search({ member_id => undef });
 while (my $candidate = $candidates->next())
@@ -23,8 +23,7 @@ while (my $candidate = $candidates->next())
 	$schema->txn_do(sub
 		{
 		$candidate->process();
-		die;
 		});
 	}
 
-#$queue->delete();
+$queue->delete();
