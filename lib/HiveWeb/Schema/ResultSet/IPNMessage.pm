@@ -55,17 +55,14 @@ sub subscr_payment
 			{
 			order_by => { -desc => 'updated_at' },
 			rows     => 1,
-			});
+			}) || return;
 
-		if ($application)
+		$schema->resultset('Action')->create(
 			{
-			$schema->resultset('Action')->create(
-				{
-				queuing_member_id => $member->member_id(),
-				action_type       => 'application.pay',
-				row_id            => $application->application_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			}
+			queuing_member_id => $member->member_id(),
+			action_type       => 'application.pay',
+			row_id            => $application->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
 
 		$schema->resultset('Action')->create(
 			{
@@ -94,7 +91,7 @@ sub subscr_payment
 				{
 				type    => 'slack.invite_error',
 				message => 'Cannot invite ' . $member->member_id() . ' to Slack: ' . $slack_result->{error}
-				});;
+				});
 			}
 		}
 	}
@@ -169,6 +166,10 @@ sub process
 		elsif ($type eq 'subscr_cancel')
 			{
 			$self->subscr_cancel();
+			}
+		elsif ($type eq 'subscr_modify' || $type eq 'subscr_signup')
+			{
+			# Just ignore these
 			}
 		else
 			{
