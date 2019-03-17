@@ -24,49 +24,15 @@ sub ipn :Local :Args(0)
 		$c->model('DB')->txn_do(sub
 			{
 			my $parameters = $c->request()->parameters();
-			my $payer      = $parameters->{payer_email};
-			my $json       = encode_json($parameters);
-
-			my $member = $c->model('DB::Member')->find({ email => $payer });
-			if (!$member)
-				{
-				my @members = $c->model('DB::Member')->search({ paypal_email => $payer });
-				if (scalar(@members) == 1)
-					{
-					$member = $members[0];
-					}
-				elsif (scalar(@members) > 1)
-					{
-					$c->model('DB::Log')->new_log(
-						{
-						type    => 'ipn.multiple_members',
-						message => "Multiple members with one PayPal e-mail: $json",
-						});
-					$member = $members[0];
-					}
-				}
-			my $member_id = $member ? $member->member_id() : undef;
 
 			my $message = $c->model('DB::IPNMessage')->create(
 				{
-				member_id   => $member_id,
 				txn_id      => $parameters->{txn_id},
-				payer_email => $payer,
-				raw         => $json,
+				payer_email => $parameters->{payer_email},
+				raw         => encode_json($parameters),
 				}) || die;
 
-			if (!$member)
-				{
-				$c->model('DB::Log')->new_log(
-					{
-					type    => 'ipn.unknown_email',
-					message => 'Cannot locate member in message ' . $message->ipn_message_id(),
-					});
-				}
-			else
-				{
-				$message->process();
-				}
+			$message->process(1);
 
 			# Verify the transaction with PayPal
 			$parameters->{cmd} = '_notify-validate';

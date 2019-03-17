@@ -122,28 +122,62 @@ sub subscr_cancel
 
 sub process
 	{
-	my ($self) = @_;
+	my ($self, $log_not_found) = @_;
 
-	my $member     = $self->member() || return;
 	my $parameters = decode_json($self->raw());
 	my $type       = $parameters->{txn_type};
 	my $schema     = $self->result_source()->schema();
-
-	if ($type eq 'echeck' || $type eq 'subscr_payment')
+	my $payer      = $parameters->{payer_email};
+	my $member_rs  = $schema->resultset('Member');
+	my $member     = $member_rs->find({ email => $payer });
+	if (!$member)
 		{
-		$self->subscr_payment($member, $parameters);
+		my @members = $member_rs->search({ paypal_email => $payer });
+		if (scalar(@members) == 1)
+			{
+			$member = $members[0];
+			}
+		elsif (scalar(@members) > 1)
+			{
+			$schema->resultset('Log')->new_log(
+				{
+				type    => 'ipn.multiple_members',
+				message => 'Multiple members with one PayPal e-mail in message ' . $self->ipn_message_id(),
+				});
+			}
 		}
-	elsif ($type eq 'subscr_cancel')
+	my $member_id = $member ? $member->member_id() : undef;
+	if (!$member)
 		{
-		$self->subscr_cancel();
+		if ($log_not_found)
+			{
+			$schema->resultset('Log')->new_log(
+				{
+				type    => 'ipn.unknown_email',
+				message => 'Cannot locate member in message ' . $self->ipn_message_id(),
+				});
+			}
 		}
 	else
 		{
-		$schema->resultset('Log')->new_log(
+		$self->update({ member_id => $member->member_id() });
+
+		if ($type eq 'echeck' || $type eq 'subscr_payment')
 			{
-			type    => 'ipn.unknown_type',
-			message => 'Unknown payment type in message ' . $self->ipn_message_id()
-			});
+			$self->subscr_payment($member, $parameters);
+			}
+		elsif ($type eq 'subscr_cancel')
+			{
+			$self->subscr_cancel();
+			}
+		else
+			{
+			$schema->resultset('Log')->new_log(
+				{
+				type    => 'ipn.unknown_type',
+				message => 'Unknown payment type in message ' . $self->ipn_message_id()
+				});
+			}
 		}
 	}
 

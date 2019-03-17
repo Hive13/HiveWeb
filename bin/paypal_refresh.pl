@@ -22,20 +22,8 @@ while (my $candidate = $candidates->next())
 	{
 	$schema->txn_do(sub
 		{
-		my $payer  = $candidate->payer_email();
-		my $member = $schema->resultset('Member')->find({ email => $payer });
-		if (!$member)
-			{
-			my @members = $schema->resultset('Member')->search({ paypal_email => $payer });
-			return if (scalar(@members) != 1);
-			$member = $members[0];
-			}
-		return if (!$member);
-
-		$candidate->update({ member_id => $member->member_id() });
 		$candidate->process();
-
-		die $type;
+		die;
 		});
 	}
 
