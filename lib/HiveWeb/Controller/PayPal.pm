@@ -15,7 +15,9 @@ sub subscr_payment
 
 	return if ($parameters->{payment_status} ne 'Completed');
 
-	my $existing = $c->model('DB::Payment')->search(
+	my $schema = $message->result_source()->schema();
+
+	my $existing = $schema->resultset('Payment')->search(
 		{ 'ipn_message.txn_id' => $parameters->{txn_id} },
 		{ join => 'ipn_message'}
 		)->count();
@@ -38,7 +40,7 @@ sub subscr_payment
 	if ($pending->count())
 		{
 		$pending->delete();
-		my $new_group = $c->model('DB::Mgroup')->find({ name => 'members' }) || die;
+		my $new_group = $schema->resultset('Mgroup')->find({ name => 'members' }) || die;
 		$member->find_or_create_related('member_mgroups', { mgroup_id => $new_group->mgroup_id() });
 
 		my $application = $member->find_related('applications',
@@ -52,7 +54,7 @@ sub subscr_payment
 
 		if ($application)
 			{
-			$c->model('DB::Action')->create(
+			$schema->resultset('Action')->create(
 				{
 				queuing_member_id => $member->member_id(),
 				action_type       => 'application.pay',
@@ -60,7 +62,7 @@ sub subscr_payment
 				}) || die 'Could not queue notification: ' . $!;
 			}
 
-		$c->model('DB::Action')->create(
+		$schema->resultset('Action')->create(
 			{
 			queuing_member_id => $member->member_id(),
 			action_type       => 'member.welcome',
@@ -92,14 +94,16 @@ sub subscr_cancel
 	{
 	my ($self, $c, $member, $parameters, $message) = @_;
 
-	$c->model('DB::Action')->create(
+	my $schema = $message->result_source()->schema();
+
+	$schema->resultset('Action')->create(
 		{
 		queuing_member_id => $member->member_id(),
 		action_type       => 'member.confirm_cancel',
 		row_id            => $member->member_id(),
 		}) || die 'Could not queue notification: ' . $!;
 
-	$c->model('DB::Action')->create(
+	$schema->resultset('Action')->create(
 		{
 		queuing_member_id => $member->member_id(),
 		action_type       => 'member.notify_cancel',
