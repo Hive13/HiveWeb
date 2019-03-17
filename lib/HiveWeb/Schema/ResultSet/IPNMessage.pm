@@ -55,17 +55,14 @@ sub subscr_payment
 			{
 			order_by => { -desc => 'updated_at' },
 			rows     => 1,
-			});
+			}) || return;
 
-		if ($application)
+		$schema->resultset('Action')->create(
 			{
-			$schema->resultset('Action')->create(
-				{
-				queuing_member_id => $member->member_id(),
-				action_type       => 'application.pay',
-				row_id            => $application->application_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			}
+			queuing_member_id => $member->member_id(),
+			action_type       => 'application.pay',
+			row_id            => $application->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
 
 		$schema->resultset('Action')->create(
 			{
