@@ -15,8 +15,9 @@ sub membership_total :Local :Args(0)
 	my $out = $c->stash()->{out};
 
 	my $date  = DateTime->now()->subtract(months => 1);
-
-	my $start = DateTime->new( year => $date->year(), month => $date->month() );
+	my $year  = $in->{year}  || $date->year();
+	my $month = $in->{month} || $date->month();
+	my $start = DateTime->new( year => $year, month => $month );
 	my $end   = $start->clone()->add(months => 1);
 	
 	my @payments = $c->model('DB::Payment')->search(
