@@ -25,27 +25,10 @@ my $c           = HiveWeb->new || die $!;
 my $config      = $c->config();
 my $app_config  = $config->{application};
 my $mail_config = $config->{email};
-my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
-
-my $queue = $schema->resultset('Action')->search({}, { order_by => ['priority', 'queued_at'] }) || die $!;
+my $schema      = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
+my $queue       = $schema->resultset('Action')->search({}, { order_by => ['priority', 'queued_at'] }) || die $!;
 my $smtp;
-
-if ($do_smtp)
-	{
-	$smtp = Net::SMTP->new(%{$mail_config->{'Net::SMTP'}});
-	die "Could not connect to server\n"
-		if !$smtp;
-
-	if (exists($mail_config->{auth}))
-		{
-		$smtp->auth($mail_config->{from}, $mail_config->{auth})
-			|| die "Authentication failed!\n";
-		}
-	}
-else
-	{
-	warn 'Skipping SMTP';
-	}
+my @emails;
 
 while (my $action = $queue->next())
 	{
@@ -256,6 +239,32 @@ while (my $action = $queue->next())
 			parts => \@parts,
 			);
 
+		push (@emails,
+			{
+			email => $email,
+			to    => $message->{to},
+			from  => $message->{from},
+			});
+
+		$action->delete()
+			if ($delete);
+		});
+	}
+
+if ($do_smtp && scalar(@emails))
+	{
+	$smtp = Net::SMTP->new(%{$mail_config->{'Net::SMTP'}});
+	die "Could not connect to server\n"
+		if !$smtp;
+
+	if (exists($mail_config->{auth}))
+		{
+		$smtp->auth($mail_config->{from}, $mail_config->{auth})
+			|| die "Authentication failed!\n";
+		}
+
+	foreach my $message (@emails)
+		{
 		foreach my $to (@{ $message->{to} })
 			{
 			my $to_env;
@@ -270,27 +279,24 @@ while (my $action = $queue->next())
 				$to_env = $to;
 				$to_header = Email::Address::XS->new(undef, $to_env);
 				}
-			$email->header_str_set(To => $to_header->as_string());
+			$message->{email}->header_str_set(To => $to_header->as_string());
 
 			if ($do_smtp)
 				{
 				$smtp->mail('<' . $message->{from} . ">\n");
 				$smtp->to('<' . $to_env . ">\n");
 				$smtp->data();
-				$smtp->datasend($email->as_string() . "\n");
+				$smtp->datasend($message->{email}->as_string() . "\n");
 				$smtp->dataend();
 				}
-			else
-				{
-				print($email->as_string() . "\n");
-				}
 			}
-		$action->delete()
-			if ($delete);
-		});
-	}
-
-if ($do_smtp)
-	{
+		}
 	$smtp->quit();
+	}
+elsif (scalar(@emails))
+	{
+	foreach my $message (@emails)
+		{
+		print($message->{email}->as_string() . "\n");
+		}
 	}
