@@ -7,7 +7,7 @@
 			<div class="panel-body u-p-2">
 				<ul>
 					<li><a href="[% Catalyst.uri_for('/admin/reports/member') %]">Member Status Report</a></li>
-					<li><a href="[% Catalyst.uri_for('/admin/reports/membership') %]">Monthly Membership Status Report</a></li>
+					<li><a href="[% Catalyst.uri_for('/admin/reports/membership') %]">Monthly Membership Total Report</a></li>
 				</ul>
 			</div>
 		</div>
