@@ -227,6 +227,32 @@ sub sqlt_deploy_hook
 	$sqlt_table->add_index(name => 'members_lname_fname_idx', fields => ['lname', 'fname']);
 	}
 
+sub update
+	{
+	my $self  = shift;
+	my $attrs = shift;
+
+	if (ref($attrs) eq 'HASH')
+		{
+		if (exists($attrs->{paypal_email}) && $attrs->{paypal_email} =~ /.@./)
+			{
+			$self->result_source()->schema()->resultset('Action')->create(
+				{
+				queuing_member_id => $self->member_id(),
+				action_type       => 'paypal.refresh',
+				row_id            => $self->member_id(),
+				});
+			}
+		$attrs->{updated_at} = \'current_timestamp';
+		}
+	else
+		{
+		die;
+		}
+
+	return $self->next::method($attrs);
+	}
+
 sub TO_JSON
 	{
 	my $self = shift;

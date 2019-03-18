@@ -1,0 +1,18 @@
+<div class="row">
+	<div class="col-xs-12 col-sm-8 col-md-6 col-md-offset-3 col-sm-offset-2">
+		<div class="panel panel-success">
+			<div class="panel-heading">
+				<h4>Payment Complete</h4>
+			</div>
+			<div class="panel-body">
+				<p>Your payment has been received and processed.  You should receive a welcome e-mail shortly.  Once you do so, your account is fully active.</p>
+				<p>
+					If you do not receive the welcome e-mail within about five minutes, your account may not have the correct PayPal e-mail address - this is how we match payments to members.
+					Please go to your <a href="[% Catalyst.uri_for('/member/profile').dquote %]">Profile</a> and verify that it is correct.
+					After updating your Member Profile with your PayPal address, the system should retry the payment.
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+[%~ # vim:set filetype=tt2html: ~%]

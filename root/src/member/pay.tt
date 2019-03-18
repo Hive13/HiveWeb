@@ -45,6 +45,7 @@
 		</div>
 	</div>
 </div>
+[%~ IF Catalyst.check_user_roles('wardens') %]
 <div class="row">
 	<div class="col-xs-12 col-sm-6">
 		<div class="panel panel-default">
@@ -77,4 +78,5 @@
 		</div>
 	</div>
 </div>
+[%~ END %]
 [%~ # vim:set filetype=tt2html: ~%]
