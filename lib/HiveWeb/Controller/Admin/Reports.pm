@@ -147,6 +147,8 @@ sub member :Local :Args(0)
 		});
 	}
 
+sub membership :Local :Args(0) {}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -182,12 +182,9 @@ sub register :Local :Args(0)
 	$c->response()->redirect($c->uri_for('/'));
 	}
 
-sub pay :Local :Args(0)
-	{
-	my ($self, $c) = @_;
+sub pay :Local :Args(0) {}
 
-	$c->stash()->{template} = 'member/pay.tt';
-	}
+sub pay_complete :Local :Args(0) {}
 
 sub cancel :Local :Args(0)
 	{
