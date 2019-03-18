@@ -11,6 +11,7 @@ extends 'HiveWeb::DBIx::Class::Core';
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
 __PACKAGE__->table('payment');
+__PACKAGE__->resultset_class('HiveWeb::DBIx::Class::ResultSet');
 
 __PACKAGE__->add_columns(
   'payment_id',

@@ -1,0 +1,99 @@
+<div class="row">
+	<div class="col-lg-6 col-md-8 col-sm-10 col-xs-12 col-sm-offset-1 col-md-offset-2 col-md-offset-3">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				<h3>Neat Membership Information</h3>
+			</div>
+			<div class="panel-body">
+				<table class="report-table report-table-center u-margin-center" id="count_table">
+					<thead>
+						<tr>
+							<th>Subscription Name</th>
+							<th>Member Count</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+				<table class="report-table u-w-100" id="non_table">
+					<thead>
+						<tr>
+							<th colspan="2" class="u-text-center">Non-PayPal Members</th>
+						</tr>
+						<tr>
+							<th>Member Name</th>
+							<th>Payment Information</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<div class="panel-footer">
+				<div class="input-group">
+					<div class="input-group-addon"><label for="report_date" class="u-m-0" >Report Date</label></div>
+					<input type="text" class="form-control datepicker" id="report_date" />
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+var month, year;
+function load_data()
+	{
+	var $non = $("table#non_table tbody"),
+	 $totals = $("table#count_table tbody");
+
+	$non.empty().append("<tr><td colspan=\"2\">" + loading_icon() + "</td></tr>");
+	$totals.empty().append("<tr><td colspan=\"2\">" + loading_icon() + "</td></tr>");
+	api_json(
+		{
+		path: "/admin/reports/membership_total",
+		data: { month: month, year: year },
+		success_toast: false,
+		what: "Load Report Data",
+		success: function (data)
+			{
+			var i;
+
+			$non.empty();
+			$totals.empty();
+
+			for (i in data.totals)
+				$totals.append("<tr><td>" + i + "</td><td>" + data.totals[i] + "</td></tr>");
+
+			for (i = 0; i < data.non_paypal.length; i++)
+				$non.append("<tr><td>" + data.non_paypal[i].fname + " " + data.non_paypal[i].lname + "</td><td>" + data.non_paypal[i].paypal_email + "</td></tr>");
+			}
+		});
+	}
+$(function()
+	{
+	var d = new Date();
+	d.setMonth(d.getMonth() - 1);
+	year = d.getYear() + 1900;
+	month = d.getMonth() + 1;
+
+	$("input.datepicker").val(month + "/" + year).datepicker(
+		{
+		format: "m/yyyy",
+		startView: "months",
+		minViewMode: "months"
+		})
+	.change(function()
+		{
+		var $this = $(this), values = $this.val().split("/", 2);
+
+		$this.datepicker("hide");
+		year = values[1];
+		month = values[0];
+		load_data();
+		});
+	load_data();
+	});
+</script>
+
+
+[%~ # vim:set filetype=tt2html: %]
