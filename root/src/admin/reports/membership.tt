@@ -5,7 +5,7 @@
 				<h3>Neat Membership Information</h3>
 			</div>
 			<div class="panel-body">
-				<table class="report-table report-table-center u-margin-center">
+				<table class="report-table report-table-center u-margin-center" id="count_table">
 					<thead>
 						<tr>
 							<th>Subscription Name</th>
@@ -13,15 +13,9 @@
 						</tr>
 					</thead>
 					<tbody>
-						[%~ FOREACH type IN totals.sort %]
-						<tr>
-							<td>[% type %]</td>
-							<td>[% totals.$type %]</td>
-						</tr>
-						[%~ END %]
 					</tbody>
 				</table>
-				<table class="report-table u-w-100">
+				<table class="report-table u-w-100" id="non_table">
 					<thead>
 						<tr>
 							<th colspan="2" class="u-text-center">Non-PayPal Members</th>
@@ -32,18 +26,43 @@
 						</tr>
 					</thead>
 					<tbody>
-						[%~ FOREACH member IN non_paypal %]
-						<tr>
-							<td>[% member.fname %] [% member.lname %]</td>
-							<td>[% member.paypal_email %]</td>
-						</tr>
-						[%~ END %]
 					</tbody>
 				</table>
 			</div>
 		</div>
 	</div>
 </div>
+
+<script type="text/javascript">
+$(function ()
+	{
+	var $non = $("table#non_table tbody"),
+	 $totals = $("table#count_table tbody");
+
+	$non.empty().append("<tr><td colspan=\"2\">" + loading_icon() + "</td></tr>");
+	$totals.empty().append("<tr><td colspan=\"2\">" + loading_icon() + "</td></tr>");
+	api_json(
+		{
+		path: "/admin/reports/membership_total",
+		data: {},
+		success_toast: false,
+		what: "Load Report Data",
+		success: function (data)
+			{
+			var i;
+
+			$non.empty();
+			$totals.empty();
+
+			for (i in data.totals)
+				$totals.append("<tr><td>" + i + "</td><td>" + data.totals[i] + "</td></tr>");
+
+			for (i = 0; i < data.non_paypal.length; i++)
+				$non.append("<tr><td>" + data.non_paypal[i].fname + " " + data.non_paypal[i].lname + "</td><td>" + data.non_paypal[i].paypal_email + "</td></tr>");
+			}
+		});
+	});
+</script>
 
 
 [%~ # vim:set filetype=tt2html: %]
