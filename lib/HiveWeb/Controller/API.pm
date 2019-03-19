@@ -237,7 +237,7 @@ sub access :Local
 		}
 	elsif ($operation eq 'soda_status')
 		{
-		my $sodas = $data->{sodas};
+		my $sodas = $data->{soda_status};
 		$out->{response} = \1;
 		try
 			{
