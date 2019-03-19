@@ -98,9 +98,10 @@ sub subscr_payment
 	my $pending = $member->search_related('member_mgroups', { 'mgroup.name' => 'pending_payments' }, { join => 'mgroup' });
 	if ($pending->count())
 		{
-		$pending->delete();
-		my $new_group = $schema->resultset('Mgroup')->find({ name => 'members' }) || die;
-		$member->find_or_create_related('member_mgroups', { mgroup_id => $new_group->mgroup_id() });
+		my $group_id = $c->model('DB::Mgroup')->find({ name => 'pending_payments' })->mgroup_id() || die "Can't find group";
+		$user->remove_group($group_id, undef, 'initial payment');
+		my $group_id = $c->model('DB::Mgroup')->find({ name => 'members' })->mgroup_id() || die "Can't find group";
+		$user->add_group($group_id, undef, 'initial payment');
 
 		my $application = $member->find_related('applications',
 			{
