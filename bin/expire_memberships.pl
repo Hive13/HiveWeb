@@ -7,12 +7,18 @@ use lib 'lib';
 use HiveWeb;
 use HiveWeb::Schema;
 use Try::Tiny;
+use Getopt::Long;
+
+my $real = 0;
+
+GetOptions(
+	'real'   => \$real,
+);
 
 my $config = HiveWeb->config();
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
 $config = $config->{cancellations};
 
-my $debug   = 1;
 my $message = [];
 foreach my $freq (sort(keys(%{$config->{message_groups}})))
 	{
@@ -115,12 +121,12 @@ while (my $candidate = $candidates->next())
 					}
 				}
 
-			die "Debug Rollback" if $debug;
+			die "Debug Rollback" if !$real;
 			});
 		}
 	catch
 		{
-		die $_ if !$debug;
-		warn $_ if $debug && $_ !~ /^Debug Rollback/;
+		die $_ if $real;
+		warn $_ if !$real && $_ !~ /^Debug Rollback/;
 		};
 	}
