@@ -1,0 +1,84 @@
+div.panel.hive-panel-access ol
+	{
+	list-style: none;
+
+	li
+		{
+		cursor: pointer;
+		&:before
+			{
+			content: "[+]";
+			margin-right: 0.5em;
+			}
+		span.info
+			{
+			display: none;
+			}
+		&.shown
+			{
+			&:before
+				{
+				content: "[-]";
+				}
+			span.info
+				{
+				display: inline;
+				}
+			}
+		}
+	}
+
+.hive-panel-status
+	{
+	div.panel-body
+		{
+		padding: 0;
+		}
+
+	table
+		{
+		table-layout: fixed;
+		width: 100%;
+
+		td
+			{
+			vertical-align: top;
+			padding: 15px;
+			width: 50%;
+
+			h3
+				{
+				margin-top: 10px;
+				text-align: center;
+				text-decoration: underline;
+				}
+
+			div.row > div
+				{
+				margin-top: 10px;
+				}
+			&:not(:last-child)
+				{
+				border-right: 1px solid #bce8f1;
+				}
+			}
+		}
+	}
+
+div.hive-panel-storage_status .nav-tabs > li
+	{
+	float: none;
+	& > a
+		{
+		line-height: 1;
+		padding: 5px;
+		}
+	}
+
+h3.hive-panel-add
+	{
+	position: fixed;
+	top: 85px;
+	right: 5px;
+	margin: 0;
+	}

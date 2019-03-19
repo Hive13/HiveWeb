@@ -1,0 +1,174 @@
+[%~
+
+SET colors =
+	{
+	green  => '#77dd77',
+	red    => '#ff6961',
+	lred   => '#ff9999',
+	yellow => '#fdfd96',
+	blue   => '#ADD8E6',
+	};
+
+SET labels =
+	{
+	fname          => { name => 'First Name' },
+	lname          => { name => 'Last Name' },
+	pay_date       => { name => 'Last Payment', date => 1 },
+	paypal_email   => { name => 'Listed Paypal Email', pii => 1 },
+	email          => { name => 'Listed Email', pii => 1 },
+	payment_type   => { name => 'Payment Type' },
+	payment_status => { name => 'Status' },
+	paid_at        => { name => 'Payment Received', date => 1 },
+	created_at     => { name => 'Account Created', date => 1 },
+	payer_email    => { name => 'Payer Email' },
+	};
+
+BLOCK category;
+	DEFAULT columns=['fname', 'lname', 'paypal_email', 'pay_date'] sort='lname';
+IF !members OR members.size < 1;
+	RETURN;
+END;
+SET size = 1;
+FOREACH column IN columns;
+	SET info = labels.$column;
+	IF info.pii AND !show_pii;
+		NEXT;
+	END;
+	SET size = size + 1;
+END;
+%]
+<table class="report-table">
+	<thead>
+		<tr class="title">
+			<th bgcolor="[% colors.$color %]" colspan="[% size %]">
+				[%~ '(' _ members.size _ ')' _ title ~%]
+			</th>
+		</tr>
+		[%~ IF tagline.length %]
+		<tr class="tagline">
+			<th colspan="[% size %]">
+				[%~ tagline ~%]
+			</th>
+		</tr>
+		[%~ END %]
+		<tr>
+			[%~
+				FOREACH column IN columns;
+					SET info = labels.$column;
+					IF info.pii AND !show_pii;
+						NEXT;
+					END;
+					IF loop.first;
+						SET col = ' colspan="2"';
+					ELSE;
+						SET col = '';
+					END;
+				%]
+			<th [%~ col ~%]>
+				[%~
+					IF info.name.defined;
+						GET info.name;
+					ELSE;
+						GET column;
+					END;
+				~%]
+			</th>
+			[%~ END %]
+		</tr>
+	</thead>
+	<tbody>
+	[%~ FOREACH member IN members.sort(sort) %]
+		<tr>
+		[%~
+			FOREACH column IN columns;
+				SET info = labels.$column;
+				IF info.pii AND !show_pii;
+					NEXT;
+				END;
+				IF info.date;
+					SET data = member.$column.strftime('X%m/X%d/%y X%I:%M %p').replace('X0', 'X').replace('X', '');
+				ELSE;
+					SET data = member.$column;
+				END;
+				IF loop.first;
+					SET col = ' colspan="2"';
+				ELSE;
+					SET col = '';
+				END;
+		%]
+			<td [%~ col ~%] >[%~ data ~%]</td>
+		[%~ END %]
+		[%~ FOREACH link IN member.linked %]
+		</tr>
+		<tr>
+			<td class="link">&#x21D2;</td>
+		[%~
+			FOREACH column IN columns;
+				SET info = labels.$column;
+				IF info.pii AND !show_pii;
+					NEXT;
+				END;
+				IF info.date;
+					SET data = link.$column.strftime('X%m/X%d/%y X%I:%M %p').replace('X0', 'X').replace('X', '');
+				ELSE;
+					SET data = link.$column;
+				END;
+		%]
+			<td>[%~ data ~%]</td>
+			[%~ END %]
+		[%~ END %]
+		</tr>
+	[%~ END %]
+	</tbody>
+</table>
+[%~ END %]
+
+[%~
+INCLUDE category
+	members = categories.unpaid
+	color   ='red'
+	title   = 'Unpaid Members'
+	tagline = 'Member has not yet paid or has not added the correct paypal address to their account.'
+	columns = ['fname', 'lname', 'email', 'paypal_email', 'created_at'];
+
+INCLUDE category
+	members = categories.unknown
+	color   ='red'
+	title   = 'Unknown Payments'
+	tagline = 'Membership payments being received from someone without an intweb account.'
+	columns = ['payment_type', 'payment_status', 'paid_at', 'payer_email'];
+
+INCLUDE category
+	members = categories.no_access
+	color   ='yellow'
+	title   = 'No Access'
+	tagline = 'Paid account not currently in "Members" group. Member cannot currently access the space.';
+
+INCLUDE category
+	members = categories.no_badge
+	color   ='yellow'
+	title   = 'No Badge'
+	tagline = 'Active and Paid accounts with no badges assigned. Member cannot currently access the space.';
+
+INCLUDE category
+	members = categories.expired
+	color   ='yellow'
+	title   = 'Lapsed Payments'
+	tagline = 'Member has access to the space, payments are no longer being received';
+
+IF full;
+	INCLUDE category
+		members = categories.override
+		color   ='blue'
+		title   = 'Non-Standard Payment Method'
+		tagline = 'Member is paying via a method other than PayPal.'
+		columns = ['fname', 'lname', 'email', 'paypal_email'];
+
+	INCLUDE category
+		members = categories.confirmed
+		color   = 'green'
+		title   = 'Confirmed Members';
+END;
+%]
+
+[%~ # vim:set filetype=tt2html: %]

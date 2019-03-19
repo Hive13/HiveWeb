@@ -36,12 +36,16 @@ sub auto :Private
 			push(@$paths, $path);
 			}
 
+		$HiveWeb::Schema::member_id = $user->member_id();
+		$HiveWeb::Schema::is_admin  = 1
+			if ($c->check_user_roles('board'));
+
 		my $actions = $c->model('DB::CurseAction')->search(
 			{
 			issued_at => { '<=' => \'now()'},
 			lifted_at => [ undef, { '>=' => \'now()' } ],
 			path      => $paths,
-			member_id => $c->user()->member_id(),
+			member_id => $user->member_id(),
 			},
 			{
 			prefetch => { curse => 'member_curses' },
@@ -65,7 +69,7 @@ sub auto :Private
 							{
 							$mc->update(
 								{
-								lifting_member_id => $c->user()->member_id(),
+								lifting_member_id => $user->member_id(),
 								lifted_at         => \'now()',
 								lifting_notes     => "Auto-lifted by visiting $path.",
 								});
@@ -94,7 +98,29 @@ sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	$c->stash()->{template} = 'index.tt';
+	my $user      = $c->user();
+	my $member_id = $user ? $user->member_id() : undef;
+	my $panels_rs = $c->model('DB::PanelMember')->search({}, { bind => [ $member_id ] });
+	my $panels    = [];
+
+	while (my $panel = $panels_rs->next())
+		{
+		next if (!$panel->can_view($c) || !$panel->visible());
+		push(@$panels,
+			{
+			panel_id => $panel->panel_id(),
+			name     => $panel->name(),
+			title    => $panel->title(),
+			style    => $panel->style(),
+			large    => $panel->large(),
+			});
+		}
+
+	$c->stash(
+		{
+		template => 'index.tt',
+		panels   => $panels,
+		});
 	}
 
 sub blocked_by_curse :Local :Args(0)
@@ -147,34 +173,32 @@ sub login :Local
 		}
 
 	my $params = $c->request()->params();
+	my $email  = $params->{email} // '';
+	my $users  = $c->model('DB::Member')->search(
+		{
+			-or =>
+				[
+				{ handle => $email },
+				{ email  => $email },
+				],
+		}) || die $!;
 
-	my $user = $c->authenticate(
+	my $user = $users->next();
+	$user = undef if ($users->next());
+
+	my $success = $c->authenticate(
 		{
 		password     => $params->{password},
-		'dbix_class' =>
-			{
-			searchargs =>
-				[
-					{
-						'-or' =>
-							[
-							{ handle => $params->{email} },
-							{ email  => $params->{email} },
-							],
-					},
-					{
-					}
-				]
-			},
+		'dbix_class' => { result => $user },
 		});
 	my $log  = $c->model('DB::SignInLog')->create(
 		{
-		email     => $params->{email},
-		valid     => $user ? 1 : 0,
+		email     => $email,
+		valid     => $success ? 1 : 0,
 		member_id => $user ? $user->member_id() : undef,
 		remote_ip => $c->request()->address(),
 		}) || die $!;
-	if ($user)
+	if ($success)
 		{
 		if ($user->totp_secret())
 			{

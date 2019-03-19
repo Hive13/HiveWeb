@@ -4,13 +4,6 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub auto :Private
-	{
-	my ($self, $c) = @_;
-
-	push (@{$c->stash()->{extra_css}}, $c->uri_for('/static/css/admin.min.css'));
-	}
-
 sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -76,19 +69,6 @@ sub curses :Local
 
 	$c->stash()->{template} = 'admin/curses.tt';
 	}
-
-=encoding utf8
-
-=head1 AUTHOR
-
-Greg Arnold
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

@@ -1,0 +1,43 @@
+table.report-table
+	{
+	/*border-collapse: collapse;*/
+	border: 1px solid black;
+	margin-bottom: 20px;
+
+	tr.title th
+		{
+		font-size: xx-large;
+		font-weight: bold;
+		font-family: monospace;
+		}
+
+	tr.tagline th
+		{
+		font-size: x-large;
+		font-style: italic;
+		font-weight: bold;
+		font-family: monospace;
+		}
+
+	td, th
+		{
+		border: 1px solid black;
+		padding: 1px;
+		}
+
+	td.link, th.link
+		{
+		width: 1.4em;
+		border: 0;
+		text-align: center;
+		}
+
+	&.report-table-center tbody
+		{
+		td, th
+			{
+			text-align: center;
+			}
+		}
+	}
+

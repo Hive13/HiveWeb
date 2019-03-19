@@ -12,11 +12,43 @@ sub index :Path :Args(0)
 
 	my $in      = $c->stash()->{in};
 	my $out     = $c->stash()->{out};
+	my $order   = lc($in->{order} || 'priority');
+	my $dir     = lc($in->{dir} || 'asc');
+	my $filters = {};
+	my $attrs   = {};
 
-	my @curses = $c->model('DB::Curse')->all();
+	$c->session()->{curse_table} //= {};
+	my $curse_table = $c->session()->{curse_table};
+	$curse_table->{page}     = int($in->{page}) || 1;
+	$curse_table->{per_page} = int($in->{per_page}) || 10;
+
+	$dir = 'asc'
+		if ($dir ne 'asc' && $dir ne 'desc');
+	$attrs->{order_by} = { "-$dir" => $order };
+
+	$filters->{protect_group_cast} = ($in->{filters}->{group} ? 't' : 'f')
+		if (defined($in->{filters}->{group}));
+	$filters->{protect_user_cast} = ($in->{filters}->{indiv} ? 't' : 'f')
+		if (defined($in->{filters}->{indiv}));
+	$filters->{name} = [ '-and', map { { ilike => "%$_%" } } split(/\s+/, $in->{search}) ]
+		if ($in->{search});
+
+	my $tot_count = $c->model('DB::Curse')->search({})->count();
+	my $count     = $c->model('DB::Curse')->search($filters, $attrs)->count();
+
+	$curse_table->{page} = int(($count + $curse_table->{per_page} - 1) / $curse_table->{per_page})
+		if (($curse_table->{per_page} * $curse_table->{page}) > $count);
+
+	$attrs->{rows} = $curse_table->{per_page};
+	$attrs->{page} = $curse_table->{page};
+	my @curses     = $c->model('DB::Curse')->search($filters, $attrs);
 
 	$out->{response} = \1;
 	$out->{curses}   = \@curses;
+	$out->{count}    = $count;
+	$out->{total}    = $tot_count;
+	$out->{page}     = $curse_table->{page};
+	$out->{per_page} = $curse_table->{per_page};
 	}
 
 sub edit :Local :Args(0)

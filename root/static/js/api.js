@@ -27,12 +27,8 @@ function api_json(options)
 		$icon = options.$icon;
 		classes = $icon.attr("class").split(" ");
 		for (i = 0; i < classes.length; i++)
-			{
-			if (classes[i].substring(0, 9) === "glyphicon")
-				$icon.removeClass(classes[i]);
 			if (classes[i].substring(0, 3) === "fa-")
 				$icon.removeClass(classes[i]);
-			}
 		$icon.addClass("fas fa-spinner fa-spin has-spinner").attr("disabled", true);
 		}
 
@@ -105,4 +101,45 @@ function api_json(options)
 				options.failure();
 			}
 		});
+	}
+
+function key_handler(functions)
+	{
+	return function(e)
+		{
+		var func;
+		switch (e.keyCode)
+			{
+			case 13:
+				if ("enter" in functions)
+					func = functions.enter;
+				break;
+			case 27:
+				if ("esc" in functions)
+					func = functions.esc;
+				break;
+			case 45:
+				if ("ins" in functions)
+					func = functions.ins;
+				break;
+			case 46:
+				if ("del" in functions)
+					func = functions.del;
+				break;
+			default:
+				return;
+			}
+		switch (typeof(func))
+			{
+			case "undefined":
+				return;
+			case "function":
+				func();
+				break;
+			case "string":
+				$(func).modal("hide");
+				break;
+			}
+		return false;
+		};
 	}

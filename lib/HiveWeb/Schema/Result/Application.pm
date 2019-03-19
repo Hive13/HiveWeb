@@ -67,6 +67,8 @@ __PACKAGE__->add_columns(
 	},
 	'final_result',
 	{ data_type => 'character varying', is_nullable => 1, },
+	'helper',
+	{ data_type => 'character varying', is_nullable => 1, },
 );
 
 __PACKAGE__->set_primary_key('application_id');
@@ -78,18 +80,35 @@ __PACKAGE__->belongs_to(
 	{ member_id => 'member_id' },
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
-__PACKAGE__->might_have(
+__PACKAGE__->belongs_to(
 	'form',
 	'HiveWeb::Schema::Result::Image',
 	{ 'foreign.image_id' => 'self.form_id' },
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
-__PACKAGE__->might_have(
+__PACKAGE__->belongs_to(
 	'picture',
 	'HiveWeb::Schema::Result::Image',
 	{ 'foreign.image_id' => 'self.picture_id' },
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
+
+sub update
+	{
+	my $self  = shift;
+	my $attrs = shift;
+
+	if (ref($attrs) eq 'HASH')
+		{
+		$attrs->{updated_at} = \'current_timestamp';
+		}
+	else
+		{
+		die;
+		}
+
+	return $self->next::method($attrs);
+	}
 
 __PACKAGE__->meta->make_immutable;
 
@@ -116,6 +135,7 @@ sub TO_JSON
 		app_turned_in_at => $self->app_turned_in_at(),
 		decided_at       => $self->decided_at(),
 		final_result     => $self->final_result(),
+		helper           => $self->helper(),
 		};
 	}
 1;

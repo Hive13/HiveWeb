@@ -3,6 +3,7 @@ function Picture(options)
 	var dialogue, self = this;
 	this.show_icons    = !options.hide_icons;
 	this.title         = options.title || "Upload Photo";
+	this.button_text   = options.button_text || this.title;
 	this.accept        = options.accept;
 	this.allow_deletes = !options.prevent_deletes;
 
@@ -32,7 +33,7 @@ function Picture(options)
 			"<label class=\"btn btn-primary btn-lg\">",
 				"<img src=\"/static/icons/add_photo.png\" />",
 				"<br />",
-				"Upload photo",
+				this.button_text,
 				"<input type=\"file\" hidden style=\"display: none\" />",
 			"</label>"
 			].join('');
@@ -86,9 +87,25 @@ Picture.prototype.get_image_id = function()
 	return this.image_id;
 	};
 
+Picture.prototype.enlarge = function()
+	{
+	$icon = this.$icon_div.find("span.picture-enlarge");
+
+	if ($icon.hasClass("fa-plus-circle"))
+		{
+		this.$image_div.find("img").attr("src", "/image/" + this.image_id + "#" + new Date().getTime());
+		$icon.addClass("fa-minus-circle").removeClass("fa-plus-circle");
+		}
+	else
+		{
+		this.$image_div.find("img").attr("src", "/image/thumb/" + this.image_id + "#" + new Date().getTime());
+		$icon.removeClass("fa-minus-circle").addClass("fa-plus-circle");
+		}
+	};
+
 Picture.prototype.load_image = function(image_id)
 	{
-	var $remove, $rotate, $rotateL, self = this;
+	var $remove, $rotate, $rotateL, $enlarge, self = this;
 	this.image_id = image_id || undefined;
 
 	if (!this.image_id)
@@ -99,11 +116,14 @@ Picture.prototype.load_image = function(image_id)
 		return;
 		}
 	this.$image_div.html("<img src=\"/image/thumb/" + this.image_id + "#" + new Date().getTime() + "\" style=\"max-width: 100%; max-height: 100%;\" />");
+	this.$image_div.find("img").dblclick(function () { self.enlarge(); });
 	if (this.$dialogue)
 		this.$dialogue.find("button.accept-picture").attr("disabled", false);
 
 	if (!this.show_icons)
 		return;
+
+	$enlarge = $("<span />").addClass("fas").addClass("picture-enlarge").addClass("fa-plus-circle").addClass("pull-right").addClass("anchor-style").attr("title", "Enlarge").click(function click () { self.enlarge(); });
 
 	$rotateL = $("<span />").addClass("fas").addClass("fa-chevron-circle-left").addClass("pull-right").addClass("anchor-style").attr("title", "Rotate Anti-clockwise").click(function rotate_left ()
 		{
@@ -134,11 +154,11 @@ Picture.prototype.load_image = function(image_id)
 		});
 
 	this.$icon_div.find("span.pull-right").remove();
-	this.$icon_div.prepend($rotateL).prepend($rotate);
+	this.$icon_div.prepend($enlarge).prepend($rotateL).prepend($rotate);
 
 	if (this.allow_deletes)
 		{
-		$remove = $("<span />").addClass("glyphicon").addClass("glyphicon-remove").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
+		$remove = $("<span />").addClass("fa").addClass("fa-times-circle").addClass("pull-right").addClass("anchor-style").attr("title", "Delete Image").click(function ()
 			{
 			if (!confirm("Are you sure you want to remove this photo?"))
 				return;

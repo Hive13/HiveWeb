@@ -108,7 +108,7 @@ function display_lights(data)
 		});
 	$body.find(".lights-edit").click(function ()
 		{
-		var i, j, colors = data.colors, html, lamp;
+		var i, j, colors = data.colors, html, device, bulb;
 		var $dialogue =
 			$([
 			"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
@@ -152,23 +152,24 @@ function display_lights(data)
 			"</div>"
 			].join(""));
 
-		for (i = 0; i < data.lamps.length; i++)
+		for (i = 0; i < data.devices.length; i++)
 			{
-			lamp = data.lamps[i];
+			device = data.devices[i];
 			html =
 				[
 				"<div class=\"panel panel-primary\">",
 					"<div class=\"panel-heading\">",
-						lamp.name,
+						device.name,
 					"</div>",
 					"<div class=\"panel-body\">"
 				];
 
-			for (j = 0; j < lamp.bulbs.length; j++)
+			for (j = 0; j < device.bulbs.length; j++)
 				{
+				bulb = device.bulbs[j];
 				html.push(
-						"<label class=\"u-w-100\" style=\"background-color: #" + colors[lamp.bulbs[j].color_id].html_color + "\">",
-							"<input type=\"checkbox\" id=\"" + lamp.bulbs[j].bulb_id + "\" " + (lamp.bulbs[j].state ? "checked" : "") + "/>" + colors[lamp.bulbs[j].color_id].name,
+						"<label class=\"u-w-100\" style=\"background-color: #" + colors[bulb.color_id].html_color + "\">",
+							"<input type=\"checkbox\" id=\"" + bulb.bulb_id + "\" " + (bulb.state ? "checked" : "") + "/>" + colors[bulb.color_id].name,
 						"</label><br />"
 				);
 				}
@@ -177,27 +178,7 @@ function display_lights(data)
 					"</div>",
 				"</div>"
 			);
-			switch (lamp.name)
-				{
-				case "FL Fixture":
-					$dialogue.find(".lamp-fl").html(html.join(''));
-					break;
-				case "FR Fixture":
-					$dialogue.find(".lamp-fr").html(html.join(''));
-					break;
-				case "RR Fixture":
-					$dialogue.find(".lamp-rr").html(html.join(''));
-					break;
-				case "RL Fixture":
-					$dialogue.find(".lamp-rl").html(html.join(''));
-					break;
-				case "L Fixture":
-					$dialogue.find(".lamp-l").html(html.join(''));
-					break;
-				case "R Fixture":
-					$dialogue.find(".lamp-r").html(html.join(''));
-					break;
-				}
+			$dialogue.find(".lamp-" + device.name.split("_")[0]).html(html.join(""));
 			}
 
 		$dialogue.find("button.accept").click(function ()
@@ -226,13 +207,10 @@ function display_lights(data)
 		});
 	}
 
-$(function()
+register_panel("lights",
 	{
-	var light_panel = new Panel(
-		{
-		panel_class:    "lights",
-		panel_function: display_lights,
-		load_path:      "/lights/status",
-		refresh:        false
-		});
+	panel_name:     "Light Control",
+	panel_function: display_lights,
+	load_path:      "/lights/status",
+	refresh:        false
 	});

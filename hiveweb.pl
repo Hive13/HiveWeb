@@ -15,13 +15,42 @@
 		add_amount => 20,
 		cost => 1000,
 		},
+	paypal =>
+		{
+		gateway_url => 'https://www.sandbox.paypal.com',
+		},
 	stripe =>
 		{
-		public_key => 'pk_live_rP6E92Gc8FKq7yOLGk0kTPmi',
+		public_key => 'pk_live_FI8RhhPdbD6tTjAHtPbkrVi5',
 		secret_key => '< put secret key here >',
+		},
+	slack =>
+		{
+		token => '<a LEGACY token>',
+		channels =>
+			[
+			'C04Q9C12L',
+			'C04Q9C12U',
+			],
+		api => 'https://slack.com/api/users.admin.invite',
+		},
+	cancellations =>
+		{
+		message_groups =>
+			{
+			40 => 'late_payment_40',
+			60 => 'late_payment_60',
+			80 => 'late_payment_80',
+			},
+		late_email    => 'member.past_due',
+		expire_days   => 90,
+		member_group  => 'members',
+		pending_group => 'pending_cancellations',
+		expire_group  => 'pending_expiry',
 		},
 	email =>
 		{
+		notify_to   => 'intwebsandbox@hive13.org',
 		from        => 'intweb@hive13.org',
 		from_name   => 'Hive13 Intweb',
 		auth        => '< put auth password here >',
@@ -31,6 +60,11 @@
 			Hello => 'intweb.at.hive13.org',
 			Host  => 'smtp.gmail.com',
 			SSL   => 1
+			},
+		notify_term =>
+			{
+			temp_plain => 'email/member/notify_term_plain.tt',
+			subject    => 'Member is Resigning',
 			},
 		forgot =>
 			{
@@ -47,6 +81,24 @@
 			temp_plain => 'email/requested_slot_plain.tt',
 			subject    => 'Storage Slot requested at Hive13',
 			},
+		member =>
+			{
+			welcome =>
+				{
+				temp_plain => 'email/member/welcome_plain.tt',
+				subject    => 'Welcome to Hive13',
+				},
+			confirm_cancel =>
+				{
+				temp_plain => 'email/member/confirm_cancel_plain.tt',
+				subject    => 'Hive13 Subscription Cancelled',
+				},
+			notify_cancel =>
+				{
+				temp_plain => 'email/member/notify_cancel_plain.tt',
+				subject    => 'Member Subscription Cancelled',
+				},
+			},
 		},
 	priorities =>
 		{
@@ -55,7 +107,15 @@
 		'application.mark_submitted' => 60,
 		'application.attach_form'    => 60,
 		'application.update'         => 60,
+		'application.finalize'       => 70,
+		'application.pay'            => 80,
+		'member.confirm_cancel'      => 100,
+		'member.notify_term'         => 90,
+		'member.notify_cancel'       => 100,
+		'member.past_due'            => 40,
+		'member.welcome'             => 20,
 		'password.reset'             => 1,
+		'paypal.refresh'             => 10,
 		'storage.assign'             => 100,
 		'storage.request'            => 100,
 		},
@@ -82,6 +142,14 @@
 		update =>
 			{
 			temp_plain => 'email/application/updated_plain.tt',
+			},
+		finalize =>
+			{
+			temp_plain => 'email/application/finalize_plain.tt',
+			},
+		pay =>
+			{
+			temp_plain => 'email/application/pay_plain.tt',
 			},
 		},
 	}

@@ -7,7 +7,7 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
-extends 'DBIx::Class::Core';
+extends 'HiveWeb::DBIx::Class::Core';
 
 use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
@@ -23,17 +23,25 @@ __PACKAGE__->add_columns(
 	'lname',
 	{ data_type => 'varchar', is_nullable => 1, size => 255 },
 	'email',
-	{ data_type => 'citext', is_nullable => 1 },
+	{ data_type => 'citext', is_nullable => 0 },
 	'paypal_email',
 	{ data_type => 'citext', is_nullable => 1 },
 	'phone',
 	{ data_type => 'bigint', is_nullable => 1 },
 	'encrypted_password',
-	{ data_type => 'varchar', is_nullable => 1, size => 255, accessor => 'password' },
+	{ data_type => 'varchar', is_nullable => 0, size => 255, accessor => 'password' },
 	'vend_credits',
-	{ data_type => 'integer', is_nullable => 1 },
+		{
+		data_type     => 'integer',
+		default_value => 0,
+		is_nullable   => 0,
+		},
 	'vend_total',
-	{ data_type => 'integer', is_nullable => 1 },
+		{
+		data_type     => 'integer',
+		default_value => 0,
+		is_nullable   => 0,
+		},
 	'created_at' =>
 		{
 		data_type     => 'timestamp without time zone',
@@ -56,6 +64,8 @@ __PACKAGE__->add_columns(
 	{ data_type => 'integer', is_nullable => 1 },
 	'totp_secret',
 	{ data_type => 'bytea', is_nullable => 1 },
+	'linked_member_id',
+	{ data_type => 'uuid', is_nullable => 1, size => 16 },
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -119,7 +129,7 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
-__PACKAGE__->might_have
+__PACKAGE__->belongs_to
 	(
 	'image',
 	'HiveWeb::Schema::Result::Image',
@@ -131,6 +141,14 @@ __PACKAGE__->has_many
 	(
 	'member_curses',
 	'HiveWeb::Schema::Result::MemberCurse',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many
+	(
+	'member_panels',
+	'HiveWeb::Schema::Result::MemberPanel',
 	{ 'foreign.member_id' => 'self.member_id' },
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
@@ -167,6 +185,37 @@ __PACKAGE__->has_many
 	{ cascade_copy => 0, cascade_delete => 0 },
 	);
 
+__PACKAGE__->has_many
+	(
+	'payments',
+	'HiveWeb::Schema::Result::Payment',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many
+	(
+	'survey_responses',
+	'HiveWeb::Schema::Result::SurveyResponse',
+	{ 'foreign.member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->belongs_to
+	(
+	'link',
+	'HiveWeb::Schema::Result::Member',
+	{ 'foreign.member_id' => 'self.linked_member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+__PACKAGE__->has_many
+	(
+	'linked_members',
+	'HiveWeb::Schema::Result::Member',
+	{ 'foreign.linked_member_id' => 'self.member_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
 __PACKAGE__->many_to_many('mgroups', 'member_mgroups', 'mgroup');
 __PACKAGE__->many_to_many('curses', 'member_curses', 'curse');
 
@@ -178,53 +227,44 @@ sub sqlt_deploy_hook
 	$sqlt_table->add_index(name => 'members_lname_fname_idx', fields => ['lname', 'fname']);
 	}
 
-sub TO_JSON
+sub update
 	{
-	my $self    = shift;
-	my $columns = { $self->get_columns() };
-	my $dtp     = $self->result_source()->schema()->storage()->datetime_parser();
-	my $lat;
-	$lat = $dtp->parse_datetime($columns->{last_access_time})
-		if (exists($columns->{last_access_time}) && $columns->{last_access_time});
+	my $self  = shift;
+	my $attrs = shift;
 
-	my @groups;
-	my $mgs = $self->member_mgroups();
-	while (my $mg = $mgs->next())
+	if (ref($attrs) eq 'HASH')
 		{
-		push(@groups, $mg->mgroup_id());
+		if (exists($attrs->{paypal_email}) && $attrs->{paypal_email} =~ /.@./)
+			{
+			$self->result_source()->schema()->resultset('Action')->create(
+				{
+				queuing_member_id => $self->member_id(),
+				action_type       => 'paypal.refresh',
+				row_id            => $self->member_id(),
+				});
+			}
+		$attrs->{updated_at} = \'current_timestamp';
+		}
+	else
+		{
+		die;
 		}
 
-	return
-		{
-		member_id       => $self->member_id(),
-		fname           => $self->fname(),
-		lname           => $self->lname(),
-		email           => $self->email(),
-		created_at      => $self->created_at(),
-		groups          => \@groups,
-		handle          => $self->handle(),
-		phone           => $self->phone(),
-		create_time     => $self->created_at(),
-		vend_credits    => $self->vend_credits(),
-		paypal_email    => $self->paypal_email(),
-		member_image_id => $self->member_image_id(),
-		door_count      => $self->door_count(),
-		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
-		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
-		};
+	return $self->next::method($attrs);
 	}
 
-sub TO_SUMMARY_JSON
+sub TO_JSON
 	{
-	my $self    = shift;
+	my $self = shift;
 
 	return
 		{
-		member_id       => $self->member_id(),
-		fname           => $self->fname(),
-		lname           => $self->lname(),
-		email           => $self->email(),
-		handle          => $self->handle(),
+		member_id => $self->member_id(),
+		fname     => $self->fname(),
+		lname     => $self->lname(),
+		email     => $self->email(),
+		handle    => $self->handle(),
+		phone     => $self->phone(),
 		};
 	}
 
@@ -358,5 +398,135 @@ sub check_2fa
 	return (($code eq $candidate_code1) || ($code eq $candidate_code2) || ($code eq $candidate_code3));
 	}
 
+sub add_group
+	{
+	my ($self, $group_id, $changing_id, $notes_extra) = @_;
+
+	$group_id    = $group_id->mgroup_id() if (ref($group_id));
+	$changing_id = $changing_id->member_id() if (ref($changing_id));
+	my $notes    = "Added group $group_id";
+	if ($notes_extra)
+		{
+		$notes .= " - $notes_extra";
+		}
+
+	my $mg = $self->find_or_new_related('member_mgroups', { mgroup_id => $group_id }) || die $!;
+
+	if (!$mg->in_storage())
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type        => 'add_group',
+			changing_member_id => $changing_id,
+			notes              => $notes,
+			}) || die $!;
+		$mg->insert();
+		}
+	}
+
+sub remove_group
+	{
+	my ($self, $group_id, $changing_id, $notes_extra) = @_;
+
+	$group_id    = $group_id->mgroup_id() if (ref($group_id));
+	$changing_id = $changing_id->member_id() if (ref($changing_id));
+	my $notes    = "Removed group $group_id";
+	if ($notes_extra)
+		{
+		$notes .= " - $notes_extra";
+		}
+
+	my $mg = $self->find_related('member_mgroups', { mgroup_id => $group_id });
+
+	if ($mg)
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type        => 'remove_group',
+			changing_member_id => $changing_id,
+			notes              => $notes,
+			}) || die $!;
+		$mg->delete();
+		}
+	}
+
+sub in_group
+	{
+	my ($self, $group_id) = @_;
+
+	$group_id = $group_id->mgroup_id() if (ref($group_id));
+
+	return $self->find_related('member_mgroups', { mgroup_id => $group_id });
+	}
+
+sub expire_date
+	{
+	my $self = shift;
+
+	my $payment = $self->find_related('payments', {}, { select => { max => 'payment_date' }, as => 'payment_date' }) || die $!;
+	my $date    = $payment->payment_date() // return;
+	return $date->add({ months => 1 });
+	}
+
+sub term_date
+	{
+	my $self = shift;
+
+	my $payment = $self->find_related('payments', {}, { select => { max => 'payment_date' }, as => 'payment_date' }) || die $!;
+	my $date    = $payment->payment_date() // return;
+	return $date->add({ days => 90 });
+	}
+
+sub admin_class
+	{
+	return __PACKAGE__ . '::Admin';
+	}
+
 __PACKAGE__->meta->make_immutable;
+1;
+
+package HiveWeb::Schema::Result::Member::Admin;
+
+use strict;
+use warnings;
+use base qw/HiveWeb::Schema::Result::Member/;
+use Text::Markdown 'markdown';
+
+__PACKAGE__->table('members');
+
+sub TO_JSON
+	{
+	my $self    = shift;
+	my $columns = { $self->get_columns() };
+	my $dtp     = $self->result_source()->schema()->storage()->datetime_parser();
+	my $lat;
+	$lat = $dtp->parse_datetime($columns->{last_access_time})
+		if (exists($columns->{last_access_time}) && $columns->{last_access_time});
+
+	my @groups;
+	my $mgs = $self->member_mgroups();
+	while (my $mg = $mgs->next())
+		{
+		push(@groups, $mg->mgroup_id());
+		}
+
+	return
+		{
+		member_id       => $self->member_id(),
+		fname           => $self->fname(),
+		lname           => $self->lname(),
+		email           => $self->email(),
+		created_at      => $self->created_at(),
+		groups          => \@groups,
+		handle          => $self->handle(),
+		phone           => $self->phone(),
+		create_time     => $self->created_at(),
+		vend_credits    => $self->vend_credits(),
+		paypal_email    => $self->paypal_email(),
+		member_image_id => $self->member_image_id(),
+		door_count      => $self->door_count(),
+		( exists($columns->{accesses}) ? ( accesses => $columns->{accesses} ) : () ),
+		( exists($columns->{last_access_time}) ? ( last_access_time => $lat ) : () ),
+		};
+	}
 1;

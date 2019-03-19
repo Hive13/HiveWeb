@@ -40,7 +40,7 @@ sub index :Path
 
 	if ($version >= 2)
 		{
-		my $nonce     = $data->{nonce};
+		my $nonce     = $data->{nonce} // '';
 		my $exp_nonce = uc(unpack('H*', $device->nonce()));
 		my $new_nonce = random_bytes(16);
 		$device->update({ nonce => $new_nonce });
@@ -98,7 +98,7 @@ sub access
 		return;
 		}
 	$out->{response} = \1;
-	
+
 	if ($device->search_related('device_items', { item_id => $item->item_id() })->count() < 1)
 		{
 		$out->{error} = "Device not authorized for " . $item;
@@ -106,7 +106,7 @@ sub access
 			if ($data->{http});
 		return;
 		}
-	
+
 	$access = $member->has_access($item) ? 1 : 0
 		if ($member);
 
@@ -124,14 +124,14 @@ sub access
 			if ($data->{http});
 		return;
 		}
-	
+
 	if (!$access)
 		{
 		$out->{error} = 'Access denied';
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
-		}	
+		}
 	}
 
 sub vend :Private
@@ -153,13 +153,29 @@ sub vend :Private
 		$vend         = $member->do_vend() ? 1 : 0;
 		$out->{error} = $vend ? 'Have a soda!' : 'You have no soda credits.';
 		}
-	
+
 	$device->create_related('vend_logs',
 		{
 		member_id => $member ? $member->member_id() : undef,
 		vended    => $vend,
 		badge_id  => $data->{badge},
 		});
+	}
+
+sub get_light_state
+	{
+	my ($self, $c) = @_;
+	my $stash      = $c->stash();
+	my $out        = $stash->{out};
+	my $device     = $stash->{device};
+	my $data       = $stash->{in}->{data};
+
+	my @presets = $device
+		->search_related('bulbs', { 'preset.name' => 'current' }, { join => { bulb_presets => 'preset' } })
+		->get_column('bulb_presets.value')->all();
+
+	$out->{states}   = \@presets;
+	$out->{response} = \1;
 	}
 
 sub log :Private
@@ -214,7 +230,7 @@ sub soda_status :Private
 	my $out          = $stash->{out};
 	my $device       = $stash->{device};
 	my $data         = $stash->{in}->{data};
-	my $sodas        = $data->{sodas};
+	my $sodas        = $data->{soda_status};
 	$out->{response} = \1;
 	try
 		{

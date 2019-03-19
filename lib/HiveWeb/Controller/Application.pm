@@ -57,6 +57,12 @@ sub index :Path
 			if ($form->{$key} eq '');
 		}
 
+	if ($form->{contact_phone})
+		{
+		my $phone = $form->{contact_phone};
+		$phone =~ s/[^0-9]//g;
+		$form->{contact_phone} = $phone;
+		}
 	if ($form->{zip})
 		{
 		my $zip = $form->{zip};
@@ -116,6 +122,7 @@ sub index :Path
 					text  => 'The application has been successfully updated.',
 					};
 				$c->response()->redirect($c->uri_for('/'));
+				return;
 				}
 
 			$form->{member_id} = $member_id;

@@ -7,7 +7,7 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
-extends 'DBIx::Class::Core';
+extends 'HiveWeb::DBIx::Class::Core';
 
 __PACKAGE__->load_components(qw/ UUIDColumns InflateColumn::DateTime /);
 __PACKAGE__->table('member_curse');

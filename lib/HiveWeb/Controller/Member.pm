@@ -1,8 +1,6 @@
 package HiveWeb::Controller::Member;
 use Moose;
 use namespace::autoclean;
-use LWP::UserAgent;
-use HTTP::Request::Common;
 use Bytes::Random::Secure qw(random_bytes);
 use Convert::Base32;
 use Imager::QRCode;
@@ -147,38 +145,6 @@ sub totp_qrcode :Local :Args(0)
 	$c->response()->content_type('image/png');
 	}
 
-sub charge :Local :Args(0)
-	{
-	my ($self, $c) = @_;
-
-	my $form    = $c->request()->params();
-	my $config  = $c->config();
-	my $credits = $config->{soda}->{add_amount};
-
-	die
-		if (!$form);
-
-	my $ua  = LWP::UserAgent->new();
-
-	my $data =
-		{
-		amount      => $config->{soda}->{cost},
-		currency    => 'usd',
-		description => $credits . ' Hive Soda Credits',
-		source      => $form->{stripeToken},
-		};
-	my $req = POST 'https://api.stripe.com/v1/charges', $data || die $!;
-	$req->header(Authorization => 'Bearer ' . $c->config()->{stripe}->{secret_key});
-	my $res = $ua->request($req);
-
-	if ($res->code() == 200)
-		{
-		$c->user()->add_vend_credits($credits);
-		}
-	$c->stash()->{response}      = $res->content();
-	$c->stash()->{response_code} = $res->code();
-	}
-
 sub register :Local :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -216,11 +182,64 @@ sub register :Local :Args(0)
 	$c->response()->redirect($c->uri_for('/'));
 	}
 
-sub pay :Local :Args(0)
+sub pay :Local :Args(0) {}
+
+sub pay_complete :Local :Args(0) {}
+
+sub cancel :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	$c->stash()->{template} = 'member/pay.tt';
+	$c->stash()->{template} = 'member/cancel.tt';
+	my $user      = $c->user();
+	my $member_id = $user->member_id();
+
+	return
+		if ($c->request()->method() eq 'GET');
+
+	my $form = $c->request()->params();
+
+	$c->model('DB')->txn_do(sub
+		{
+		my $expired = $c->model('DB::Payment')->find({ member_id => $member_id },
+			{
+			select => \"max(payment_date) + interval '1 month' <= now()",
+			as     => 'expired',
+			});
+		if ($expired->get_column('expired'))
+			{
+			my $group_id = $c->model('DB::Mgroup')->find({ name => 'members' })->mgroup_id() || die "Can't find group";
+			$user->remove_group($group_id, undef, 'cancellation confirmation');
+			}
+		else
+			{
+			my $group_id = $c->model('DB::Mgroup')->find({ name => 'pending_expiry' })->mgroup_id() || die "Can't find group";
+			$user->add_group($group_id, undef, 'cancellation confirmation');
+			}
+
+		# TODO: Don't hardcode these UUIDs in.
+		my $reason = $form->{reason};
+		if ($reason eq 'other')
+			{
+			$reason = $form->{other_reason};
+			}
+		my $response = $user->create_related('survey_responses', { survey_id => 'c061cc14-0a56-4c6b-b589-32760c2e77f6' }) || die $!;
+		$response->create_related('answers', { survey_question_id => '6560957a-b1ca-4757-93e3-313c5a22679a', answer_text => $form->{comments} }) || die $!;
+		$response->create_related('answers', { survey_question_id => '6f38821c-1905-4d75-bd71-0ad21b2f187c', answer_text => $reason }) || die $!;
+
+		$c->model('DB::Action')->create(
+			{
+			queuing_member_id => $member_id,
+			action_type       => 'notify.term',
+			row_id            => $response->survey_response_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		$c->flash()->{auto_toast} =
+			{
+			title => 'Resignation Submitted',
+			text  => 'Your resignation has been submitted.',
+			};
+		$c->response()->redirect($c->uri_for('/'));
+		});
 	}
 
 sub requests :Local :Args(0)
