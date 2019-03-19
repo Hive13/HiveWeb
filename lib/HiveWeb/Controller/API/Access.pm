@@ -76,7 +76,7 @@ sub index :Path
 		if ($data->{http});
 	}
 
-sub access
+sub access :Private
 	{
 	my ($self, $c) = @_;
 	my $stash      = $c->stash();
@@ -114,7 +114,7 @@ sub access
 		{
 		granted   => $access,
 		member_id => $member ? $member->member_id() : undef,
-		badge_id  => $badge
+		badge_id  => $badge->badge_number(),
 		}) || die $!;
 
 	if (!$member)
