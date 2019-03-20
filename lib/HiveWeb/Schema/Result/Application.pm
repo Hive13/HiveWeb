@@ -104,7 +104,7 @@ sub update
 		}
 	else
 		{
-		die;
+		$attrs = { updated_at => \'current_timestamp' };
 		}
 
 	return $self->next::method($attrs);
