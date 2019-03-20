@@ -41,7 +41,7 @@ END;
 	<thead>
 		<tr class="title">
 			<th bgcolor="[% colors.$color %]" colspan="[% size %]">
-				[%~ '(' _ members.size _ ')' _ title ~%]
+				[%~ '(' _ total _ ')' _ title ~%]
 			</th>
 		</tr>
 		[%~ IF tagline.length %]
@@ -126,6 +126,7 @@ END;
 [%~
 INCLUDE category
 	members = categories.unpaid
+	total   = totals.unpaid
 	color   ='red'
 	title   = 'Unpaid Members'
 	tagline = 'Member has not yet paid or has not added the correct paypal address to their account.'
@@ -133,6 +134,7 @@ INCLUDE category
 
 INCLUDE category
 	members = categories.unknown
+	total   = totals.unknown
 	color   ='red'
 	title   = 'Unknown Payments'
 	tagline = 'Membership payments being received from someone without an intweb account.'
@@ -140,18 +142,21 @@ INCLUDE category
 
 INCLUDE category
 	members = categories.no_access
+	total   = totals.no_access
 	color   ='yellow'
 	title   = 'No Access'
 	tagline = 'Paid account not currently in "Members" group. Member cannot currently access the space.';
 
 INCLUDE category
 	members = categories.no_badge
+	total   = totals.no_badge
 	color   ='yellow'
 	title   = 'No Badge'
 	tagline = 'Active and Paid accounts with no badges assigned. Member cannot currently access the space.';
 
 INCLUDE category
 	members = categories.expired
+	total   = totals.expired
 	color   ='yellow'
 	title   = 'Lapsed Payments'
 	tagline = 'Member has access to the space, payments are no longer being received';
@@ -159,6 +164,7 @@ INCLUDE category
 IF full;
 	INCLUDE category
 		members = categories.override
+		total   = totals.override
 		color   ='blue'
 		title   = 'Non-Standard Payment Method'
 		tagline = 'Member is paying via a method other than PayPal.'
@@ -166,6 +172,7 @@ IF full;
 
 	INCLUDE category
 		members = categories.confirmed
+		total   = totals.confirmed
 		color   = 'green'
 		title   = 'Confirmed Members';
 END;

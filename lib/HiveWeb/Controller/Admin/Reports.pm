@@ -51,6 +51,7 @@ sub membership_status :Local :Args(0)
 		});
 
 	my $categories = {};
+	my $totals     = {};
 
 	while (my $member = $members->next())
 		{
@@ -95,11 +96,15 @@ sub membership_status :Local :Args(0)
 		if ($category)
 			{
 			$categories->{$category} //= [];
+			$totals->{$category}     //= 0;
+
 			my $pay_date = $member->get_column('pay_date');
 			my $linked   = [];
+			$totals->{$category}++;
 
 			foreach my $link (@{ [ $member->linked_members() ] })
 				{
+				$totals->{$category}++;
 				push(@$linked,
 					{
 					fname      => $link->fname(),
@@ -128,6 +133,8 @@ sub membership_status :Local :Args(0)
 	my $unknowns = $schema->resultset('IPNMessage')->search({ member_id => undef });
 	while (my $unknown = $unknowns->next())
 		{
+		$totals->{unknown} //= 0;
+		$totals->{unknown}++;
 		my $data = decode_json($unknown->raw());
 		next if ($data->{txn_type} eq 'subscr_signup' || $data->{txn_type} eq 'subscr_modify');
 		push(@{ $categories->{unknown} },
@@ -139,20 +146,22 @@ sub membership_status :Local :Args(0)
 			});
 		}
 
-	return $categories;
+	return
+		{
+		categories => $categories,
+		totals     => $totals,
+		};
 	}
 
 sub member :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $categories = $self->membership_status($c->model('DB'));
-	$c->stash(
-		{
-		categories => $categories,
-		show_pii   => 1,
-		full       => 1,
-		});
+	my $report = $self->membership_status($c->model('DB'));
+
+	$report->{show_pii} = 1;
+	$report->{full}     = 1;
+	$c->stash($report);
 	}
 
 sub membership :Local :Args(0) {}
