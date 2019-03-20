@@ -33,14 +33,15 @@ my $message =
 	subject   => $report->{subject},
 	};
 
-my $categories = HiveWeb::Controller::Admin::Reports->membership_status($schema);
+my $data = HiveWeb::Controller::Admin::Reports->membership_status($schema);
 
 $message->{stash} =
 	{
 	show_pii   => 0,
 	full       => 0,
 	subject    => $report->{subject},
-	categories => $categories,
+	categories => $data->{categories},
+	totals     => $data->{totals},
 	};
 
 my @parts;

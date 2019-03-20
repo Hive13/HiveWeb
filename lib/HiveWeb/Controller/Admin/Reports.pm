@@ -12,7 +12,7 @@ sub index :Path :Args(0)
 	my ($self, $c) = @_;
 	}
 
-sub membership_status :Local :Args(0)
+sub membership_status
 	{
 	my ($self, $schema) = @_;
 	my $dtp        = $schema->storage()->datetime_parser();

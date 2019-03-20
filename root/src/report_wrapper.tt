@@ -9,7 +9,7 @@
 </head>
 <body>
 	<style>
-		[%~
+		[%
 			SET path =  Catalyst.path_to('less', 'reports.min.css');
 			INSERT $path;
 		%]
