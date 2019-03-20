@@ -114,7 +114,7 @@ sub access :Private
 		{
 		granted   => $access,
 		member_id => $member ? $member->member_id() : undef,
-		badge_id  => $badge->badge_number(),
+		badge_id  => $data->{badge},
 		}) || die $!;
 
 	if (!$member)
