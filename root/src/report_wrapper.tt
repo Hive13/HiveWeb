@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>[% subject %]</title>
+[%~ FOREACH link IN extra_css %]
+	<link rel="stylesheet" href="[% link %]" type="text/css" />
+[%~ END %]
+</head>
+<body>
+	<style>
+		[%~
+			SET path =  Catalyst.path_to('less', 'reports.min.css');
+			INSERT $path;
+		%]
+	</style>
+	<div id="content">
+		[% content %]
+	</div>
+</body>
+</html>
+[%~ # vim:set filetype=tt2html: ~%]

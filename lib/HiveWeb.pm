@@ -80,6 +80,15 @@ __PACKAGE__->config
 			],
 		EVAL_PERL => 1,
 		},
+	'View::ReportTT' =>
+		{
+		INCLUDE_PATH =>
+			[
+			__PACKAGE__->path_to('root', 'src'),
+			],
+		EVAL_PERL => 1,
+		ABSOLUTE  => 1,
+		},
 	'Plugin::Authentication' =>
 		{
 		'default_realm' => 'members',

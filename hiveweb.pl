@@ -152,4 +152,13 @@
 			temp_plain => 'email/application/pay_plain.tt',
 			},
 		},
+	reports =>
+		{
+		membership =>
+			{
+			to        => 'intwebsandbox@hive13.org',
+			subject   => 'Membership Report',
+			temp_html => 'admin/reports/member.tt',
+			},
+		},
 	}

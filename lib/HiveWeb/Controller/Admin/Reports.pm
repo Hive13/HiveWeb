@@ -12,30 +12,30 @@ sub index :Path :Args(0)
 	my ($self, $c) = @_;
 	}
 
-sub member :Local :Args(0)
+sub membership_status :Local :Args(0)
 	{
-	my ($self, $c) = @_;
-	my $dtp        = $c->model('DB')->storage()->datetime_parser();
+	my ($self, $schema) = @_;
+	my $dtp        = $schema->storage()->datetime_parser();
 	my $tz         = DateTime::TimeZone->new(name => 'America/Los_Angeles');
 	my $payment_p  = DateTime::Format::Strptime->new( pattern => '%H:%M:%S %b %d, %Y', time_zone => $tz);
 
-	my $badge_query = $c->model('DB::Badge')->search(
+	my $badge_query = $schema->resultset('Badge')->search(
 		{ member_id => { ident => 'me.member_id' } },
 		{ alias => 'badges' }
 		)->count_rs()->as_query() || die $!;
-	my $pay_date_query = $c->model('DB::Payment')->search(
+	my $pay_date_query = $schema->resultset('Payment')->search(
 		{ member_id => { ident => 'me.member_id' } },
 		{
 		alias   => 'payment',
 		columns => { pay_date => \'EXTRACT(DAYS FROM NOW() - MAX(payment_date))' },
 		})->as_query() || die $!;
-	my $pay_query = $c->model('DB::Payment')->search(
+	my $pay_query = $schema->resultset('Payment')->search(
 		{ member_id => { ident => 'me.member_id' } },
 		{
 		alias   => 'pay_date',
 		columns => { pay_date => { max => 'payment_date' } },
 		})->as_query() || die $!;
-	my $member_query = $c->model('DB::MemberMgroup')->search(
+	my $member_query = $schema->resultset('MemberMgroup')->search(
 		{
 		name      => 'members',
 		member_id => { ident => 'me.member_id' },
@@ -43,7 +43,7 @@ sub member :Local :Args(0)
 		{ alias => 'mem_group', join => 'mgroup' }
 		)->count_rs()->as_query() || die $!;
 
-	my $members = $c->model('DB::Member')->search({ 'me.linked_member_id' => undef },
+	my $members = $schema->resultset('Member')->search({ 'me.linked_member_id' => undef },
 		{
 		'+select' => [ $pay_date_query, $pay_query, $member_query, $badge_query ],
 		'+as'     => [ 'days_since_paid', 'pay_date', 'is_member', 'badge_count' ],
@@ -125,7 +125,7 @@ sub member :Local :Args(0)
 			}
 		}
 
-	my $unknowns = $c->model('DB::IPNMessage')->search({ member_id => undef });
+	my $unknowns = $schema->resultset('IPNMessage')->search({ member_id => undef });
 	while (my $unknown = $unknowns->next())
 		{
 		my $data = decode_json($unknown->raw());
@@ -139,11 +139,19 @@ sub member :Local :Args(0)
 			});
 		}
 
-	$c->stash()->{categories} = $categories;
+	return $categories;
+	}
+
+sub member :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $categories = $self->membership_status($c->model('DB'));
 	$c->stash(
 		{
-		show_pii => 1,
-		full     => 1,
+		categories => $categories,
+		show_pii   => 1,
+		full       => 1,
 		});
 	}
 
