@@ -127,7 +127,14 @@ sub TO_FULL_JSON
 	return
 		{
 		request_id  => $self->request_id(),
-		member      => $member->TO_SUMMARY_JSON(),
+		member      =>
+			{
+			member_id       => $member->member_id(),
+			fname           => $member->fname(),
+			lname           => $member->lname(),
+			email           => $member->email(),
+			handle          => $member->handle(),
+			},
 		other_slots => \@slots,
 		created_at  => $self->created_at(),
 		notes       => $self->notes(),

@@ -1,0 +1,22 @@
+[%~ SET member = survey.member ~%]
+
+
+Hello Leadership,
+
+[% member.fname %] [% member.lname %] is resigning from the Hive.
+Membership will be automatically revoked on [% member.expire_date.strftime('%x') %].
+
+Here are [% member.fname %]'s answers to the survey questions.
+[%
+FOREACH answer IN survey.answers;
+	SET question = answer.survey_question;
+	SET qtext    = question.question_text;
+	GET qtext _ "\n" _ qtext.replace('.', '-') _ "\n";
+	GET answer.answer_text _ "\n" _ qtext.replace('.', '=') _ "\n\n";
+END;
+~%]
+
+Sincerely,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

@@ -31,18 +31,25 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('device_id');
 
 __PACKAGE__->has_many(
-								'device_items',
-								'HiveWeb::Schema::Result::DeviceItem',
-								{ 'foreign.device_id' => 'self.device_id' },
-								{ cascade_copy => 0, cascade_delete => 0 },
-								);
+	'device_items',
+	'HiveWeb::Schema::Result::DeviceItem',
+	{ 'foreign.device_id' => 'self.device_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
 
 __PACKAGE__->has_many(
-								'vend_logs',
-								'HiveWeb::Schema::Result::VendLog',
-								{ 'foreign.device_id' => 'self.device_id' },
-								{ cascade_copy => 0, cascade_delete => 0 },
-								);
+	'vend_logs',
+	'HiveWeb::Schema::Result::VendLog',
+	{ 'foreign.device_id' => 'self.device_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
+
+__PACKAGE__->has_many(
+	'bulbs',
+	'HiveWeb::Schema::Result::LampBulb',
+	{ 'foreign.device_id' => 'self.device_id' },
+	{ cascade_copy => 0, cascade_delete => 0 },
+	);
 
 __PACKAGE__->many_to_many('items', 'device_items', 'item');
 __PACKAGE__->meta->make_immutable;

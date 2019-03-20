@@ -25,7 +25,7 @@ __PACKAGE__->add_columns(
   'changed_member_id',
   { data_type => 'uuid', is_foreign_key => 1, is_nullable => 0, size => 16 },
   'changing_member_id',
-  { data_type => 'uuid', is_foreign_key => 1, is_nullable => 0, size => 16 },
+  { data_type => 'uuid', is_foreign_key => 1, is_nullable => 1, size => 16 },
   'change_type',
   { data_type => 'character varying', is_nullable => 0 },
   'notes',

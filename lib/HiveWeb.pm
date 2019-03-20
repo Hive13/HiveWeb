@@ -80,6 +80,15 @@ __PACKAGE__->config
 			],
 		EVAL_PERL => 1,
 		},
+	'View::ReportTT' =>
+		{
+		INCLUDE_PATH =>
+			[
+			__PACKAGE__->path_to('root', 'src'),
+			],
+		EVAL_PERL => 1,
+		ABSOLUTE  => 1,
+		},
 	'Plugin::Authentication' =>
 		{
 		'default_realm' => 'members',
@@ -114,15 +123,16 @@ __PACKAGE__->allow_access(       '/end');
 __PACKAGE__->allow_access(       '/index');
 __PACKAGE__->allow_access(       '/login');
 __PACKAGE__->allow_access(       '/logout');
+__PACKAGE__->allow_access(       '/forgot');
+__PACKAGE__->allow_access(       '/forgot_password');
+__PACKAGE__->allow_access(       '/paypal');
+__PACKAGE__->allow_access(       '/paypal/ipn');
 __PACKAGE__->allow_access(       '/member/register');
 __PACKAGE__->allow_access(       '/api/begin');
 __PACKAGE__->allow_access(       '/api/end');
 __PACKAGE__->allow_access(       '/api/access');
-__PACKAGE__->allow_access(       '/api/soda/status');
-__PACKAGE__->allow_access(       '/api/temperature/current');
-__PACKAGE__->allow_access(       '/api/lights/get_state');
+__PACKAGE__->allow_access(       '/api/status');
 __PACKAGE__->deny_access_unless( '/api/admin',                ['board']);
-__PACKAGE__->allow_access_if_any('/admin/auto',               ['board', 'storage']);
 __PACKAGE__->allow_access_if_any('/admin/storage',            ['board', 'storage']);
 __PACKAGE__->allow_access_if_any('/api/admin/storage',        ['board', 'storage']);
 __PACKAGE__->allow_access_if_any('/api/admin/members/search', ['board', 'storage']);

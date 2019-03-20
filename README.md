@@ -15,6 +15,7 @@ The new Hive internal Web
 * libcatalyst-view-tt-perl
 * libcrypt-eksblowfish-perl
 * libdatetime-format-dbi-perl
+* libdatetime-format-iso8601-perl
 * libdbd-pg-perl
 * libdbix-class-uuidcolumns-perl
 * libjson-perl
@@ -25,5 +26,6 @@ The new Hive internal Web
 * libconvert-base32-perl
 * libimager-qrcode-perl
 * libauthen-oath-perl
+* libemail-address-xs-perl
 * cssmin
 * node-less
