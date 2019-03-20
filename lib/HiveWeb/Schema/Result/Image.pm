@@ -125,7 +125,7 @@ sub can_view
 		if (   ref($attachments->{member_id}) eq 'ARRAY'
 		    && !(grep { $_ eq $member->member_id() } @{ $attachments->{member_id} }));
 
-	# Default, allow to se
+	# Default, allow to see
 	return 1;
 	}
 
