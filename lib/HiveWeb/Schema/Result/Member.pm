@@ -231,23 +231,25 @@ sub update
 	{
 	my $self  = shift;
 	my $attrs = shift;
+	my %dirty = $self->get_dirty_columns();
+
+	if ($dirty{paypal_email} && $self->paypal_email =~ /.@./)
+		{
+		$self->result_source()->schema()->resultset('Action')->create(
+			{
+			queuing_member_id => $self->member_id(),
+			action_type       => 'paypal.refresh',
+			row_id            => $self->member_id(),
+			});
+		}
 
 	if (ref($attrs) eq 'HASH')
 		{
-		if (exists($attrs->{paypal_email}) && $attrs->{paypal_email} =~ /.@./)
-			{
-			$self->result_source()->schema()->resultset('Action')->create(
-				{
-				queuing_member_id => $self->member_id(),
-				action_type       => 'paypal.refresh',
-				row_id            => $self->member_id(),
-				});
-			}
 		$attrs->{updated_at} = \'current_timestamp';
 		}
 	else
 		{
-		die;
+		$attrs = { updated_at => \'current_timestamp' };
 		}
 
 	return $self->next::method($attrs);
