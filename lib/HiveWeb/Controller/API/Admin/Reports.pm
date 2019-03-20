@@ -19,16 +19,21 @@ sub membership_total :Local :Args(0)
 	my $month = $in->{month} || $date->month();
 	my $start = DateTime->new( year => $year, month => $month );
 	my $end   = $start->clone()->add(months => 1);
-	
+	my $dtf   = $c->model('DB')->storage()->datetime_parser();
+
 	my @payments = $c->model('DB::Payment')->search(
 		{
-		payment_date => { '>=' => $start, '<' => $end },
+		payment_date =>
+			{
+			'>=' => $dtf->format_datetime($start),
+			'<'  => $dtf->format_datetime($end),
+			},
 		},
 		{
 		join    => 'ipn_message',
 		columns => { raw => 'ipn_message.raw' },
 		})->hashref();
-	
+
 	$out->{totals} = {};
 	foreach my $payment (@payments)
 		{
@@ -39,7 +44,7 @@ sub membership_total :Local :Args(0)
 			$out->{totals}->{$item}++;
 			}
 		}
-	
+
 	my @non = $c->model('DB::Member')->active()->non_paypal()->search({},
 		{
 		columns => ['fname', 'lname', 'paypal_email'],
