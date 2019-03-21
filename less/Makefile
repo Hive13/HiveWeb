@@ -1,5 +1,5 @@
 LESS_SRC = src/*.less
-TARGETS  = admin.min.css main.min.css reports.min.css
+TARGETS  = board.min.css main.min.css reports.min.css storage.min.css
 
 all: $(TARGETS)
 
