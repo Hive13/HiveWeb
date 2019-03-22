@@ -217,15 +217,8 @@ sub cancel :Local :Args(0)
 			$user->add_group($group_id, undef, 'cancellation confirmation');
 			}
 
-		# TODO: Don't hardcode these UUIDs in.
-		my $reason = $form->{reason};
-		if ($reason eq 'other')
-			{
-			$reason = $form->{other_reason};
-			}
-		my $response = $user->create_related('survey_responses', { survey_id => 'c061cc14-0a56-4c6b-b589-32760c2e77f6' }) || die $!;
-		$response->create_related('answers', { survey_question_id => '6560957a-b1ca-4757-93e3-313c5a22679a', answer_text => $form->{comments} }) || die $!;
-		$response->create_related('answers', { survey_question_id => '6f38821c-1905-4d75-bd71-0ad21b2f187c', answer_text => $reason }) || die $!;
+		# TODO: Don't hardcode this UUID in.
+		my $response = $c->model('DB::SurveyResponse')->fill_out($user, 'c061cc14-0a56-4c6b-b589-32760c2e77f6', $form) || die $!;
 
 		$c->model('DB::Action')->create(
 			{
