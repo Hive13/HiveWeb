@@ -19,6 +19,8 @@ __PACKAGE__->add_columns(
 	{ data_type => 'uuid', is_nullable => 0, size => 16 },
 	'sort_order',
 	{ data_type => 'integer', is_nullable => 0, default_value => 1000 },
+	'choice_name',
+	{ data_type => 'character varying', is_nullable => 0 },
 	'choice_text',
 	{ data_type => 'character varying', is_nullable => 1 },
 );
@@ -44,6 +46,7 @@ sub TO_JSON
 		{
 		survey_choice_id => $self->survey_choice_id(),
 		sort_order       => $self->sort_order(),
+		choice_name      => $self->choice_name(),
 		choice_text      => $self->choice_text(),
 		};
 	}

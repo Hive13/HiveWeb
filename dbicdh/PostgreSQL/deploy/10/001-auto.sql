@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Mar 22 16:46:48 2019
+-- Created on Fri Mar 22 16:54:08 2019
 -- 
 ;
 --
@@ -417,6 +417,7 @@ CREATE TABLE "survey_choice" (
   "survey_choice_id" uuid NOT NULL,
   "survey_question_id" uuid NOT NULL,
   "sort_order" integer DEFAULT 1000 NOT NULL,
+  "choice_name" character varying NOT NULL,
   "choice_text" character varying,
   PRIMARY KEY ("survey_choice_id")
 );

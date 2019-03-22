@@ -3481,6 +3481,16 @@ schema:
           reference_table: survey_question
           type: FOREIGN KEY
       fields:
+        choice_name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: choice_name
+          order: 4
+          size:
+            - 0
         choice_text:
           data_type: character varying
           default_value: ~
@@ -3488,7 +3498,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: choice_text
-          order: 4
+          order: 5
           size:
             - 0
         sort_order:
