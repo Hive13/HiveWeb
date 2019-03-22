@@ -208,13 +208,11 @@ sub cancel :Local :Args(0)
 			});
 		if ($expired->get_column('expired'))
 			{
-			my $group_id = $c->model('DB::Mgroup')->find({ name => 'members' })->mgroup_id() || die "Can't find group";
-			$user->remove_group($group_id, undef, 'cancellation confirmation');
+			$user->remove_group(\'members', undef, 'cancellation confirmation');
 			}
 		else
 			{
-			my $group_id = $c->model('DB::Mgroup')->find({ name => 'pending_expiry' })->mgroup_id() || die "Can't find group";
-			$user->add_group($group_id, undef, 'cancellation confirmation');
+			$user->add_group(\'pending_expiry', undef, 'cancellation confirmation');
 			}
 
 		# TODO: Don't hardcode these UUIDs in.

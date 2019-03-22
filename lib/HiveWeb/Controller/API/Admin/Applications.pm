@@ -76,13 +76,11 @@ sub finalize :Local :Args(0)
 					$action = lc($action);
 					if ($action eq 'remove_from_group')
 						{
-						my $group = $c->model('DB::MGroup')->find({ name => 'pending_applications' }) || die;
-						$member->remove_group($group, $c->user());
+						$member->remove_group(\'pending_applications', $c->user());
 						}
 					elsif ($action eq 'add_to_pending_payments')
 						{
-						my $group = $c->model('DB::MGroup')->find({ name => 'pending_payments' }) || die;
-						$member->add_group($group, $c->user());
+						$member->add_group(\'pending_payments', $c->user());
 						}
 					elsif ($action eq 'add_soda_credit')
 						{
