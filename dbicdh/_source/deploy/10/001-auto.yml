@@ -3453,6 +3453,83 @@ schema:
       name: survey_answer
       options: []
       order: 41
+    survey_choice:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - survey_choice_id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 0
+          expression: ''
+          fields:
+            - survey_question_id
+          match_type: ''
+          name: survey_choice_fk_survey_question_id
+          on_delete: RESTRICT
+          on_update: RESTRICT
+          options: []
+          reference_fields:
+            - survey_question_id
+          reference_table: survey_question
+          type: FOREIGN KEY
+      fields:
+        choice_text:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: choice_text
+          order: 4
+          size:
+            - 0
+        sort_order:
+          data_type: integer
+          default_value: 1000
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_order
+          order: 3
+          size:
+            - 0
+        survey_choice_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: survey_choice_id
+          order: 1
+          size:
+            - 16
+        survey_question_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: survey_question_id
+          order: 2
+          size:
+            - 16
+      indices:
+        - fields:
+            - survey_question_id
+          name: survey_choice_idx_survey_question_id
+          options: []
+          type: NORMAL
+      name: survey_choice
+      options: []
+      order: 30
     survey_question:
       constraints:
         - deferrable: 1
@@ -3530,83 +3607,6 @@ schema:
       name: survey_question
       options: []
       order: 18
-    survey_question_choice:
-      constraints:
-        - deferrable: 1
-          expression: ''
-          fields:
-            - survey_choice_id
-          match_type: ''
-          name: ''
-          on_delete: ''
-          on_update: ''
-          options: []
-          reference_fields: []
-          reference_table: ''
-          type: PRIMARY KEY
-        - deferrable: 0
-          expression: ''
-          fields:
-            - survey_question_id
-          match_type: ''
-          name: survey_question_choice_fk_survey_question_id
-          on_delete: RESTRICT
-          on_update: RESTRICT
-          options: []
-          reference_fields:
-            - survey_question_id
-          reference_table: survey_question
-          type: FOREIGN KEY
-      fields:
-        choice_text:
-          data_type: character varying
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: choice_text
-          order: 4
-          size:
-            - 0
-        sort_order:
-          data_type: integer
-          default_value: 1000
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: sort_order
-          order: 3
-          size:
-            - 0
-        survey_choice_id:
-          data_type: uuid
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 1
-          is_unique: 0
-          name: survey_choice_id
-          order: 1
-          size:
-            - 16
-        survey_question_id:
-          data_type: uuid
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: survey_question_id
-          order: 2
-          size:
-            - 16
-      indices:
-        - fields:
-            - survey_question_id
-          name: survey_question_choice_idx_survey_question_id
-          options: []
-          type: NORMAL
-      name: survey_question_choice
-      options: []
-      order: 30
     survey_response:
       constraints:
         - deferrable: 1

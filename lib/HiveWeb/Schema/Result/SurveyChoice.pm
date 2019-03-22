@@ -10,7 +10,7 @@ use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components(qw{ UUIDColumns });
-__PACKAGE__->table('survey_question_choice');
+__PACKAGE__->table('survey_choice');
 
 __PACKAGE__->add_columns(
 	'survey_choice_id',

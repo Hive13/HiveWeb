@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Mar 22 16:45:22 2019
+-- Created on Fri Mar 22 16:46:48 2019
 -- 
 ;
 --
@@ -411,16 +411,16 @@ CREATE INDEX "sign_in_log_idx_member_id" on "sign_in_log" ("member_id");
 
 ;
 --
--- Table: survey_question_choice
+-- Table: survey_choice
 --
-CREATE TABLE "survey_question_choice" (
+CREATE TABLE "survey_choice" (
   "survey_choice_id" uuid NOT NULL,
   "survey_question_id" uuid NOT NULL,
   "sort_order" integer DEFAULT 1000 NOT NULL,
   "choice_text" character varying,
   PRIMARY KEY ("survey_choice_id")
 );
-CREATE INDEX "survey_question_choice_idx_survey_question_id" on "survey_question_choice" ("survey_question_id");
+CREATE INDEX "survey_choice_idx_survey_question_id" on "survey_choice" ("survey_question_id");
 
 ;
 --
@@ -701,7 +701,7 @@ ALTER TABLE "sign_in_log" ADD CONSTRAINT "sign_in_log_fk_member_id" FOREIGN KEY 
   REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
-ALTER TABLE "survey_question_choice" ADD CONSTRAINT "survey_question_choice_fk_survey_question_id" FOREIGN KEY ("survey_question_id")
+ALTER TABLE "survey_choice" ADD CONSTRAINT "survey_choice_fk_survey_question_id" FOREIGN KEY ("survey_question_id")
   REFERENCES "survey_question" ("survey_question_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
