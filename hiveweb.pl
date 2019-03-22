@@ -114,6 +114,7 @@
 		'member.notify_cancel'       => 100,
 		'member.past_due'            => 40,
 		'member.welcome'             => 20,
+		'notify.term'                => 100,
 		'password.reset'             => 1,
 		'paypal.refresh'             => 10,
 		'storage.assign'             => 100,
