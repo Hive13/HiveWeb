@@ -27,7 +27,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('survey_choice_id');
 __PACKAGE__->uuid_columns('survey_choice_id');
-__PACKAGE__->resultset_attributes({ order_by => [ 'sort_order', \'RAND()' ] });
+__PACKAGE__->resultset_attributes({ order_by => [ 'sort_order', \'RANDOM()' ] });
 
 __PACKAGE__->belongs_to(
 	'question',
