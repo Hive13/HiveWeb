@@ -7,4 +7,7 @@ INSERT INTO survey_choice VALUES
 	('b6927d1a-38ed-4962-98c5-83773c0c8c65', '6f38821c-1905-4d75-bd71-0ad21b2f187c', 4, 'other', NULL)
 ;
 
+UPDATE survey_question SET question_text = 'Do you have any comments to share with us?' WHERE survey_question_id = '6560957a-b1ca-4757-93e3-313c5a22679a';
+UPDATE survey_question SET question_text = 'Why are you leaving?' WHERE survey_question_id = '6f38821c-1905-4d75-bd71-0ad21b2f187c';
+
 COMMIT;
