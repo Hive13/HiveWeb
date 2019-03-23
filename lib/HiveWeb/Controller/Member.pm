@@ -193,11 +193,16 @@ sub cancel :Local :Args(0)
 	$c->stash()->{template} = 'member/cancel.tt';
 	my $user      = $c->user();
 	my $member_id = $user->member_id();
+	my $request   = $c->request();
+	my $survey    = $c->model('DB::Survey')->find($c->config()->{cancellations}->{survey_uuid}) || die 'Can\'t load survey.';
 
-	return
-		if ($c->request()->method() eq 'GET');
+	if ($request->method() eq 'GET')
+		{
+		$c->stash()->{survey} = $survey;
+		return;
+		}
 
-	my $form = $c->request()->params();
+	my $form = $request->params();
 
 	$c->model('DB')->txn_do(sub
 		{
@@ -217,8 +222,7 @@ sub cancel :Local :Args(0)
 			$user->add_group($group_id, undef, 'cancellation confirmation');
 			}
 
-		# TODO: Don't hardcode this UUID in.
-		my $response = $c->model('DB::SurveyResponse')->fill_out($user, 'c061cc14-0a56-4c6b-b589-32760c2e77f6', $form) || die $!;
+		my $response = $c->model('DB::SurveyResponse')->fill_out($user, $survey, $form) || die $!;
 
 		$c->model('DB::Action')->create(
 			{
