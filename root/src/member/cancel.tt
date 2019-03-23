@@ -1,5 +1,4 @@
-[%# TODO: Don't hardcode these UUIDs in. ~%]
-
+[%~ SET other = []; %]
 <form method="post">
 	<div class="row">
 		<div class="col-xs-12">
@@ -9,32 +8,36 @@
 				</div>
 				<div class="panel-body">
 					<h4>Please fill out this brief survey to help us improve the Hive.</h4>
+					[%~ FOREACH question IN survey.questions %]
 					<div class="input-group u-w-100">
-						<h5>Why are you leaving?</h5>
-						<label>
-							<input type="radio" name="6f38821c-1905-4d75-bd71-0ad21b2f187c" value="moving" />
-							I'm moving
-						</label><br />
-						<label>
-							<input type="radio" name="6f38821c-1905-4d75-bd71-0ad21b2f187c" value="time" />
-							I don't have time
-						</label><br />
-						<label>
-							<input type="radio" name="6f38821c-1905-4d75-bd71-0ad21b2f187c" value="money" />
-							I can't justify the expense
-						</label><br />
-						<label>
-							<input type="radio" name="6f38821c-1905-4d75-bd71-0ad21b2f187c" value="other" />
-							Other
-						</label><br />
-						<input type="text" id="other_6f38821c-1905-4d75-bd71-0ad21b2f187c" name="other_6f38821c-1905-4d75-bd71-0ad21b2f187c" style="display: none" class="form-control" />
+						[%~ IF question.choices.size > 0 %]
+							<h5>[% question.question_text %]</h5>
+							[%~
+								FOREACH choice IN question.choices;
+									SET name = choice.choice_name;
+									IF name == 'other';
+										SET text = 'Other';
+										other.push(question.survey_question_id);
+									ELSE;
+										SET text = choice.choice_text;
+									END;
+							%]
+								<label>
+									<input type="radio" name="[% question.survey_question_id.dquote %]" value="[% name.dquote %]" />
+									[% text %]
+								</label><br />
+								[%~ IF name == 'other' %]
+								<input type="text" id="other_[% question.survey_question_id.dquote %]" style="display: none" class="form-control" />
+								[%~ END %]
+							[%~ END %]
+						[%~ ELSE %]
+							<label class="u-w-100">
+								[%~ question.question_text %]<br />
+								<textarea class="u-w-100" rows="6" name="[% question.survey_question_id.dquote %]"></textarea>
+							</label>
+						[%~ END %]
 					</div>
-					<div class="input-group u-w-100">
-						<label class="u-w-100">
-							Do you have any comments to share with us?<br />
-							<textarea class="u-w-100" rows="6" name="6560957a-b1ca-4757-93e3-313c5a22679a"></textarea>
-						</label>
-					</div>
+					[%~ END %]
 				</div>
 				<div class="panel-footer text-center">
 					Note that this is your official resignation from Hive13.
@@ -73,7 +76,9 @@ function other_change(uuid)
 
 $(function ()
 	{
-	other_change("6f38821c-1905-4d75-bd71-0ad21b2f187c");
+	[%~ FOREACH id IN other %]
+	other_change("[% id.dquote %]");
+	[%~ END %]
 	});
 </script>
 [%~ # vim:set filetype=tt2html: ~%]
