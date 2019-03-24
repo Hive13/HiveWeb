@@ -10,14 +10,15 @@ The new Hive internal Web
 * libcatalyst-plugin-static-simple-perl
 * libcatalyst-plugin-session-state-cookie-perl
 * libcatalyst-plugin-session-store-dbic-perl
-* libdbix-class-deploymenthandler-perl
 * libcatalyst-view-json-perl
 * libcatalyst-view-tt-perl
+* libdbix-class-uuidcolumns-perl
+* libdbix-class-inflatecolumn-serializer-perl
+* libdbix-class-deploymenthandler-perl
 * libcrypt-eksblowfish-perl
 * libdatetime-format-dbi-perl
 * libdatetime-format-iso8601-perl
 * libdbd-pg-perl
-* libdbix-class-uuidcolumns-perl
 * libjson-perl
 * libmath-round-perl
 * libtext-markdown-perl
