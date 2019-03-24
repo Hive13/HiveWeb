@@ -2,7 +2,6 @@ package HiveWeb::Controller::API::Admin::Reports;
 use Moose;
 use namespace::autoclean;
 
-use JSON;
 use DateTime;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -37,7 +36,7 @@ sub membership_total :Local :Args(0)
 	$out->{totals} = {};
 	foreach my $payment (@payments)
 		{
-		my $parameters = decode_json($payment->{raw});
+		my $parameters = $payment->{raw};
 
 		if (defined(my $item = $parameters->{item_number}))
 			{
