@@ -4,10 +4,12 @@
 		<div class="col-xs-12">
 			<div class="panel panel-danger">
 				<div class="panel-heading">
-					<h5>Confirm Cancellation</h5>
+					<h5>[% survey.title %]</h5>
 				</div>
 				<div class="panel-body">
-					<h4>Please fill out this brief survey to help us improve the Hive.</h4>
+					[%~ IF survey.json_data.instructions %]
+					<h4>[% survey.json_data.instructions %]</h4>
+					[%~ END %]
 					[%~ FOREACH question IN survey.questions %]
 					<div class="input-group u-w-100">
 						[%~ IF question.choices.size > 0 %]
@@ -40,9 +42,12 @@
 					[%~ END %]
 				</div>
 				<div class="panel-footer text-center">
-					Note that this is your official resignation from Hive13.
-					At the end of your subscription, your access will be automatically disabled.<br />
-					<input type="submit" value="Confirm Membership Cancellation" />
+					[%~
+						IF survey.json_data.submit_instructions;
+							GET survey.json_data.submit_instructions _ '<br />';
+						END;
+					%]
+					<input type="submit" value="[% survey.json_data.submit_button || 'Submit Survey' %]" />
 				</div>
 			</div>
 		</div>

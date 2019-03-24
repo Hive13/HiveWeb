@@ -9,14 +9,22 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ UUIDColumns });
+__PACKAGE__->load_components(qw{ InflateColumn::Serializer UUIDColumns });
 __PACKAGE__->table('survey');
 
 __PACKAGE__->add_columns(
 	'survey_id',
 	{ data_type => 'uuid', is_nullable => 0, size => 16 },
+	'name',
+	{ data_type => 'character varying', is_nullable => 1, },
 	'title',
 	{ data_type => 'character varying', is_nullable => 1, },
+	'json_data',
+	{
+	data_type        => 'jsonb',
+	is_nullable      => 1,
+	serializer_class => 'JSON',
+	},
 );
 
 __PACKAGE__->set_primary_key('survey_id');

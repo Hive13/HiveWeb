@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Mar 22 16:54:08 2019
+-- Created on Sun Mar 24 09:39:06 2019
 -- 
 ;
 --
@@ -152,7 +152,9 @@ CREATE TABLE "storage_slot_type" (
 --
 CREATE TABLE "survey" (
   "survey_id" uuid NOT NULL,
+  "name" character varying,
   "title" character varying,
+  "json_data" jsonb,
   PRIMARY KEY ("survey_id")
 );
 

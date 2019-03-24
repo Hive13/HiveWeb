@@ -19,6 +19,12 @@ ALTER TABLE "survey_choice" ADD CONSTRAINT "survey_choice_fk_survey_question_id"
   REFERENCES "survey_question" ("survey_question_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
+ALTER TABLE survey ADD COLUMN name character varying;
+
+;
+ALTER TABLE survey ADD COLUMN json_data jsonb;
+
+;
 
 COMMIT;
 

@@ -3334,6 +3334,26 @@ schema:
           reference_table: ''
           type: PRIMARY KEY
       fields:
+        json_data:
+          data_type: jsonb
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: json_data
+          order: 4
+          size:
+            - 0
+        name:
+          data_type: character varying
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
         survey_id:
           data_type: uuid
           default_value: ~
@@ -3351,7 +3371,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: title
-          order: 2
+          order: 3
           size:
             - 0
       indices: []
