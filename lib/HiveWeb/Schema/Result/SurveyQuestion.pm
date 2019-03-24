@@ -33,6 +33,17 @@ __PACKAGE__->belongs_to(
 	{ 'foreign.survey_id' => 'self.survey_id' },
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
+__PACKAGE__->has_many(
+	'answers',
+	'HiveWeb::Schema::Result::SurveyAnswer',
+	{ 'foreign.survey_question_id' => 'self.survey_question_id' },
+);
+__PACKAGE__->has_many(
+	'choices',
+	'HiveWeb::Schema::Result::SurveyChoice',
+	{ 'foreign.survey_question_id' => 'self.survey_question_id' },
+);
+
 
 __PACKAGE__->meta->make_immutable;
 

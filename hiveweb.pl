@@ -47,6 +47,7 @@
 		member_group  => 'members',
 		pending_group => 'pending_cancellations',
 		expire_group  => 'pending_expiry',
+		survey_uuid   => 'c061cc14-0a56-4c6b-b589-32760c2e77f6',
 		},
 	email =>
 		{
