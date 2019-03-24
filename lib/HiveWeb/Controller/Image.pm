@@ -8,18 +8,10 @@ sub get_image :Private
 	{
 	my ($self, $c, $image_id, $want_thumb) = @_;
 
-	my $image       = $c->model('DB::Image')->find($image_id) // die 'Invalid image ID';
-	my $response    = $c->response();
-	my $attachments = $image->attached_to();
+	my $image    = $c->model('DB::Image')->find($image_id);
+	my $response = $c->response();
 
-	# Board can see all images
-	if (!$c->check_user_roles('board'))
-		{
-		# If it's attached to members, but not me, forbid
-		die 'Invalid image ID'
-			if (   ref($attachments->{member_id}) eq 'ARRAY'
-			    && !(grep { $_ eq $c->user()->member_id() } @{ $attachments->{member_id} }));
-		}
+	die 'Imvalid image ID' if (!$image || !$image->can_view($c->user()));
 
 	$response->body($want_thumb ? ($image->thumbnail() || $image->image()) : $image->image());
 	$response->content_type($image->content_type());
