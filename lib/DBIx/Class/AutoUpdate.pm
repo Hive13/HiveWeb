@@ -1,4 +1,4 @@
-package DBIx::Class::AutoUpdater;
+package DBIx::Class::AutoUpdate;
 
 use strict;
 use warnings;
