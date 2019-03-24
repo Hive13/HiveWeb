@@ -189,20 +189,20 @@ sub pay_complete :Local :Args(0) {}
 sub cancel :Local :Args(0)
 	{
 	my ($self, $c) = @_;
-
-	$c->stash()->{template} = 'member/cancel.tt';
-	my $user      = $c->user();
-	my $member_id = $user->member_id();
-	my $request   = $c->request();
-	my $survey    = $c->model('DB::Survey')->find($c->config()->{cancellations}->{survey_uuid}) || die 'Can\'t load survey.';
+	my $user       = $c->user();
+	my $member_id  = $user->member_id();
+	my $request    = $c->request();
+	my $survey     = $c->model('DB::Survey')->find($c->config()->{cancellations}->{survey_uuid}) || die 'Can\'t load survey.';
 
 	if ($request->method() eq 'GET')
 		{
-		$c->stash()->{survey} = $survey;
+		$c->stash(
+			{
+			survey   => $survey,
+			template => 'survey.tt',
+			});
 		return;
 		}
-
-	my $form = $request->params();
 
 	$c->model('DB')->txn_do(sub
 		{
@@ -222,7 +222,7 @@ sub cancel :Local :Args(0)
 			$user->add_group($group_id, undef, 'cancellation confirmation');
 			}
 
-		my $response = $c->model('DB::SurveyResponse')->fill_out($user, $survey, $form) || die $!;
+		my $response = $c->model('DB::SurveyResponse')->fill_out($user, $survey, $request->params()) || die $!;
 
 		$c->model('DB::Action')->create(
 			{
