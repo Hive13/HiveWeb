@@ -12,7 +12,7 @@ extends 'HiveWeb::DBIx::Class::Core';
 use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdater });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate });
 __PACKAGE__->table('members');
 
 __PACKAGE__->add_columns(
