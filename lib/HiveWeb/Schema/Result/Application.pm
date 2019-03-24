@@ -9,7 +9,7 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate });
 __PACKAGE__->table('application');
 
 __PACKAGE__->add_columns(
@@ -50,6 +50,7 @@ __PACKAGE__->add_columns(
 		default_value => \'current_timestamp',
 		is_nullable   => 0,
 		original      => { default_value => \'now()' },
+		auto_update   => \'current_timestamp',
 	},
 	'app_turned_in_at',
 	{
@@ -92,23 +93,6 @@ __PACKAGE__->belongs_to(
 	{ 'foreign.image_id' => 'self.picture_id' },
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
-
-sub update
-	{
-	my $self  = shift;
-	my $attrs = shift;
-
-	if (ref($attrs) eq 'HASH')
-		{
-		$attrs->{updated_at} = \'current_timestamp';
-		}
-	else
-		{
-		$attrs = { updated_at => \'current_timestamp' };
-		}
-
-	return $self->next::method($attrs);
-	}
 
 __PACKAGE__->meta->make_immutable;
 

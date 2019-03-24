@@ -11,7 +11,7 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate });
 __PACKAGE__->table('image');
 
 __PACKAGE__->add_columns(
@@ -32,6 +32,7 @@ __PACKAGE__->add_columns(
     data_type     => 'timestamp with time zone',
     default_value => \'current_timestamp',
     is_nullable   => 0,
+    auto_update   => \'current_timestamp',
   },
 	'content_type',
 	{ data_type => 'character varying', is_nullable => 1 },
@@ -69,23 +70,15 @@ sub update
 	my $self  = shift;
 	my $attrs = shift;
 
-	if (ref($attrs) eq 'HASH')
+	if (ref($attrs) eq 'HASH' && exists($attrs->{image}))
 		{
-		if (exists($attrs->{image}))
-			{
-			my $im = Image::Magick->new() || die $!;
-			$im->BlobToImage($attrs->{image});
-			$im->Resize(geometry => '100x100');
-			$attrs->{thumbnail} = ($im->ImageToBlob())[0];
-			}
-		$attrs->{updated_at} = \'current_timestamp';
-		}
-	else
-		{
-		$attrs = { updated_at => \'current_timestamp' };
+		my $im = Image::Magick->new() || die $!;
+		$im->BlobToImage($attrs->{image});
+		$im->Resize(geometry => '100x100');
+		$attrs->{thumbnail} = ($im->ImageToBlob())[0];
 		}
 
-	return $self->next::method($attrs);
+	return $self->next::method($attrs, @_);
 	}
 
 __PACKAGE__->meta->make_immutable;

@@ -12,7 +12,7 @@ extends 'HiveWeb::DBIx::Class::Core';
 use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdater });
 __PACKAGE__->table('members');
 
 __PACKAGE__->add_columns(
@@ -55,6 +55,7 @@ __PACKAGE__->add_columns(
 		default_value => \'current_timestamp',
 		is_nullable   => 0,
 		original      => { default_value => \'now()' },
+		auto_update   => \'current_timestamp',
 		},
 	'handle',
 	{ data_type => 'citext', is_nullable   => 1	},
@@ -243,16 +244,7 @@ sub update
 			});
 		}
 
-	if (ref($attrs) eq 'HASH')
-		{
-		$attrs->{updated_at} = \'current_timestamp';
-		}
-	else
-		{
-		$attrs = { updated_at => \'current_timestamp' };
-		}
-
-	return $self->next::method($attrs);
+	return $self->next::method($attrs, @_);
 	}
 
 sub TO_JSON
