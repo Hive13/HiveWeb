@@ -9,7 +9,7 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime +HiveWeb::DBIx::Class::OnUpdate });
 __PACKAGE__->table('storage_slot');
 
 __PACKAGE__->add_columns(
@@ -18,7 +18,7 @@ __PACKAGE__->add_columns(
   'name',
   { data_type => 'character varying', is_nullable => 0, size => 32 },
   'member_id',
-  { data_type => 'uuid', is_nullable => 1 },
+  { data_type => 'uuid', is_nullable => 1, on_update => 'update_member' },
   'location_id',
   { data_type => 'uuid', is_nullable => 0 },
 	'type_id',
@@ -50,29 +50,39 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
-__PACKAGE__->meta->make_immutable;
-
-sub assign
+sub update_member
 	{
-	my ($self, $member_id, $assigning_member_id) = @_;
+	my ($self, $old, $new) = @_;
 	my $schema = $self->result_source()->schema();
-
-	return
-		if (!$member_id || !$assigning_member_id);
-	$member_id = $member_id->member_id()
-		if (ref($member_id));
-	$assigning_member_id = $assigning_member_id->member_id()
-		if (ref($assigning_member_id));
 
 	$schema->txn_do(sub
 		{
-		$schema->resultset('Action')->create(
+		if ($old)
 			{
-			action_type       => 'storage.assign',
-			queuing_member_id => $assigning_member_id,
-			row_id            => $self->slot_id(),
-			}) || die 'Could not queue notification: ' . $!;
-		$self->update({ member_id => $member_id }) || die $!;
+			$schema->resultset('AuditLog')->create(
+				{
+				change_type        => 'unassign_slot',
+				notes              => 'Unassigned slot ' . $self->slot_id(),
+				changing_member_id => $HiveWeb::Schema::member_id,
+				changed_member_id  => $old,
+				}) || die $!;
+			}
+		if ($new)
+			{
+			$schema->resultset('AuditLog')->create(
+				{
+				change_type        => 'assign_slot',
+				notes              => 'Assigned slot ' . $self->slot_id(),
+				changed_member_id  => $new,
+				changing_member_id => $HiveWeb::Schema::member_id,
+				});
+			$schema->resultset('Action')->create(
+				{
+				action_type       => 'storage.assign',
+				queuing_member_id => $HiveWeb::Schema::member_id,
+				row_id            => $self->slot_id(),
+				}) || die 'Could not queue notification: ' . $!;
+			}
 		});
 	}
 
@@ -103,7 +113,6 @@ sub TO_FULL_JSON
 		member_id   => $self->member_id(),
 		member      => $self->member(),
 		location_id => $self->location_id(),
-		location    => $self->location(),
 		sort_order  => $self->sort_order(),
 		type_id     => $self->type_id(),
 		type        => $self->type(),
