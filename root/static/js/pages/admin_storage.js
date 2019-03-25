@@ -224,7 +224,7 @@ actions.slot_unassign = function (slot_id)
 
 	api_json(
 		{
-		path: "/admin/storage/assign_slot",
+		path: "/admin/storage/slot/assign",
 		what: "Unassign Slot",
 		data:
 			{
@@ -258,10 +258,62 @@ actions.slot_delete = function (slot_id)
 
 	api_json(
 		{
-		path: "/admin/storage/delete_slot",
+		path: "/admin/storage/slot/delete",
 		what: "Delete Slot",
 		data: { slot_id: slot_id },
 		success: load_storage
+		});
+	};
+actions.slot_info = function (slot_id)
+	{
+	api_json(
+		{
+		path: "/admin/storage/slot/info",
+		what: "Load Slot Info",
+		success_toast: false,
+		data: { slot_id: slot_id },
+		success: function (data)
+			{
+			var $ul = $("<ul />"), d, a, log;
+			var i, $dialogue = $(
+				[
+				"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
+					"<div class=\"modal-dialog\" role=\"document\">",
+						"<div class=\"modal-content\">",
+							"<div class=\"modal-header\">",
+								"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+								"<h3 class=\"modal-title\">Slot History</h3>",
+							"</div>",
+							"<div class=\"modal-body\">",
+							"</div>",
+							"<div class=\"modal-footer\">",
+								"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>",
+							"</div>",
+						"</div>",
+					"</div>",
+				"</div>"
+				].join(""));
+			for (i = 0; i < data.logs.length; i++)
+				{
+				log = data.logs[i];
+				d = new Date(log.change_time);
+				switch (log.change_type)
+					{
+					case "assign_slot":
+						a = "Assigned to ";
+						break;
+					case "unassign_slot":
+						a = "Unassigned from ";
+						break;
+					default:
+						a = "Unknown action to ";
+					}
+				$ul.append($("<li>" + a + log.changed_member + " by " + log.changing_member + " on " + d.toLocaleDateString() + " " + d.toLocaleTimeString() + "</li>"));
+				}
+
+			$dialogue.find("div.modal-body").append($ul);
+			$dialogue.modal("show");
+			},
 		});
 	};
 
@@ -276,7 +328,7 @@ function finish_slot()
 
 	api_json(
 		{
-		path: "/admin/storage/edit_slot",
+		path: "/admin/storage/slot/edit",
 		what: slot_id ? "Edit Slot" : "Add Slot",
 		data:
 			{
@@ -306,7 +358,7 @@ function finish_slot_assign()
 
 	api_json(
 		{
-		path: "/admin/storage/assign_slot",
+		path: "/admin/storage/slot/assign",
 		what: "Assign Slot",
 		data:
 			{
@@ -479,8 +531,9 @@ function load_storage()
 					items["slot_assign"] = { name: "Assign Slot", icon: "fas fa-user-plus" };
 					items["slot_fulfil"] = { name: "Fulfil a Request with this Slot", icon: "fas fa-user-tag" };
 					}
-				items["slot_edit"] = { name: "Edit Slot", icon: "fas fa-pencil" };
+				items["slot_edit"] = { name: "Edit Slot", icon: "fas fa-pencil-alt" };
 				items["slot_delete"] = { name: "Delete Slot", icon: "fas fa-times" };
+				items["slot_info"] = { name: "View Slot History", icon: "fas fa-th-list" };
 				return { callback: context_callback, items: items };
 				}
 			});
