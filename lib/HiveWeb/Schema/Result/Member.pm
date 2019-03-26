@@ -396,17 +396,7 @@ sub add_group
 	{
 	my ($self, $group_id, $changing_id, $notes_extra) = @_;
 
-	my $ref = ref($group_id);
-	if ($ref eq 'SCALAR')
-		{
-		my $group = $self->result_source()->schema->resultset('Mgroup')->find({ name => $group_id })
-			|| die 'No such group';
-		$group_id = $group->group_id();
-		}
-	elsif ($ref)
-		{
-		$group_id = $group_id->group_id();
-		}
+	$group_id    = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
 	$changing_id = $changing_id->member_id() if (ref($changing_id));
 	my $notes    = "Added group $group_id";
 	if ($notes_extra)
@@ -432,17 +422,7 @@ sub remove_group
 	{
 	my ($self, $group_id, $changing_id, $notes_extra) = @_;
 
-	my $ref = ref($group_id);
-	if ($ref eq 'SCALAR')
-		{
-		my $group = $self->result_source()->schema->resultset('Mgroup')->find({ name => $group_id })
-			|| die 'No such group';
-		$group_id = $group->group_id();
-		}
-	elsif ($ref)
-		{
-		$group_id = $group_id->group_id();
-		}
+	$group_id    = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
 	$changing_id = $changing_id->member_id() if (ref($changing_id));
 	my $notes    = "Removed group $group_id";
 	if ($notes_extra)
@@ -468,18 +448,7 @@ sub in_group
 	{
 	my ($self, $group_id) = @_;
 
-	my $ref = ref($group_id);
-	if ($ref eq 'SCALAR')
-		{
-		my $group = $self->result_source()->schema->resultset('Mgroup')->find({ name => $group_id })
-			|| die 'No such group';
-		$group_id = $group->group_id();
-		}
-	elsif ($ref)
-		{
-		$group_id = $group_id->group_id();
-		}
-
+	$group_id = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
 	return $self->find_related('member_mgroups', { mgroup_id => $group_id });
 	}
 
