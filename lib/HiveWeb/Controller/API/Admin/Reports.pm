@@ -2,8 +2,8 @@ package HiveWeb::Controller::API::Admin::Reports;
 use Moose;
 use namespace::autoclean;
 
-use DateTime;
 use JSON;
+use DateTime;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
