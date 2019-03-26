@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use DateTime;
+use JSON;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -36,7 +37,7 @@ sub membership_total :Local :Args(0)
 	$out->{totals} = {};
 	foreach my $payment (@payments)
 		{
-		my $parameters = $payment->{raw};
+		my $parameters = decode_json($payment->{raw});
 
 		if (defined(my $item = $parameters->{item_number}))
 			{
