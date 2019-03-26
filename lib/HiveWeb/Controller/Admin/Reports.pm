@@ -1,7 +1,6 @@
 package HiveWeb::Controller::Admin::Reports;
 use Moose;
 use namespace::autoclean;
-use JSON;
 use DateTime::TimeZone;
 use DateTime::Format::Strptime;
 
@@ -135,7 +134,7 @@ sub membership_status
 		{
 		$totals->{unknown} //= 0;
 		$totals->{unknown}++;
-		my $data = decode_json($unknown->raw());
+		my $data = $unknown->raw();
 		next if ($data->{txn_type} eq 'subscr_signup' || $data->{txn_type} eq 'subscr_modify');
 		push(@{ $categories->{unknown} },
 			{

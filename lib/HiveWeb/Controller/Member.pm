@@ -189,15 +189,20 @@ sub pay_complete :Local :Args(0) {}
 sub cancel :Local :Args(0)
 	{
 	my ($self, $c) = @_;
+	my $user       = $c->user();
+	my $member_id  = $user->member_id();
+	my $request    = $c->request();
+	my $survey     = $c->model('DB::Survey')->find($c->config()->{cancellations}->{survey_uuid}) || die 'Can\'t load survey.';
 
-	$c->stash()->{template} = 'member/cancel.tt';
-	my $user      = $c->user();
-	my $member_id = $user->member_id();
-
-	return
-		if ($c->request()->method() eq 'GET');
-
-	my $form = $c->request()->params();
+	if ($request->method() eq 'GET')
+		{
+		$c->stash(
+			{
+			survey   => $survey,
+			template => 'survey.tt',
+			});
+		return;
+		}
 
 	$c->model('DB')->txn_do(sub
 		{
@@ -215,15 +220,7 @@ sub cancel :Local :Args(0)
 			$user->add_group(\'pending_expiry', undef, 'cancellation confirmation');
 			}
 
-		# TODO: Don't hardcode these UUIDs in.
-		my $reason = $form->{reason};
-		if ($reason eq 'other')
-			{
-			$reason = $form->{other_reason};
-			}
-		my $response = $user->create_related('survey_responses', { survey_id => 'c061cc14-0a56-4c6b-b589-32760c2e77f6' }) || die $!;
-		$response->create_related('answers', { survey_question_id => '6560957a-b1ca-4757-93e3-313c5a22679a', answer_text => $form->{comments} }) || die $!;
-		$response->create_related('answers', { survey_question_id => '6f38821c-1905-4d75-bd71-0ad21b2f187c', answer_text => $reason }) || die $!;
+		my $response = $c->model('DB::SurveyResponse')->fill_out($user, $survey, $request->params()) || die $!;
 
 		$c->model('DB::Action')->create(
 			{

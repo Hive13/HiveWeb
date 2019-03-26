@@ -2,7 +2,6 @@ package HiveWeb::Controller::PayPal;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
-use JSON;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -29,7 +28,7 @@ sub ipn :Local :Args(0)
 				{
 				txn_id      => $parameters->{txn_id},
 				payer_email => $parameters->{payer_email},
-				raw         => encode_json($parameters),
+				raw         => $parameters,
 				}) || die;
 
 			$message->process(1);

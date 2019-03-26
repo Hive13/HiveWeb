@@ -1,0 +1,89 @@
+[%~ SET other = []; %]
+<form method="post">
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="panel panel-danger">
+				<div class="panel-heading">
+					<h5>[% survey.title %]</h5>
+				</div>
+				<div class="panel-body">
+					[%~ IF survey.json_data.instructions %]
+					<h4>[% survey.json_data.instructions %]</h4>
+					[%~ END %]
+					[%~ FOREACH question IN survey.questions %]
+					<div class="input-group u-w-100">
+						[%~ IF question.choices.size > 0 %]
+							<h5>[% question.question_text %]</h5>
+							[%~
+								FOREACH choice IN question.choices;
+									SET name = choice.choice_name;
+									IF name == 'other';
+										SET text = 'Other';
+										other.push(question.survey_question_id);
+									ELSE;
+										SET text = choice.choice_text;
+									END;
+							%]
+								<label>
+									<input type="radio" name="[% question.survey_question_id.dquote %]" value="[% name.dquote %]" />
+									[% text %]
+								</label><br />
+								[%~ IF name == 'other' %]
+								<input type="text" id="other_[% question.survey_question_id.dquote %]" style="display: none" class="form-control" />
+								[%~ END %]
+							[%~ END %]
+						[%~ ELSE %]
+							<label class="u-w-100">
+								[%~ question.question_text %]<br />
+								<textarea class="u-w-100" rows="6" name="[% question.survey_question_id.dquote %]"></textarea>
+							</label>
+						[%~ END %]
+					</div>
+					[%~ END %]
+				</div>
+				<div class="panel-footer text-center">
+					[%~
+						IF survey.json_data.submit_instructions;
+							GET survey.json_data.submit_instructions _ '<br />';
+						END;
+					%]
+					<input type="submit" value="[% survey.json_data.submit_button || 'Submit Survey' %]" />
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+
+<script type="text/javascript">
+function other_change(uuid)
+	{
+	var $other = $("input#other_" + uuid);
+	var $input = $("input[name=" + uuid + "]");
+
+	var f = function()
+		{
+		var val = $input.filter(":checked").val();
+
+		if (val === "other")
+			$other.css("display", "").focus();
+		else
+			$other.css("display", "none");
+		};
+	f();
+	$("form").submit(function (e)
+		{
+		var $f = $input.filter(":checked");
+		if ($f.val() === "other")
+			$f.val($other.val());
+		});
+	$input.change(f);
+	}
+
+$(function ()
+	{
+	[%~ FOREACH id IN other %]
+	other_change("[% id.dquote %]");
+	[%~ END %]
+	});
+</script>
+[%~ # vim:set filetype=tt2html: ~%]

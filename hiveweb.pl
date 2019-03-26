@@ -47,6 +47,7 @@
 		member_group  => 'members',
 		pending_group => 'pending_cancellations',
 		expire_group  => 'pending_expiry',
+		survey_uuid   => 'c061cc14-0a56-4c6b-b589-32760c2e77f6',
 		},
 	email =>
 		{
@@ -114,6 +115,7 @@
 		'member.notify_cancel'       => 100,
 		'member.past_due'            => 40,
 		'member.welcome'             => 20,
+		'notify.term'                => 100,
 		'password.reset'             => 1,
 		'paypal.refresh'             => 10,
 		'storage.assign'             => 100,

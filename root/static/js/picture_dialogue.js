@@ -34,7 +34,7 @@ function Picture(options)
 				"<img src=\"/static/icons/add_photo.png\" />",
 				"<br />",
 				this.button_text,
-				"<input type=\"file\" hidden style=\"display: none\" />",
+				"<input type=\"file\" hidden style=\"display: none\" accept=\"image/*\" />",
 			"</label>"
 			].join('');
 	else
