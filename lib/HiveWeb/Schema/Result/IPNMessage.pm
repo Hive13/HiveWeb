@@ -10,13 +10,12 @@ use MooseX::MarkAsMethods autoclean => 1;
 
 use HiveWeb;
 use LWP::UserAgent;
-use JSON;
 use DateTime::TimeZone;
 use DateTime::Format::Strptime;
 
 extends 'HiveWeb::DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime InflateColumn::Serializer });
 __PACKAGE__->table('ipn_message');
 
 __PACKAGE__->add_columns(
@@ -36,7 +35,11 @@ __PACKAGE__->add_columns(
 	'payer_email',
   { data_type => 'character varying', is_nullable => 0 },
 	'raw',
-  { data_type => 'text', is_nullable => 0 },
+  {
+	data_type        => 'text',
+	is_nullable      => 0,
+	serializer_class => 'JSON',
+	},
 );
 
 __PACKAGE__->uuid_columns('ipn_message_id');
@@ -60,7 +63,7 @@ sub TO_JSON
 		received_at    => $self->received_at(),
 		txn_id         => $self->txn_id(),
 		payer_email    => $self->payer_email(),
-		data           => eval($self->raw()),
+		data           => $self->raw(),
 		};
 	}
 
@@ -98,10 +101,8 @@ sub subscr_payment
 	my $pending = $member->search_related('member_mgroups', { 'mgroup.name' => 'pending_payments' }, { join => 'mgroup' });
 	if ($pending->count())
 		{
-		my $group_id = $schema->resultset('Mgroup')->find({ name => 'pending_payments' })->mgroup_id() || die "Can't find group";
-		$member->remove_group($group_id, undef, 'initial payment');
-		$group_id = $schema->resultset('Mgroup')->find({ name => 'members' })->mgroup_id() || die "Can't find group";
-		$member->add_group($group_id, undef, 'initial payment');
+		$member->remove_group(\'pending_payments', undef, 'initial payment');
+		$member->add_group(\'members', undef, 'initial payment');
 
 		my $application = $member->find_related('applications',
 			{
@@ -176,7 +177,7 @@ sub process
 	{
 	my ($self, $log_not_found) = @_;
 
-	my $parameters = decode_json($self->raw());
+	my $parameters = $self->raw();
 	my $type       = $parameters->{txn_type};
 	my $schema     = $self->result_source()->schema();
 	my $payer      = $parameters->{payer_email};
