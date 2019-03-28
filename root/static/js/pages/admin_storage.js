@@ -510,7 +510,7 @@ function load_storage()
 			callback: context_callback,
 			items:
 				{
-				location_edit: { name: "Edit Location", icon: "fas fa-pencil" },
+				location_edit: { name: "Edit Location", icon: "fas fa-pencil-alt" },
 				location_add_sub: { name: "Add Sub-Location", icon: "fas fa-beer" },
 				location_add_slot: { name: "Add Slot", icon: "fas fa-beer" },
 				location_delete: { name: "Delete Location", icon: "fas fa-times" }
