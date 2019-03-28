@@ -6,7 +6,7 @@ use warnings;
 use base 'DBIx::Class::Row';
 
 sub update
- 	{
+	{
 	my ($self, $data, @rest) = @_;
 
 	my $info = $self->result_source()->columns_info();
