@@ -32,6 +32,7 @@ sub finalize :Local :Args(0)
 	my $in           = $c->stash()->{in};
 	my $application  = $c->stash()->{application};
 	my $result       = $in->{result};
+	my $member       = $application->member();
 
 	if ($application->decided_at())
 		{
@@ -44,6 +45,19 @@ sub finalize :Local :Args(0)
 		$out->{data} = 'You must specify a final action.';
 		return;
 		}
+	if ($result eq 'accepted')
+		{
+		if (!$member->member_image_id())
+			{
+			$out->{data} = 'This member does not have an image attached.';
+			return;
+			}
+		if (!$application->form_id())
+			{
+			$out->{data} = 'This application does not have a signed form attached.';
+			return;
+			}
+		}
 
 	$out->{response} = \1;
 
@@ -51,7 +65,6 @@ sub finalize :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
-			my $member = $application->member();
 			$c->model('DB::Action')->create(
 				{
 				queuing_member_id => $c->user()->member_id(),
