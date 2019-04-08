@@ -154,7 +154,7 @@ sub assign :Local :Args(0)
 		{
 		$member_id = undef;
 		}
-	
+
 	$out->{response} = \1;
 	$out->{data}     = 'Slot updated.';
 	#try
