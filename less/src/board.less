@@ -69,6 +69,20 @@ nav ul.pagination
 		{
 		margin-top: 4px;
 		margin-bottom: 4px;
+		&:before
+			{
+			content: '\25b6';
+			transition: transform .4s ease-in-out;
+			-webkit-transition: -webkit-transform .4s ease-in-out;
+			display: inline-block;
+			}
+		}
+	&.shown .panel-heading h4:before
+		{
+		transform: rotate(90deg);
+		-webkit-transform: rotate(90deg);
+		transition: transform .4s ease-in-out;
+		-webkit-transition: -webkit-transform .4s ease-in-out;
 		}
 	.application-icons > span
 		{
