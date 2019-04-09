@@ -4,7 +4,7 @@
 BEGIN;
 
 ;
-ALTER TABLE storage_slot ADD COLUMN expire_date timestamp with time zone NOT NULL;
+ALTER TABLE storage_slot ADD COLUMN expire_date timestamp with time zone;
 
 ;
 

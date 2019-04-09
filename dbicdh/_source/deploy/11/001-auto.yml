@@ -3194,7 +3194,7 @@ schema:
         expire_date:
           data_type: timestamp with time zone
           default_value: ~
-          is_nullable: 0
+          is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: expire_date

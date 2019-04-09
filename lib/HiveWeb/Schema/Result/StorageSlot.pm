@@ -22,7 +22,7 @@ __PACKAGE__->add_columns(
 	'expire_date',
 	{
 	data_type   => 'timestamp with time zone',
-	is_nullable => 0,
+	is_nullable => 1,
 	},
   'location_id',
   { data_type => 'uuid', is_nullable => 0 },

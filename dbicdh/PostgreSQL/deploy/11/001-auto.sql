@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Tue Apr  9 08:34:41 2019
+-- Created on Tue Apr  9 08:43:19 2019
 -- 
 ;
 --
@@ -556,7 +556,7 @@ CREATE TABLE "storage_slot" (
   "slot_id" uuid NOT NULL,
   "name" character varying(32) NOT NULL,
   "member_id" uuid,
-  "expire_date" timestamp with time zone NOT NULL,
+  "expire_date" timestamp with time zone,
   "location_id" uuid NOT NULL,
   "type_id" uuid NOT NULL,
   "sort_order" integer DEFAULT 1000 NOT NULL,
