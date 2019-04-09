@@ -7,6 +7,9 @@ BEGIN;
 ALTER TABLE storage_slot ADD COLUMN expire_date timestamp with time zone;
 
 ;
+ALTER TABLE storage_slot_type ADD COLUMN default_expire_time character varying;
+
+;
 
 COMMIT;
 

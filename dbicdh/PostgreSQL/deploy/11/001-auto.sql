@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Tue Apr  9 08:43:19 2019
+-- Created on Tue Apr  9 11:12:11 2019
 -- 
 ;
 --
@@ -142,6 +142,7 @@ CREATE INDEX "storage_location_idx_parent_id" on "storage_location" ("parent_id"
 CREATE TABLE "storage_slot_type" (
   "type_id" uuid NOT NULL,
   "name" character varying NOT NULL,
+  "default_expire_time" character varying,
   "can_request" boolean DEFAULT 't' NOT NULL,
   PRIMARY KEY ("type_id")
 );
