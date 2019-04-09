@@ -157,15 +157,15 @@ sub assign :Local :Args(0)
 
 	$out->{response} = \1;
 	$out->{data}     = 'Slot updated.';
-	#try
-	#	{
-		$slot->update({ member_id => $member_id });
-	#	}
-	#catch
-	#	{
-	#	$out->{response} = \0;
-	#	$out->{data}     = 'Could not update slot.';
-	#	};
+	try
+		{
+		$slot->assign($member_id);
+		}
+	catch
+		{
+		$out->{response} = \0;
+		$out->{data}     = 'Could not update slot.';
+		};
 	}
 
 __PACKAGE__->meta->make_immutable;

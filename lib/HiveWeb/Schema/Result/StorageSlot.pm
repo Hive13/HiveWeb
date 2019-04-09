@@ -124,6 +124,24 @@ sub TO_FULL_JSON
 		};
 	}
 
+sub assign
+	{
+	my ($self, $member_id) = @_;
+
+	$member_id = $member_id->member_id() if (ref($member_id));
+	my $schema = $self->result_source()->schema();
+	$schema->txn_do(sub
+		{
+		my $cols = { member_id => $member_id };
+		my $type = $self->type();
+		if (defined(my $i = $type->default_expire_time()))
+			{
+			$cols->{expire_date} = \['now() + ?', $i];
+			}
+		$self->update($cols) || (warn $! && die $!);
+		});
+	}
+
 sub hierarchy
 	{
 	my $self = shift;
