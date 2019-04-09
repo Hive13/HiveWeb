@@ -81,7 +81,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
-__PACKAGE__->meta->make_immutable;
+sub insert
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	my $guard  = $schema->txn_scope_guard();
+
+	$self->next::method(@_);
+
+	$schema->resultset('Action')->create(
+		{
+		queuing_member_id => $HiveWeb::Schema::member_id,
+		action_type       => 'storage.request',
+		row_id            => $self->request_id(),
+		}) || die 'Could not queue notification: ' . $!;
+
+	$guard->commit();
+	return $self;
+	}
 
 sub TO_JSON
 	{

@@ -9,6 +9,7 @@ sub index :Path :Args(0)
 	{
 	my ($self, $c) = @_;
 
+	$c->detach('request');
 	}
 
 sub request :Local :Args(0)
@@ -24,21 +25,11 @@ sub request :Local :Args(0)
 		if ($c->request()->method() eq 'GET');
 
 	my $form    = $c->request()->params();
-
-	$c->model('DB')->txn_do(sub
+	my $request = $c->user->create_related('requests',
 		{
-		my $request = $c->user->create_related('requests',
-			{
-			notes   => $form->{notes},
-			type_id => $form->{type_id},
-			}) || die $!;
-		$c->model('DB::Action')->create(
-			{
-			queuing_member_id => $c->user()->member_id(),
-			action_type       => 'storage.request',
-			row_id            => $request->request_id(),
-			}) || die 'Could not queue notification: ' . $!;
-		});
+		notes   => $form->{notes},
+		type_id => $form->{type_id},
+		}) || die $!;
 	$c->response()->redirect($c->uri_for('/'));
 	}
 
