@@ -19,6 +19,11 @@ __PACKAGE__->add_columns(
   { data_type => 'character varying', is_nullable => 0, size => 32 },
   'member_id',
   { data_type => 'uuid', is_nullable => 1, on_update => 'update_member' },
+	'expire_date',
+	{
+	data_type   => 'timestamp with time zone',
+	is_nullable => 0,
+	},
   'location_id',
   { data_type => 'uuid', is_nullable => 0 },
 	'type_id',
