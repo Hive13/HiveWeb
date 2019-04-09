@@ -45,6 +45,11 @@ function init_pending_applications()
 		.on("show.bs.collapse", ".hive-application", function ()
 			{
 			$(this).find(".application-icons").css("display", "none");
+			$(this).addClass("shown");
+			})
+		.on("hide.bs.collapse", ".hive-application", function ()
+			{
+			$(this).removeClass("shown");
 			})
 		.on("hidden.bs.collapse", ".hive-application", function ()
 			{
