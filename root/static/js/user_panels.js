@@ -193,7 +193,7 @@ function init_heatmap()
 
 function display_storage_data(data)
 	{
-	var self = this, i, dt, request, html = "<a href=\"/storage/request\">Request a new spot</a><br /><br />";
+	var self = this, i, dt, request, html = "<a href=\"/storage/request\" id=\"request_new\">Request a new spot</a><br /><br />";
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
@@ -271,6 +271,88 @@ function display_storage_data(data)
 		});
 	}
 
+function init_storage()
+	{
+	var self = this;
+
+	this.$request_dialogue =
+		$([
+		"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
+			"<div class=\"modal-dialog\" role=\"document\">",
+				"<div class=\"modal-content\">",
+					"<div class=\"modal-header\">",
+						"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+						"<h3 class=\"modal-title\">Request New Slot</h3>",
+					"</div>",
+					"<div class=\"modal-body\">",
+						"<label>",
+							"Storage Type Requested:",
+							"<select name=\"type_id\">",
+							"</select>",
+						"</label>",
+						"<textarea name=\"notes\" rows=\"5\" class=\"u-w-100\"></textarea>",
+						"<br />",
+						"<div class=\"alert alert-info\">",
+							"Please include any notes.  For your third slot, this must include why two spots aren't enough and how long you foresee needing a third slot.",
+						"</div>",
+					"</div>",
+					"<div class=\"modal-footer\">",
+						"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+						"<button type=\"button\" class=\"btn btn-primary accept\">Submit Request</button>",
+					"</div>",
+				"</div>",
+			"</div>",
+		"</div>"
+		].join(""));
+
+	this.$request_dialogue.find("button.accept").click(function ()
+		{
+		var $this = self.$request_dialogue,
+			data    =
+				{
+				notes:   $this.find("textarea").val(),
+				type_id: $this.find("select").val()
+				};
+
+		api_json(
+			{
+			data: data,
+			path: "/storage/request",
+			what: "Request Storage Slot",
+			success: function (data)
+				{
+				$this.modal("hide");
+				self.load_panel_data();
+				}
+			});
+		});
+
+	this.$panel.on("click", "#request_new", function ()
+		{
+		var $dialogue = self.$request_dialogue;
+
+		$dialogue.find("textarea").val('');
+		api_json(
+			{
+			data: {},
+			path: "/storage/types",
+			what: "Get Request Types",
+			success_toast: false,
+			success: function (data)
+				{
+				var i, $select = $dialogue.find("select");
+
+				$select.empty();
+				for (i = 0; i < data.types.length; i++)
+					$select.append($("<option />").val(data.types[i].type_id).text(data.types[i].name));
+				$dialogue.modal("show");
+				}
+			});
+
+		return false;
+		});
+	}
+
 function display_curse_data(data)
 	{
 	var curse, i, html = "<ol class=\"curses\">", date;
@@ -306,6 +388,7 @@ register_panel("storage",
 	{
 	panel_name:     "Storage",
 	panel_function: display_storage_data,
+	init_function:  init_storage,
 	load_path:      "/storage/list",
 	refresh:        false
 	});

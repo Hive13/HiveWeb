@@ -28,6 +28,29 @@ sub list :Local :Args(0)
 	$out->{response} = \1;
 	}
 
+sub types :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+
+	$out->{types}    = [ $c->model('DB::StorageSlotType')->search({ can_request => 't' })->all() ];
+	$out->{response} = \1;
+	}
+
+sub request :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+	my $in         = $c->stash()->{in};
+
+	my $request = $c->user->create_related('requests',
+		{
+		notes   => $in->{notes},
+		type_id => $in->{type_id},
+		}) || die $!;
+	$out->{response}   = \1;
+	$out->{request_id} = $request->request_id();
+	}
 sub relinquish :Local :Args(0)
 	{
 	my ($self, $c) = @_;
