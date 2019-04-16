@@ -234,7 +234,7 @@ sub update
 	my $attrs = shift;
 	my %dirty = $self->get_dirty_columns();
 
-	if ($dirty{paypal_email} )
+	if ($dirty{paypal_email})
 		{
 		$self->result_source()->schema()->resultset('Action')->create(
 			{
