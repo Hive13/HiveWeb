@@ -793,6 +793,7 @@ function edit(member_id)
 				$("div#pay_div").css("display", "none");
 				$("div#link_div").css("display", "");
 				$("div#link_div div").html("This account is linked to " + data.link.fname + " " + data.link.lname + ". Please visit that acconut to edit payment and link info.");
+				link.set([]);
 				}
 			else
 				{

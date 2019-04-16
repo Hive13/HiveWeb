@@ -234,11 +234,11 @@ sub update
 	my $attrs = shift;
 	my %dirty = $self->get_dirty_columns();
 
-	if ($dirty{paypal_email} && $self->paypal_email =~ /.@./)
+	if ($dirty{paypal_email})
 		{
 		$self->result_source()->schema()->resultset('Action')->create(
 			{
-			queuing_member_id => $self->member_id(),
+			queuing_member_id => $HiveWeb::Schema::member_id // $self->member_id(),
 			action_type       => 'paypal.refresh',
 			row_id            => $self->member_id(),
 			});
