@@ -40,7 +40,7 @@ END;
 <table class="report-table">
 	<thead>
 		<tr class="title">
-			<th bgcolor="[% colors.$color %]" colspan="[% size %]">
+			<th bgcolor="[% colors.$color %]" colspan="[% size %]" title="[% members.size %] Main / [% total - members.size %] Linked">
 				[%~ '(' _ total _ ')' _ title ~%]
 			</th>
 		</tr>
