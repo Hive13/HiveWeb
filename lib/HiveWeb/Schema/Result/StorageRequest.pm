@@ -9,6 +9,8 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
+use Text::Markdown 'markdown';
+
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
 __PACKAGE__->table('storage_request');
 
@@ -109,10 +111,10 @@ sub TO_JSON
 		request_id     => $self->request_id(),
 		member_id      => $self->member_id(),
 		created_at     => $self->created_at(),
-		notes          => $self->notes(),
+		notes          => markdown($self->notes()),
 		status         => $self->status(),
 		decided_at     => $self->decided_at(),
-		decision_notes => $self->decision_notes(),
+		decision_notes => markdown($self->decision_notes()),
 		hidden         => $self->hidden() ? \1 : \0,
 		type_id        => $self->type_id(),
 		};
