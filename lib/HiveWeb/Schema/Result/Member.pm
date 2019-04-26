@@ -11,6 +11,7 @@ extends 'HiveWeb::DBIx::Class::Core';
 
 use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
+use HiveWeb;
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate });
 __PACKAGE__->table('members');
@@ -351,10 +352,14 @@ sub add_vend_credits
 sub list_slots
 	{
 	my $self  = shift;
-	my @slots = $self->slots();
+	my $slots = $self->search_related('slots', {},
+		{
+		'+select' => [ \['(now() + ?::interval) > expire_date', HiveWeb->config->{storage}->{remind} ] ],
+		'+as'     => [ 'can_renew' ],
+		});
 	my @ret;
 
-	foreach my $slot (@slots)
+	while (my $slot = $slots->next())
 		{
 		my $location = $slot->location();
 		my $lname = "";
@@ -367,9 +372,10 @@ sub list_slots
 			}
 		push(@ret,
 			{
-			slot_id  => $slot->slot_id(),
-			name     => $slot->name(),
-			location => $lname,
+			slot_id   => $slot->slot_id(),
+			name      => $slot->name(),
+			location  => $lname,
+			can_renew => $slot->get_column('can_renew') ? \1 : \0,
 			});
 		}
 
