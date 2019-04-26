@@ -15,6 +15,10 @@
 		add_amount => 20,
 		cost => 1000,
 		},
+	storage =>
+		{
+		remind => '1 month',
+		},
 	paypal =>
 		{
 		gateway_url => 'https://www.sandbox.paypal.com',
