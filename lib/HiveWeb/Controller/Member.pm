@@ -237,23 +237,6 @@ sub cancel :Local :Args(0)
 		});
 	}
 
-sub requests :Local :Args(0)
-	{
-	my ($self, $c) = @_;
-
-	my $user     = $c->user() || return;
-	my @slots    = $user->list_slots();
-	my @requests = $user->requests()->search({}, { order_by => { -desc => 'created_at' } })->all();
-
-	$c->stash(
-		{
-		template => 'member/requests.tt',
-		slots    => \@slots,
-		markdown => new Text::Markdown,
-		requests => \@requests,
-		});
-	}
-
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -28,6 +28,15 @@ sub list :Local :Args(0)
 	$out->{response} = \1;
 	}
 
+sub requests :Local :Args(0)
+	{
+	my ($self, $c)   = @_;
+	my $out          = $c->stash()->{out};
+	my $user         = $c->user() || return;
+	$out->{requests} = [ $user->requests()->search({}, { order_by => { -desc => 'created_at' } })->all() ];
+	$out->{response} = \1;
+	}
+
 sub types :Local :Args(0)
 	{
 	my ($self, $c) = @_;

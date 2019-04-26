@@ -231,7 +231,7 @@ function display_storage_data(data)
 		html += "</ul>";
 		}
 
-	html += "<div class=\"u-w-100 text-center\"><a href=\"/member/requests\" class=\"btn btn-info\">View All Requests</a></div>";
+	html += "<div class=\"u-w-100 text-center\"><button id=\"request_list\" class=\"btn btn-info\">View All Requests</button></div>";
 	this.$panel.find(".panel-body").html(html);
 
 	this.$panel.find(".panel-body a.request-hide").click(function request_hide()
@@ -305,6 +305,22 @@ function init_storage()
 		"</div>"
 		].join(""));
 
+	this.$list_dialogue =
+		$([
+		"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
+			"<div class=\"modal-dialog\" role=\"document\">",
+				"<div class=\"modal-content\">",
+					"<div class=\"modal-header\">",
+						"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+						"<h3 class=\"modal-title\">All Requests</h3>",
+					"</div>",
+					"<div class=\"modal-body\">",
+					"</div>",
+				"</div>",
+			"</div>",
+		"</div>"
+		].join(""));
+
 	this.$request_dialogue.find("button.accept").click(function ()
 		{
 		var $this = self.$request_dialogue,
@@ -325,6 +341,61 @@ function init_storage()
 				self.load_panel_data();
 				}
 			});
+		});
+
+	this.$panel.on("click", "#request_list", function ()
+		{
+		var $dialogue = self.$list_dialogue;
+		var $body     = $dialogue.find(".modal-body").empty();
+
+		api_json(
+			{
+			data: {},
+			path: "/storage/requests",
+			what: "Get Requests",
+			success_toast: false,
+			success: function (data)
+				{
+				var i, html = "", request, created_at, decided_at;
+				
+				for (i = 0; i < data.requests.length; i++)
+					{
+					request    = data.requests[i];
+					created_at = new Date(request.created_at);
+					decided_at = new Date(request.decided_at);
+
+					html +=
+						[
+							"<div class=\"panel panel-default\">",
+								"<div class=\"panel-heading\">",
+									"<h4>Request #" + (data.requests.length - i),
+										(request.hidden ? "<span class=\"label label-info\">Hidden</span>" : ""),
+									"</h4>",
+									"<h5>Submitted at " + created_at.toLocaleDateString() + " " + created_at.toLocaleTimeString() + "</h5>",
+								"</div>",
+								"<div class=\"panel-body\">",
+									"Submission Notes:<br />",
+									"<div class=\"well well-sm\">",
+										request.notes,
+									"</div>",
+									"Status: " + request.status + "<br />",
+									(request.decided_at ?
+										"Decided on " + decided_at.toLocaleDateString() + " " + decided_at.toLocaleTimeString() + "<br />" +
+										"Notes:" +
+										"<div class=\"well well-sm\">" +
+											request.decision_notes +
+										"</div>"
+									: ""),
+								"</div>",
+							"</div>",
+						].join("");
+					}
+				$body.html(html);
+				$dialogue.modal("show");
+				}
+			});
+
+		return false;
 		});
 
 	this.$panel.on("click", "#request_new", function ()
