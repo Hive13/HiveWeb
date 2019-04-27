@@ -1,7 +1,7 @@
 use utf8;
 package HiveWeb::Schema;
 
-our $VERSION = 10;
+our $VERSION = 12;
 
 use Moose;
 use MooseX::MarkAsMethods autoclean => 1;
