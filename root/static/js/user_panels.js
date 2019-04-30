@@ -357,7 +357,7 @@ function init_storage()
 			success: function (data)
 				{
 				var i, html = "", request, created_at, decided_at;
-				
+
 				for (i = 0; i < data.requests.length; i++)
 					{
 					request    = data.requests[i];
