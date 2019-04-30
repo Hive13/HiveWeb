@@ -50,7 +50,7 @@ __PACKAGE__->add_columns(
 	'type_id',
 	{
 		data_type      => 'uuid',
-		is_nullable    => 0,
+		is_nullable    => 1,
 		is_foreign_key => 1,
 	},
 );

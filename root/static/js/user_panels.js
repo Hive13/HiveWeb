@@ -193,7 +193,7 @@ function init_heatmap()
 
 function display_storage_data(data)
 	{
-	var self = this, i, dt, request, html = "<a href=\"/storage/request\" id=\"request_new\">Request a new spot</a><br /><br />";
+	var self = this, i, dt, request, html = "<a href=\"/storage/request\" id=\"request_new\">Request a new spot</a><br /><br />", d;
 
 	if (!data.slots.length)
 		html += "You have no storage slots assigned.";
@@ -203,8 +203,24 @@ function display_storage_data(data)
 		for (i = 0; i < data.slots.length; i++)
 			{
 			dt = data.slots[i];
-			html += "<li>" + dt.name + " ("
-				+ dt.location + ")<br /><a class=\"anchor-style relinquish\" id=\"" + dt.slot_id + "\">Relinquish this Slot</a></li>";
+			html += "<li id=\"" + dt.slot_id + "\" data-name=\"" + dt.name + "\"";
+			if (dt.can_renew)
+				html += " class=\"bg-danger\"";
+			html += ">" + dt.name + " ("
+				+ dt.location + ")<br /><a class=\"anchor-style relinquish\">Relinquish this Slot</a>";
+			if (dt.can_renew)
+				{
+				if (dt.renew_submitted)
+					html += "<br /><span class=\"fas fa-check text-success\"></span>Renewal Submitted";
+				else
+					html += "<br /><a class=\"anchor-style renew\"><span class=\"fas fa-exclamation-triangle text-banana\"></span>Renew Slot</a>";
+				}
+			if (dt.expire_date)
+				{
+				d = new Date(dt.expire_date)
+				html += "<br />Expires " + d.toLocaleDateString();
+				}
+			html += "</li>";
 			}
 		html += "</ul>";
 		}
@@ -253,7 +269,7 @@ function display_storage_data(data)
 		});
 	this.$panel.find(".panel-body a.relinquish").click(function relinquish()
 		{
-		var $this = $(this), id = $(this).attr("id");
+		var $this = $(this), id = $this.closest("li").attr("id");
 
 		if (!confirm("If you want a slot back, you'll have to submit another request.  Click Cancel if you still have belongings in this spot.  Are you sure?"))
 			return;
@@ -274,6 +290,31 @@ function display_storage_data(data)
 function init_storage()
 	{
 	var self = this;
+
+	this.$renew_dialogue =
+		$([
+		"<div class=\"modal fade\" tabIndex=\"-1\" role=\"dialog\">",
+			"<div class=\"modal-dialog\" role=\"document\">",
+				"<div class=\"modal-content\">",
+					"<div class=\"modal-header\">",
+						"<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" title=\"Close\"><span aria-hidden=\"true\">&times;</span></button>",
+						"<h3 class=\"modal-title\">Renew Slot</h3>",
+					"</div>",
+					"<div class=\"modal-body\">",
+						"<textarea name=\"notes\" rows=\"5\" class=\"u-w-100\"></textarea>",
+						"<br />",
+						"<div class=\"alert alert-info\">",
+							"Please include justification for continuing to have this spot.",
+						"</div>",
+					"</div>",
+					"<div class=\"modal-footer\">",
+						"<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Cancel</button>",
+						"<button type=\"button\" class=\"btn btn-primary accept\">Submit Request</button>",
+					"</div>",
+				"</div>",
+			"</div>",
+		"</div>"
+		].join(""));
 
 	this.$request_dialogue =
 		$([
@@ -343,6 +384,28 @@ function init_storage()
 			});
 		});
 
+	this.$renew_dialogue.find("button.accept").click(function ()
+		{
+		var $this = self.$renew_dialogue,
+			data    =
+				{
+				notes:   $this.find("textarea").val(),
+				slot_id: $this.data("slot-id")
+				};
+
+		api_json(
+			{
+			data: data,
+			path: "/storage/request",
+			what: "Renew Storage Slot",
+			success: function (data)
+				{
+				$this.modal("hide");
+				self.load_panel_data();
+				}
+			});
+		});
+
 	this.$panel.on("click", "#request_list", function ()
 		{
 		var $dialogue = self.$list_dialogue;
@@ -396,6 +459,16 @@ function init_storage()
 			});
 
 		return false;
+		});
+
+	this.$panel.on("click", ".renew", function ()
+		{
+		var $el     = $(this).closest("li"),
+			$dialogue = self.$renew_dialogue;
+
+		$dialogue.data("slot-id", $el.attr("id"));
+		$dialogue.find(".modal-header h3").text("Renew Slot " + $el.data("name"));
+		$dialogue.modal("show");
 		});
 
 	this.$panel.on("click", "#request_new", function ()

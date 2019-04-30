@@ -55,6 +55,13 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+  'requests',
+  'HiveWeb::Schema::Result::StorageRequests',
+  { 'foreign.slot_id' => 'self.slot_id' },
+  { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
+);
+
 sub update_member
 	{
 	my ($self, $old, $new) = @_;

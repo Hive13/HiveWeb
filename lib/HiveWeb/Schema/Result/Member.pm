@@ -352,10 +352,18 @@ sub add_vend_credits
 sub list_slots
 	{
 	my $self  = shift;
+	my $outstanding_renew = $self->result_source()->schema->resultset('StorageRequest')->search(
+		{
+		slot_id    => { -ident => 'me.slot_id' },
+		decided_at => undef,
+		},
+		{
+		alias => 'renew'
+		})->count_rs()->as_query();
 	my $slots = $self->search_related('slots', {},
 		{
-		'+select' => [ \['(now() + ?::interval) > expire_date', HiveWeb->config->{storage}->{remind} ] ],
-		'+as'     => [ 'can_renew' ],
+		'+select' => [ \['(now() + ?::interval) > expire_date', HiveWeb->config->{storage}->{remind} ], $outstanding_renew ],
+		'+as'     => [ 'can_renew', 'outstanding_renew' ],
 		});
 	my @ret;
 
@@ -372,10 +380,12 @@ sub list_slots
 			}
 		push(@ret,
 			{
-			slot_id   => $slot->slot_id(),
-			name      => $slot->name(),
-			location  => $lname,
-			can_renew => $slot->get_column('can_renew') ? \1 : \0,
+			slot_id         => $slot->slot_id(),
+			name            => $slot->name(),
+			location        => $lname,
+			can_renew       => $slot->get_column('can_renew') ? \1 : \0,
+			renew_submitted => $slot->get_column('outstanding_renew') > 0 ? \1 : \0,
+			expire_date     => $slot->expire_date(),
 			});
 		}
 
