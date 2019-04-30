@@ -26,7 +26,7 @@ $dh->prepare_deploy();
 
 $dh->prepare_upgrade(
 	{
-	from_version => $HiveWeb::Schema::VERSION - 1,
+	from_version => $HiveWeb::Schema::VERSION - 2,
 	to_version   => $HiveWeb::Schema::VERSION,
 	});
 

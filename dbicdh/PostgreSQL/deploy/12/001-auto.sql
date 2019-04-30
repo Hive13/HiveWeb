@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Sat Apr 27 14:40:39 2019
+-- Created on Sat Apr 27 14:49:29 2019
 -- 
 ;
 --
@@ -562,19 +562,6 @@ CREATE INDEX "lamp_bulb_preset_idx_preset_id" on "lamp_bulb_preset" ("preset_id"
 
 ;
 --
--- Table: purchase_soda_type
---
-CREATE TABLE "purchase_soda_type" (
-  "purchase_id" uuid NOT NULL,
-  "soda_type_id" uuid NOT NULL,
-  "soda_quantity" integer NOT NULL,
-  PRIMARY KEY ("purchase_id", "soda_type_id")
-);
-CREATE INDEX "purchase_soda_type_idx_purchase_id" on "purchase_soda_type" ("purchase_id");
-CREATE INDEX "purchase_soda_type_idx_soda_type_id" on "purchase_soda_type" ("soda_type_id");
-
-;
---
 -- Table: storage_slot
 --
 CREATE TABLE "storage_slot" (
@@ -589,6 +576,19 @@ CREATE TABLE "storage_slot" (
 CREATE INDEX "storage_slot_idx_location_id" on "storage_slot" ("location_id");
 CREATE INDEX "storage_slot_idx_member_id" on "storage_slot" ("member_id");
 CREATE INDEX "storage_slot_idx_type_id" on "storage_slot" ("type_id");
+
+;
+--
+-- Table: purchase_soda
+--
+CREATE TABLE "purchase_soda" (
+  "purchase_id" uuid NOT NULL,
+  "soda_id" uuid NOT NULL,
+  "soda_quantity" integer NOT NULL,
+  PRIMARY KEY ("purchase_id", "soda_id")
+);
+CREATE INDEX "purchase_soda_idx_purchase_id" on "purchase_soda" ("purchase_id");
+CREATE INDEX "purchase_soda_idx_soda_id" on "purchase_soda" ("soda_id");
 
 ;
 --
@@ -809,14 +809,6 @@ ALTER TABLE "lamp_bulb_preset" ADD CONSTRAINT "lamp_bulb_preset_fk_preset_id" FO
   REFERENCES "lamp_preset" ("preset_id") DEFERRABLE;
 
 ;
-ALTER TABLE "purchase_soda_type" ADD CONSTRAINT "purchase_soda_type_fk_purchase_id" FOREIGN KEY ("purchase_id")
-  REFERENCES "purchase" ("purchase_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
-
-;
-ALTER TABLE "purchase_soda_type" ADD CONSTRAINT "purchase_soda_type_fk_soda_type_id" FOREIGN KEY ("soda_type_id")
-  REFERENCES "soda_type" ("soda_type_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
-
-;
 ALTER TABLE "storage_slot" ADD CONSTRAINT "storage_slot_fk_location_id" FOREIGN KEY ("location_id")
   REFERENCES "storage_location" ("location_id") DEFERRABLE;
 
@@ -827,6 +819,14 @@ ALTER TABLE "storage_slot" ADD CONSTRAINT "storage_slot_fk_member_id" FOREIGN KE
 ;
 ALTER TABLE "storage_slot" ADD CONSTRAINT "storage_slot_fk_type_id" FOREIGN KEY ("type_id")
   REFERENCES "storage_slot_type" ("type_id");
+
+;
+ALTER TABLE "purchase_soda" ADD CONSTRAINT "purchase_soda_fk_purchase_id" FOREIGN KEY ("purchase_id")
+  REFERENCES "purchase" ("purchase_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+;
+ALTER TABLE "purchase_soda" ADD CONSTRAINT "purchase_soda_fk_soda_id" FOREIGN KEY ("soda_id")
+  REFERENCES "soda_status" ("soda_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
 ALTER TABLE "storage_request" ADD CONSTRAINT "storage_request_fk_deciding_member_id" FOREIGN KEY ("deciding_member_id")

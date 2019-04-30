@@ -13,26 +13,26 @@ CREATE TABLE "purchase" (
 CREATE INDEX "purchase_idx_member_id" on "purchase" ("member_id");
 
 ;
-CREATE TABLE "purchase_soda_type" (
+CREATE TABLE "purchase_soda" (
   "purchase_id" uuid NOT NULL,
-  "soda_type_id" uuid NOT NULL,
+  "soda_id" uuid NOT NULL,
   "soda_quantity" integer NOT NULL,
-  PRIMARY KEY ("purchase_id", "soda_type_id")
+  PRIMARY KEY ("purchase_id", "soda_id")
 );
-CREATE INDEX "purchase_soda_type_idx_purchase_id" on "purchase_soda_type" ("purchase_id");
-CREATE INDEX "purchase_soda_type_idx_soda_type_id" on "purchase_soda_type" ("soda_type_id");
+CREATE INDEX "purchase_soda_idx_purchase_id" on "purchase_soda" ("purchase_id");
+CREATE INDEX "purchase_soda_idx_soda_id" on "purchase_soda" ("soda_id");
 
 ;
 ALTER TABLE "purchase" ADD CONSTRAINT "purchase_fk_member_id" FOREIGN KEY ("member_id")
   REFERENCES "members" ("member_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
-ALTER TABLE "purchase_soda_type" ADD CONSTRAINT "purchase_soda_type_fk_purchase_id" FOREIGN KEY ("purchase_id")
+ALTER TABLE "purchase_soda" ADD CONSTRAINT "purchase_soda_fk_purchase_id" FOREIGN KEY ("purchase_id")
   REFERENCES "purchase" ("purchase_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
-ALTER TABLE "purchase_soda_type" ADD CONSTRAINT "purchase_soda_type_fk_soda_type_id" FOREIGN KEY ("soda_type_id")
-  REFERENCES "soda_type" ("soda_type_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE "purchase_soda" ADD CONSTRAINT "purchase_soda_fk_soda_id" FOREIGN KEY ("soda_id")
+  REFERENCES "soda_status" ("soda_id") ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ;
 

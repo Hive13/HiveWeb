@@ -2574,13 +2574,13 @@ schema:
       name: purchase
       options: []
       order: 28
-    purchase_soda_type:
+    purchase_soda:
       constraints:
         - deferrable: 1
           expression: ''
           fields:
             - purchase_id
-            - soda_type_id
+            - soda_id
           match_type: ''
           name: ''
           on_delete: ''
@@ -2594,7 +2594,7 @@ schema:
           fields:
             - purchase_id
           match_type: ''
-          name: purchase_soda_type_fk_purchase_id
+          name: purchase_soda_fk_purchase_id
           on_delete: RESTRICT
           on_update: RESTRICT
           options: []
@@ -2605,15 +2605,15 @@ schema:
         - deferrable: 0
           expression: ''
           fields:
-            - soda_type_id
+            - soda_id
           match_type: ''
-          name: purchase_soda_type_fk_soda_type_id
+          name: purchase_soda_fk_soda_id
           on_delete: RESTRICT
           on_update: RESTRICT
           options: []
           reference_fields:
-            - soda_type_id
-          reference_table: soda_type
+            - soda_id
+          reference_table: soda_status
           type: FOREIGN KEY
       fields:
         purchase_id:
@@ -2626,6 +2626,16 @@ schema:
           order: 1
           size:
             - 16
+        soda_id:
+          data_type: uuid
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: soda_id
+          order: 2
+          size:
+            - 16
         soda_quantity:
           data_type: integer
           default_value: ~
@@ -2636,30 +2646,20 @@ schema:
           order: 3
           size:
             - 0
-        soda_type_id:
-          data_type: uuid
-          default_value: ~
-          is_nullable: 0
-          is_primary_key: 1
-          is_unique: 0
-          name: soda_type_id
-          order: 2
-          size:
-            - 16
       indices:
         - fields:
             - purchase_id
-          name: purchase_soda_type_idx_purchase_id
+          name: purchase_soda_idx_purchase_id
           options: []
           type: NORMAL
         - fields:
-            - soda_type_id
-          name: purchase_soda_type_idx_soda_type_id
+            - soda_id
+          name: purchase_soda_idx_soda_id
           options: []
           type: NORMAL
-      name: purchase_soda_type
+      name: purchase_soda
       options: []
-      order: 40
+      order: 41
     reset_token:
       constraints:
         - deferrable: 1
@@ -3423,7 +3423,7 @@ schema:
           type: NORMAL
       name: storage_slot
       options: []
-      order: 41
+      order: 40
     storage_slot_type:
       constraints:
         - deferrable: 1
@@ -4122,7 +4122,7 @@ translator:
       - PanelMember
       - Payment
       - Purchase
-      - PurchaseSodaType
+      - PurchaseSoda
       - ResetToken
       - Session
       - SignInLog
