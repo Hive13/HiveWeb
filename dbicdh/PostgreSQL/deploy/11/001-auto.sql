@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Tue Apr  9 11:12:11 2019
+-- Created on Tue Apr 30 17:14:49 2019
 -- 
 ;
 --
@@ -582,7 +582,7 @@ CREATE TABLE "storage_request" (
   "decision_notes" text,
   "decided_at" timestamp with time zone,
   "hidden" boolean DEFAULT 'f' NOT NULL,
-  "type_id" uuid NOT NULL,
+  "type_id" uuid,
   PRIMARY KEY ("request_id")
 );
 CREATE INDEX "storage_request_idx_deciding_member_id" on "storage_request" ("deciding_member_id");
