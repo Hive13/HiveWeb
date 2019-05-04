@@ -19,23 +19,23 @@ function cancel_request_action()
 	}
 function decide_request()
 	{
-	var $dialogue = $("#request_view"), data =
+	var $dialogue = $("#request_view"), request = $dialogue.data("request"), slot_id = $dialogue.data("slot_id");
+	var data =
 		{
 		action:     $dialogue.data("action"),
-		slot_id:    $dialogue.data("slot_id"),
-		request_id: $dialogue.data("request_id"),
+		request_id: request.request_id,
 		notes:      $dialogue.find("textarea").val()
-		}
+		};
 
-	if ((data.action !== "accept" && data.action !== "reject") || !data.request_id)
+	if ((data.action !== "accept" && data.action !== "reject") || !request.request_id)
 		return;
 	if (data.action === "accept")
 		{
-		if (!data.slot_id)
+		if (slot_id)
+			data.slot_id = slot_id;
+		else if (!("slot" in request) || !request.slot)
 			return;
 		}
-	else
-		delete(data.slot_id);
 
 	api_json(
 		{
@@ -65,22 +65,33 @@ function view_requests(slot_id)
 		path: "/admin/storage/requests",
 		data: data,
 		success_toast: false,
-		type: "POST",
 		success: function (data)
 			{
-			var i, j, slot, rdate, request, html = "<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"false\" id=\"request_list\">";
+			var i, j, slot, rdate, request, $div, $panel;
 
+			var style;
+
+			$div = $("<div class=\"panel-group\" role=\"tablist\" aria-multiselectable=\"false\" id=\"request_list\"></div>");
+			$div = $dialogue.find("div.modal-body div.requests").empty().append($div);
 			for (i = 0; i < data.requests.length; i++)
 				{
 				request = data.requests[i];
 				rdate = new Date(request.created_at);
+				style = "panel-default";
+				if (request.slot && !request.type)
+					style = "panel-primary";
 
-				html += "<div class=\"panel panel-default\" id=\"" + request.request_id + "\" data-parent=\"#request_list\" aria-expanded=\"false\" aria-controls=\"body_" + request.request_id + "\">"
-					+ "<div class=\"panel-heading anchor-style\" role=\"tab\" id=\"heading_" + request.request_id + "\" data-toggle=\"collapse\" href=\"#body_" + request.request_id + "\">"
+				$panel = $("<div class=\"panel " + style + "\" id=\"" + request.request_id + "\" data-parent=\"#request_list\" aria-expanded=\"false\" aria-controls=\"body_" + request.request_id + "\"></div>");
+				html =
+					  "<div class=\"panel-heading anchor-style\" role=\"tab\" id=\"heading_" + request.request_id + "\" data-toggle=\"collapse\" href=\"#body_" + request.request_id + "\">"
 					+ "<h4 class=\"panel-title\">"
 					+ request.member.fname + " " + request.member.lname + " - " + rdate.toLocaleDateString() + " " + rdate.toLocaleTimeString() + " - " + request.other_slots.length + " other " + (request.other_slots.length == 1 ? "slot" : "slots") + " assigned</h4>";
-				if (!slot_id)
+				if (!request.type && request.slot)
+					html += "Renewing " + request.slot.name;
+				else if (!slot_id)
 					html += "Requesting: " + request.type.name;
+				else
+					html += "Corrupt request data";
 				html += "</div>"
 					+ "<div id=\"body_" + request.request_id + "\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"heading_" + request.request_id + "\">"
 					+ "<div class=\"panel-body\">"
@@ -92,19 +103,21 @@ function view_requests(slot_id)
 					slot = request.other_slots[j];
 					html += "<li>" + slot.name + " (" + slot.hierarchy.join(" &rarr; ") + ")</li>";
 					}
-				html += "</ul></div></div></div>";
+				html += "</ul></div></div>";
+				$panel.html(html).data(request);
+				$div.append($panel);
 				}
-
-			html += "</div>";
-			$dialogue.find("div.modal-body div.requests").html(html);
 
 			$dialogue.contextMenu(
 				{
 				selector: "div.modal-body div.requests div.panel",
-				build: function()
+				build: function($trigger)
 					{
-					var items = {};
+					var items   = {};
+					var request = $trigger.data();
 
+					if (!request.type && request.slot)
+						items["request_accept"] = { name: "Renew this Slot", icon: "fas fa-user-check" };
 					if ($dialogue.data("slot_id"))
 						items["request_accept"] = { name: "Accept this Request", icon: "fas fa-user-tag" };
 
@@ -114,7 +127,7 @@ function view_requests(slot_id)
 						callback: function (key, options)
 							{
 							var $this = $(this), $requests = $dialogue.find("div.modal-body div.requests"),
-								$opanels, id = $this.attr("id");
+								$opanels;
 							$requests.off("show.bs.collapse").off("hide.bs.collapse");
 							cancel_request_action();
 							$this.removeClass("panel-default").addClass("panel-info").addClass("selected");
@@ -123,7 +136,7 @@ function view_requests(slot_id)
 							$this.find(".collapse").collapse("show");
 							$requests.on("show.bs.collapse", cancel_request_action).on("hide.bs.collapse", cancel_request_action);
 							if (key in actions)
-								actions[key](id);
+								actions[key]($this.data());
 							else
 								alert("Commence action " + key + " on UUID " + id);
 							}
@@ -137,24 +150,24 @@ function view_requests(slot_id)
 	}
 
 actions.slot_fulfil = view_requests;
-actions.request_reject = function (request_id)
+actions.request_reject = function (request)
 	{
 	var $dialogue = $("div#request_view"),
 		$body = $dialogue.find("div.modal-body");
 
-	$dialogue.data("request_id", request_id).data("action", "reject");
+	$dialogue.data("request", request).data("action", "reject");
 
 	$body.find("button.btn-success").text("Reject").click(decide_request);
 	$body.find("span.info").text("Enter any notes about why this request is being rejected.  Members may view these notes.");
 	$body.find("div.notes").css("display", "");
 	$body.find("textarea").val("");
 	};
-actions.request_accept = function (request_id)
+actions.request_accept = function (request)
 	{
 	var $dialogue = $("div#request_view"),
 		$body = $dialogue.find("div.modal-body");
 
-	$dialogue.data("request_id", request_id).data("action", "accept");
+	$dialogue.data("request", request).data("action", "accept");
 
 	$body.find("button.btn-success").text("Accept").click(decide_request);
 	$body.find("span.info").text("Enter any notes about why this request is being accepted.  Members may view these notes.");

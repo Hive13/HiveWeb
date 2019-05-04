@@ -20,7 +20,7 @@ sub list :Local :Args(0)
 	my $out = $c->stash()->{out};
 
 	my $root_location = $c->model('DB::StorageLocation')->find({ parent_id => undef }) || die $!;
-	my $request_count = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
+	my $request_count = $c->model('DB::StorageRequest')->search({ status => 'requested' })->count();
 
 	$out->{locations} = $root_location->TO_FULL_JSON();
 	$out->{requests}  = $request_count;
@@ -33,7 +33,7 @@ sub status :Local :Args(0)
 
 	my $out = $c->stash()->{out};
 
-	my $request_count   = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } })->count();
+	my $request_count   = $c->model('DB::StorageRequest')->search({ status => 'requested' })->count();
 	my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef })->count();
 	my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef } })->count();
 
@@ -42,7 +42,7 @@ sub status :Local :Args(0)
 	while (my $type = $type_rs->next())
 		{
 		my $type_id = $type->type_id();
-		my $request_count   = $c->model('DB::StorageRequest')->search({ status => { not_in => ['accepted', 'rejected'] } , type_id => $type_id })->count();
+		my $request_count   = $c->model('DB::StorageRequest')->search({ status => 'requested', type_id => $type_id })->count();
 		my $available_slots = $c->model('DB::StorageSlot')->search({ member_id => undef, type_id => $type_id })->count();
 		my $occupied_slots  = $c->model('DB::StorageSlot')->search({ member_id => { '!=' => undef }, type_id => $type_id })->count();
 		push(@types,
@@ -68,7 +68,7 @@ sub requests :Local :Args(0)
 	my ($self, $c) = @_;
 	my $out        = $c->stash()->{out};
 	my $in         = $c->stash()->{in};
-	my $search     = { status => { not_in => ['accepted', 'rejected'] } };
+	my $search     = { status => 'requested' };
 
 	if ($in->{type_id})
 		{
@@ -96,57 +96,60 @@ sub decide_request :Local :Args(0)
 	my $request    = $c->model('DB::StorageRequest')->find($in->{request_id});
 	my $slot;
 
+	my $updates =
+		{
+		deciding_member_id => $c->user()->member_id(),
+		decision_notes     => $in->{notes},
+		decided_at         => \'NOW()',
+		};
+
 	if (!$request)
 		{
 		$out->{data} = "Could not find request \"$in->{request_id}\".";
 		return;
 		}
-	if ($action ne 'accept' && $action ne 'reject')
+	try
 		{
-		$out->{data} = "Invalid action \"$action\".";
-		return;
-		}
-	if ($action eq 'accept')
-		{
-		$slot = $c->model('DB::StorageSlot')->find($in->{slot_id});
-		if (!$slot)
-			{
-			$out->{data} = "Could not find slot \"$in->{slot_id}\".";
-			return;
-			}
 		$out->{response} = \1;
-		try
+		$c->model('DB')->txn_do(sub
 			{
-			$c->model('DB')->txn_do(sub
+			if ($action eq 'reject')
 				{
-				$request->update(
+				$updates->{status} = 'rejected';
+				}
+			elsif ($action eq 'accept')
+				{
+				if ($request->slot_id())
 					{
-					status             => 'accepted',
-					deciding_member_id => $c->user()->member_id(),
-					decision_notes     => $in->{notes},
-					decided_at         => \'NOW()',
-					slot_id            => $slot->slot_id(),
-					}) || die $!;
-				$slot->assign($request->member_id(), $c->user()->member_id());
-				});
-			}
-		catch
-			{
-			$out->{response} = \0;
-			$out->{data}     = 'Could not fulfil request.';
-			};
+					$updates->{status} = 'renewed';
+					$slot = $request->slot();
+					}
+				else
+					{
+					$slot = $c->model('DB::StorageSlot')->find($in->{slot_id});
+					if (!$slot)
+						{
+						$out->{data} = "Could not find slot \"$in->{slot_id}\".";
+						return;
+						}
+					$updates->{slot_id} = $slot->slot_id();
+					$updates->{status}  = 'accepted';
+					}
+				$slot->assign($request->member_id());
+				}
+			else
+				{
+				$out->{data} = 'Invalid action type.';
+				return;
+				}
+			$request->update($updates) || die $!;
+			});
 		}
-	else
+	catch
 		{
-		$request->update(
-			{
-			status             => 'rejected',
-			deciding_member_id => $c->user()->member_id(),
-			decision_notes     => $in->{notes},
-			decided_at         => \'NOW()',
-			}) || die $!;
-		$out->{response} = \1;
-		}
+		$out->{response} = \0;
+		$out->{data}     = 'Could not fulfil request.';
+		};
 	}
 
 sub edit_location :Local :Args(0)

@@ -160,6 +160,7 @@ sub TO_FULL_JSON
 		hidden      => $self->hidden() ? \1 : \0,
 		type_id     => $self->type_id(),
 		type        => $self->type(),
+		slot        => $self->slot(),
 		};
 	}
 
