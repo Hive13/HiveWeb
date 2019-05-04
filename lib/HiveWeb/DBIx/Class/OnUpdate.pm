@@ -10,7 +10,7 @@ sub update
 	my ($self, $data, @rest) = @_;
 
 	my $info = $self->result_source()->columns_info();
-	my $old;
+	my $old_row;
 
 	$data //= {};
 
@@ -20,10 +20,11 @@ sub update
 		if ($routine && $self->can($routine))
 			{
 			my $new = exists($data->{$col}) ? $data->{$col} : $self->get_column($col);
-			$old //= $self->result_source()->resultset()->find($self->id());
+			$old_row //= $self->result_source()->resultset()->find($self->id());
+			my $old = $old_row->get_column($col);
 			if (defined($old) ne defined($new) || (defined($old) && defined($new) && $old ne $new))
 				{
-				$self->$routine($old->get_column($col), $new);
+				$self->$routine($old, $new);
 				}
 			}
 		}
