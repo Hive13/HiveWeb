@@ -9,7 +9,7 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime +HiveWeb::DBIx::Class::OnUpdate });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime Helper::Row::StorageValues });
 __PACKAGE__->table('storage_slot');
 
 __PACKAGE__->add_columns(
@@ -18,12 +18,16 @@ __PACKAGE__->add_columns(
   'name',
   { data_type => 'character varying', is_nullable => 0, size => 32 },
   'member_id',
-  { data_type => 'uuid', is_nullable => 1, on_update => 'update_member' },
+  {
+	data_type          => 'uuid',
+	is_nullable        => 1,
+	keep_storage_value => 1,
+	},
 	'expire_date',
 	{
-	data_type   => 'timestamp with time zone',
-	is_nullable => 1,
-	on_update   => 'update_member',
+	data_type          => 'timestamp with time zone',
+	is_nullable        => 1,
+	keep_storage_value => 1,
 	},
   'location_id',
   { data_type => 'uuid', is_nullable => 0 },
@@ -63,28 +67,36 @@ __PACKAGE__->has_many(
   { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
-sub update_member
+sub update
 	{
-	my ($self, $old_row, $new_row) = @_;
+	my $self   = shift;
 	my $schema = $self->result_source()->schema();
+	my $guard  = $schema->txn_scope_guard();
 
-	if ($old_row->member_id())
+	my $old_member_id = $self->get_storage_value('member_id');
+
+	my $res = $self->next::method(@_);
+
+	my $new_member_id = $self->member_id();
+
+	if ($old_member_id && !$old_member_id ne $new_member_id)
 		{
 		$schema->resultset('AuditLog')->create(
 			{
 			change_type        => 'unassign_slot',
 			notes              => 'Unassigned slot ' . $self->slot_id(),
 			changing_member_id => $HiveWeb::Schema::member_id,
-			changed_member_id  => $old_row->member_id(),
+			changed_member_id  => $old_member_id,
 			});
 		}
-	if ($new_row->member_id())
+
+	if ($new_member_id && $old_member_id ne $new_member_id)
 		{
 		$schema->resultset('AuditLog')->create(
 			{
 			change_type        => 'assign_slot',
 			notes              => 'Assigned slot ' . $self->slot_id(),
-			changed_member_id  => $new_row->member_id(),
+			changed_member_id  => $new_member_id,
 			changing_member_id => $HiveWeb::Schema::member_id,
 			});
 		$schema->resultset('Action')->create(
@@ -94,6 +106,9 @@ sub update_member
 			row_id            => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;
 		}
+
+	$guard->commit();
+	return $res;
 	}
 
 sub TO_JSON

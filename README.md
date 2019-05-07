@@ -15,6 +15,7 @@ The new Hive internal Web
 * libdbix-class-uuidcolumns-perl
 * libdbix-class-inflatecolumn-serializer-perl
 * libdbix-class-deploymenthandler-perl
+* libdbix-class-helpers-perl
 * libcrypt-eksblowfish-perl
 * libdatetime-format-dbi-perl
 * libdatetime-format-iso8601-perl
