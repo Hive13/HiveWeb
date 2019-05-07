@@ -9,8 +9,13 @@ sub update
 	{
 	my ($self, $data, @rest) = @_;
 
-	my $info = $self->result_source()->columns_info();
+	my $source = $self->result_source();
+	my $info   = $source->columns_info();
+	my $schema = $source->schema();
+	my $guard  = $schema->txn_scope_guard();
 	my $old_row;
+	my $res;
+	my %did;
 
 	$data //= {};
 
@@ -20,16 +25,19 @@ sub update
 		if ($routine && $self->can($routine))
 			{
 			my $new = exists($data->{$col}) ? $data->{$col} : $self->get_column($col);
-			$old_row //= $self->result_source()->resultset()->find($self->id());
+			$old_row //= $source->resultset()->find($self->id());
 			my $old = $old_row->get_column($col);
-			if (defined($old) ne defined($new) || (defined($old) && defined($new) && $old ne $new))
+			if ((defined($old) ne defined($new) || (defined($old) && defined($new) && $old ne $new)) && !exists($did{\$routine}))
 				{
-				$self->$routine($old, $new);
+				$self->$routine($old_row, $self);
+				$did{\$routine} = 1;
 				}
 			}
 		}
 
-	return $self->next::method($data, @rest);
+	$res = $self->next::method($data, @rest) || die $!;
+	$guard->commit();
+	return $res;
 	}
 
 1;

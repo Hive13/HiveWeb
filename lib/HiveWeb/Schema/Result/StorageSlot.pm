@@ -23,6 +23,7 @@ __PACKAGE__->add_columns(
 	{
 	data_type   => 'timestamp with time zone',
 	is_nullable => 1,
+	on_update   => 'update_member',
 	},
   'location_id',
   { data_type => 'uuid', is_nullable => 0 },
@@ -64,38 +65,35 @@ __PACKAGE__->has_many(
 
 sub update_member
 	{
-	my ($self, $old, $new) = @_;
+	my ($self, $old_row, $new_row) = @_;
 	my $schema = $self->result_source()->schema();
 
-	$schema->txn_do(sub
+	if ($old_row->member_id())
 		{
-		if ($old)
+		$schema->resultset('AuditLog')->create(
 			{
-			$schema->resultset('AuditLog')->create(
-				{
-				change_type        => 'unassign_slot',
-				notes              => 'Unassigned slot ' . $self->slot_id(),
-				changing_member_id => $HiveWeb::Schema::member_id,
-				changed_member_id  => $old,
-				}) || die $!;
-			}
-		if ($new)
+			change_type        => 'unassign_slot',
+			notes              => 'Unassigned slot ' . $self->slot_id(),
+			changing_member_id => $HiveWeb::Schema::member_id,
+			changed_member_id  => $old_row->member_id(),
+			});
+		}
+	if ($new_row->member_id())
+		{
+		$schema->resultset('AuditLog')->create(
 			{
-			$schema->resultset('AuditLog')->create(
-				{
-				change_type        => 'assign_slot',
-				notes              => 'Assigned slot ' . $self->slot_id(),
-				changed_member_id  => $new,
-				changing_member_id => $HiveWeb::Schema::member_id,
-				});
-			$schema->resultset('Action')->create(
-				{
-				action_type       => 'storage.assign',
-				queuing_member_id => $HiveWeb::Schema::member_id,
-				row_id            => $self->slot_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			}
-		});
+			change_type        => 'assign_slot',
+			notes              => 'Assigned slot ' . $self->slot_id(),
+			changed_member_id  => $new_row->member_id(),
+			changing_member_id => $HiveWeb::Schema::member_id,
+			});
+		$schema->resultset('Action')->create(
+			{
+			action_type       => 'storage.assign',
+			queuing_member_id => $HiveWeb::Schema::member_id,
+			row_id            => $self->slot_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
 	}
 
 sub TO_JSON
