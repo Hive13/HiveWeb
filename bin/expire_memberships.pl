@@ -74,16 +74,19 @@ while (my $candidate = $candidates->next())
 		return if ($days < $begin_days && !$expire);
 		$schema->txn_do(sub
 			{
+			printf("Looking at %s %s: %i/%i\n", $candidate->fname(), $candidate->lname(), $days, $expire);
 			my $lpc = $candidate->linked_members();
-			if ($expire && $days > 31)
+			if ($expire)
 				{
-				printf("Looking at %s %s: %i\n", $candidate->fname(), $candidate->lname(), $days);
-				$candidate->remove_group($pe_group_id, undef, 'end of subscription');
-				$candidate->remove_group($mem_group_id, undef, 'end of subscription');
-				while (my $link = $lpc->next())
+				if ($days > 31)
 					{
-					$link->remove_group($pe_group_id, undef, 'end of subscription of linked account');
-					$link->remove_group($mem_group_id, undef, 'end of subscription of linked account');
+					$candidate->remove_group($pe_group_id, undef, 'end of subscription');
+					$candidate->remove_group($mem_group_id, undef, 'end of subscription');
+					while (my $link = $lpc->next())
+						{
+						$link->remove_group($pe_group_id, undef, 'end of subscription of linked account');
+						$link->remove_group($mem_group_id, undef, 'end of subscription of linked account');
+						}
 					}
 				}
 			elsif ($days < $config->{expire_days})
