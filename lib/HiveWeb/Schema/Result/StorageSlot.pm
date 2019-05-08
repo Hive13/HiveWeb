@@ -7,6 +7,7 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
+use DateTime;
 extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime Helper::Row::StorageValues });
@@ -73,13 +74,16 @@ sub update
 	my $schema = $self->result_source()->schema();
 	my $guard  = $schema->txn_scope_guard();
 
-	my $old_member_id = $self->get_storage_value('member_id');
+	my $old_member_id   = $self->get_storage_value('member_id');
+	my $old_expire_date = $self->get_storage_value('expire_date');
 
 	my $res = $self->next::method(@_);
+	$self->discard_changes();
 
-	my $new_member_id = $self->member_id();
+	my $new_member_id   = $self->member_id();
+	my $new_expire_date = $self->expire_date();
 
-	if ($old_member_id && !$old_member_id ne $new_member_id)
+	if ($old_member_id && $old_member_id ne $new_member_id)
 		{
 		$schema->resultset('AuditLog')->create(
 			{
@@ -102,6 +106,23 @@ sub update
 		$schema->resultset('Action')->create(
 			{
 			action_type       => 'storage.assign',
+			queuing_member_id => $HiveWeb::Schema::member_id,
+			row_id            => $self->slot_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+
+	if ($new_member_id eq $old_member_id && DateTime->compare($old_expire_date, $new_expire_date))
+		{
+		$schema->resultset('AuditLog')->create(
+			{
+			change_type        => 'renew_slot',
+			notes              => 'Renew slot ' . $self->slot_id(),
+			changed_member_id  => $new_member_id,
+			changing_member_id => $HiveWeb::Schema::member_id,
+			});
+		$schema->resultset('Action')->create(
+			{
+			action_type       => 'storage.renew',
 			queuing_member_id => $HiveWeb::Schema::member_id,
 			row_id            => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;
