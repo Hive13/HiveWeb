@@ -99,6 +99,11 @@
 				temp_plain => 'email/member/notify_cancel_plain.tt',
 				subject    => 'Member Subscription Cancelled',
 				},
+			past_due =>
+				{
+				temp_plain => 'email/member/past_due_plain.tt',
+				subject    => 'Your Hive13 Subscription is past due',
+				},
 			},
 		},
 	priorities =>
