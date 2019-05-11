@@ -33,7 +33,8 @@ my $candidates = $schema->resultset('StorageSlot')->search(
 	'me.member_id' => { '-not_in' => $remind_group_query },
 	},
 	{
-	prefetch => 'member',
+	join    => 'member',
+	columns => ['me.slot_id', 'member.member_id', 'me.name'],
 	}) || die $!;
 
 while (my $candidate = $candidates->next())
@@ -42,6 +43,14 @@ while (my $candidate = $candidates->next())
 		{
 		$schema->txn_do(sub
 			{
+			my $member = $candidate->member();
+			$schema->resultset('Action')->create(
+				{
+				queuing_member_id => $member->member_id(),
+				action_type       => 'storage.renew_remind',
+				row_id            => $candidate->slot_id(),
+				});
+			$member->add_group(\$config->{storage}->{remind_group}, undef, 'Slot ' . $candidate->name() . ' expiring');
 			die "Debug Rollback" if !$real;
 			});
 		}
