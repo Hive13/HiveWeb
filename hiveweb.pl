@@ -82,6 +82,7 @@
 				to      => 'storage',
 				subject => 'Storage Slot requested at Hive13',
 				},
+			renew_remind => { subject => 'Storage Slot needs renewal at Hive13' },
 			},
 		member =>
 			{
