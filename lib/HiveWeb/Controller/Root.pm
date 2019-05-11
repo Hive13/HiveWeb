@@ -257,7 +257,7 @@ sub forgot :Local
 		$c->model('DB::Action')->create(
 			{
 			queuing_member_id => $member->member_id(),
-			action_type       => 'password.reset',
+			action_type       => 'member.password_reset',
 			row_id            => $member->member_id(),
 			});
 		}

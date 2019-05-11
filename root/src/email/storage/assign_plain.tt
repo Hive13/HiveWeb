@@ -1,4 +1,4 @@
-Hello [% member.fname %],
+Hello [% slot.member.fname %],
 
 You have just been assigned storage slot [% slot.name %].  It can be found at the following location: [% slot.hierarchy('->') %]
 

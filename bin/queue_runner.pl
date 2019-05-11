@@ -35,118 +35,50 @@ while (my $action = $queue->next())
 	$schema->txn_do(sub
 		{
 		my $type = lc($action->action_type());
+		my $key  = 'email.' . $type;
+		my $path = $key;
+		$path =~ s/\./\//g;
 		my $message =
 			{
-			from      => $mail_config->{from},
-			from_name => $mail_config->{from_name},
+			from       => $mail_config->{from},
+			from_name  => $mail_config->{from_name},
+			temp_plain => $c->config_path($key, 'temp_plain'),
+			temp_html  => $c->config_path($key, 'temp_html')
 			};
-		if ($type =~ s/^application\.//)
+		$message->{temp_plain} //= $path . '_plain.tt' if (-f $c->path_to('root', 'src', $path . '_plain.tt'));
+		$message->{temp_html}  //= $path . '_html.tt' if (-f $c->path_to('root', 'src', $path . '_html.tt'));
+		return if (!$message->{temp_plain} && !$message->{temp_html});
+
+		my $row_name  = $c->config_path($key, 'row_as') // 'row';
+		my $row_class = $c->config_path($key, 'row');
+		my $row       = $schema->resultset($row_class)->find($action->row_id());
+		if (!$row)
 			{
-			my $application = $schema->resultset('Application')->find($action->row_id());
-			if (!$application)
-				{
-				warn 'Cannot find referenced application ' . $action->row_id();
-				return;
-				}
-			UUID::parse($application->application_id(), my $bin);
-			my $enc_app_id = encode_base64($bin, '');
-			$message->{to} = $app_config->{email_address};
-			$message->{subject} = 'Membership Application: ' . $application->member()->fname() . ' ' . $application->member()->lname() . ' [' . $enc_app_id . ']';
-			if (exists($app_config->{$type}))
-				{
-				my $app_create    = $app_config->{$type};
-				$message->{stash} =
-					{
-					application => $application,
-					enc_app_id  => $enc_app_id,
-					action      => $action,
-					base_url    => $config->{base_url},
-					};
-				$message->{temp_plain} = $app_create->{temp_plain};
-				}
-			else
-				{
-				# Unknown action type; leave it alone.
-				return;
-				}
+			warn "Cannot find referenced $row_name " . $action->row_id();
+			return;
 			}
-		elsif ($type =~ s/^member\.//)
+		$message->{subject} = $c->config_path($key, 'subject');
+		$message->{to}      = $c->config_path($key, 'to');
+		$message->{stash}   =
 			{
-			my $member = $schema->resultset('Member')->find($action->row_id());
-			if (!$member)
-				{
-				warn 'Cannot find referenced member ' . $action->row_id();
-				return;
-				}
-			my $member_config = $mail_config->{member};
-			if (exists($member_config->{$type}))
-				{
-				if ($type =~ /^notify_/)
-					{
-					$message->{to} = $mail_config->{notify_to};
-					}
-				else
-					{
-					$message->{to} = { $member->email() => $member->fname() . ' ' . $member->lname() };
-					}
-				$message->{temp_plain} = $member_config->{$type}->{temp_plain};
-				$message->{subject}    = $member_config->{$type}->{subject};
-				$message->{stash}      =
-					{
-					member   => $member,
-					base_url => $config->{base_url},
-					};
-				}
-			else
-				{
-				# Unknown action type; leave it alone.
-				return;
-				}
+			$row_name => $row,
+			base_url  => $config->{base_url},
+			};
+		if ($message->{to} =~ /^$row_name\.member$/ && $row->can('member'))
+			{
+			my $member = $row->member();
+			$message->{to} = { $member->email() => $member->fname() . ' ' . $member->lname() };
 			}
-		elsif ($type eq 'notify.term')
+		elsif ($message->{to} eq 'member' && $row_name eq 'member')
 			{
-			my $survey = $schema->resultset('SurveyResponse')->find($action->row_id());
-			if (!$survey)
-				{
-				warn 'Cannot find referenced survey ' . $action->row_id();
-				return;
-				}
-			$message->{to}         = $mail_config->{notify_to};
-			$message->{temp_plain} = $mail_config->{notify_term}->{temp_plain};
-			$message->{subject}    = $mail_config->{notify_term}->{subject};
-			$message->{stash}      =
-				{
-				survey   => $survey,
-				base_url => $config->{base_url},
-				};
+			$message->{to} = { $row->email() => $row->fname() . ' ' . $row->lname() };
 			}
-		elsif ($type eq 'storage.assign')
+		elsif ($message->{to} eq 'notify')
 			{
-			my $slot = $schema->resultset('StorageSlot')->find($action->row_id());
-			if (!$slot)
-				{
-				warn 'Cannot find referenced slot ' . $action->row_id();
-				return;
-				}
-			my $member             = $slot->member();
-			$message->{to}         = { $member->email() => $member->fname() . ' ' . $member->lname() };
-			$message->{temp_plain} = $mail_config->{assigned_slot}->{temp_plain};
-			$message->{subject}    = $mail_config->{assigned_slot}->{subject};
-			$message->{stash}      =
-				{
-				member   => $member,
-				slot     => $slot,
-				base_url => $config->{base_url},
-				};
+			$message->{to} = $mail_config->{notify_to};
 			}
-		elsif ($type eq 'storage.request')
+		elsif ($message->{to} eq 'storage')
 			{
-			my $request = $schema->resultset('StorageRequest')->find($action->row_id());
-			if (!$request)
-				{
-				warn 'Cannot find referenced request ' . $action->row_id();
-				return;
-				}
 			$message->{to} = [];
 			my $users = $schema->resultset('MemberMgroup')->search(
 				{
@@ -162,39 +94,17 @@ while (my $action = $queue->next())
 				my $member = $user->member();
 				push(@{ $message->{to} }, { $member->email() => $member->fname() . ' ' . $member->lname() });
 				}
-
-			$message->{temp_plain} = $mail_config->{requested_slot}->{temp_plain};
-			$message->{subject}    = $mail_config->{requested_slot}->{subject};
-			$message->{stash}      =
-				{
-				request  => $request,
-				base_url => $config->{base_url},
-				};
 			}
-		elsif ($type eq 'password.reset')
+		if ($key eq 'email.member.password_reset')
 			{
-			my $member = $schema->resultset('Member')->find($action->row_id());
-			if (!$member)
-				{
-				warn 'Cannot find referenced member ' . $action->row_id();
-				return;
-				}
-			my $token              = $member->create_related('reset_tokens', { valid => 1 });
-			my $forgot             = $mail_config->{forgot};
-			$message->{to}         = { $member->email() => $member->fname() . ' ' . $member->lname() };
-			$message->{subject}    = $forgot->{subject};
-			$message->{temp_plain} = $forgot->{temp_plain};
-			$message->{stash}      =
-				{
-				token    => $token,
-				member   => $member,
-				base_url => $config->{base_url},
-				};
+			$message->{stash}->{token} = $row->create_related('reset_tokens', { valid => 1 });
 			}
-		else
+		if ($type =~ /^application\./)
 			{
-			# Unknown action type; leave it alone.
-			return;
+			UUID::parse($row->application_id(), my $bin);
+			my $enc_app_id = encode_base64($bin, '');
+			$message->{subject} = 'Membership Application: ' . $row->member()->fname() . ' ' . $row->member()->lname() . ' [' . $enc_app_id . ']';
+			$message->{stash}->{action} = $action;
 			}
 
 		if (ref($message->{to}) ne 'ARRAY')
@@ -297,6 +207,24 @@ elsif (scalar(@emails))
 	{
 	foreach my $message (@emails)
 		{
+		foreach my $to (@{ $message->{to} })
+			{
+			my $to_env;
+			my $to_header;
+			if (ref($to) eq 'HASH')
+				{
+				$to_env = (keys(%$to))[0];
+				$to_header = Email::Address::XS->new((values(%$to))[0], $to_env);
+				}
+			else
+				{
+				$to_env = $to;
+				$to_header = Email::Address::XS->new(undef, $to_env);
+				}
+			warn $to_header;
+			$message->{email}->header_str_set(To => $to_header->as_string());
+			}
+
 		print($message->{email}->as_string() . "\n");
 		}
 	}

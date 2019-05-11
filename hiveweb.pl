@@ -60,103 +60,92 @@
 		from_name   => 'Hive13 Intweb',
 		auth        => '< put auth password here >',
 		list        => '<intwebsandbox.hive13.org>',
+		priority    => 100,
 		'Net::SMTP' =>
 			{
 			Hello => 'intweb.at.hive13.org',
 			Host  => 'smtp.gmail.com',
 			SSL   => 1
 			},
-		notify_term =>
+		storage =>
 			{
-			temp_plain => 'email/member/notify_term_plain.tt',
-			subject    => 'Member is Resigning',
-			},
-		forgot =>
-			{
-			temp_plain => 'email/forgot_password_plain.tt',
-			subject    => 'Hive13 intweb password reset',
-			},
-		assigned_slot =>
-			{
-			temp_plain => 'email/assigned_slot_plain.tt',
-			subject    => 'Storage Slot assigned at Hive13',
-			},
-		requested_slot =>
-			{
-			temp_plain => 'email/requested_slot_plain.tt',
-			subject    => 'Storage Slot requested at Hive13',
+			row      => 'StorageSlot',
+			row_as   => 'slot',
+			to       => 'slot.member',
+			renew =>
+				{
+				subject => 'Storage Slot renewed at Hive13',
+				},
+			assign =>
+				{
+				subject => 'Storage Slot assigned at Hive13',
+				},
+			request =>
+				{
+				row     => 'StorageRequest',
+				row_as  => 'request',
+				to      => 'storage',
+				subject => 'Storage Slot requested at Hive13',
+				},
 			},
 		member =>
 			{
+			row    => 'Member',
+			row_as => 'member',
+			to     => 'member',
 			welcome =>
 				{
-				temp_plain => 'email/member/welcome_plain.tt',
-				subject    => 'Welcome to Hive13',
+				priority => 20,
+				subject  => 'Welcome to Hive13',
 				},
 			confirm_cancel =>
 				{
-				temp_plain => 'email/member/confirm_cancel_plain.tt',
-				subject    => 'Hive13 Subscription Cancelled',
+				subject => 'Hive13 Subscription Cancelled',
 				},
 			notify_cancel =>
 				{
-				temp_plain => 'email/member/notify_cancel_plain.tt',
-				subject    => 'Member Subscription Cancelled',
+				subject => 'Member Subscription Cancelled',
+				},
+			password_reset =>
+				{
+				priority => 1,
+				subject  => 'Hive13 intweb password reset',
+				},
+			past_due =>
+				{
+				subject  => 'Your Hive13 Subscription is past due',
+				priority => 40,
 				},
 			},
+		notify =>
+			{
+			row    => 'SurveyResponse',
+			row_as => 'survey',
+			to     => 'notify',
+			term =>
+				{
+				priority => 90,
+				subject  => 'Member is Resigning',
+				},
+			},
+		application =>
+			{
+			row      => 'Application',
+			row_as   => 'application',
+			to       => 'intwebsandbox@hive13.org',
+			priority => 60,
+			create   => { priority => 50 },
+			finalize => { priority => 70 },
+			pay      => { priority => 80 },
+			}
 		},
 	priorities =>
 		{
-		'application.create'         => 50,
-		'application.attach_picture' => 60,
-		'application.mark_submitted' => 60,
-		'application.attach_form'    => 60,
-		'application.update'         => 60,
-		'application.finalize'       => 70,
-		'application.pay'            => 80,
-		'member.confirm_cancel'      => 100,
-		'member.notify_term'         => 90,
-		'member.notify_cancel'       => 100,
-		'member.past_due'            => 40,
-		'member.welcome'             => 20,
-		'notify.term'                => 100,
-		'password.reset'             => 1,
-		'paypal.refresh'             => 10,
-		'storage.assign'             => 100,
-		'storage.request'            => 100,
+		'paypal.refresh' => 10,
 		},
 	application =>
 		{
-		email_address => 'intwebsandbox@hive13.org',
 		pending_group => 'pending_applications',
-		create =>
-			{
-			temp_plain => 'email/application/created_plain.tt',
-			},
-		mark_submitted =>
-			{
-			temp_plain => 'email/application/submitted_plain.tt',
-			},
-		attach_picture =>
-			{
-			temp_plain => 'email/application/picture_attached_plain.tt',
-			},
-		attach_form =>
-			{
-			temp_plain => 'email/application/form_attached_plain.tt',
-			},
-		update =>
-			{
-			temp_plain => 'email/application/updated_plain.tt',
-			},
-		finalize =>
-			{
-			temp_plain => 'email/application/finalize_plain.tt',
-			},
-		pay =>
-			{
-			temp_plain => 'email/application/pay_plain.tt',
-			},
 		},
 	reports =>
 		{
