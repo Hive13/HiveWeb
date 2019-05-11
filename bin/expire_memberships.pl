@@ -75,7 +75,7 @@ while (my $candidate = $candidates->next())
 		$schema->txn_do(sub
 			{
 			my $lpc = $candidate->linked_members();
-			if ($expire && $days > 8)
+			if ($expire && $days > 31)
 				{
 				printf("Looking at %s %s: %i\n", $candidate->fname(), $candidate->lname(), $days);
 				$candidate->remove_group($pe_group_id, undef, 'end of subscription');

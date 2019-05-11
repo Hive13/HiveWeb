@@ -103,6 +103,12 @@ sub subscr_payment
 		{
 		$member->remove_group(\'pending_payments', undef, 'initial payment');
 		$member->add_group(\'members', undef, 'initial payment');
+		my $lpc = $member->linked_members();
+		while (my $link = $lpc->next())
+			{
+			$link->remove_group(\'pending_payments', undef, 'initial payment');
+			$link->remove_group(\'members', undef, 'initial payment');
+			}
 
 		my $application = $member->find_related('applications',
 			{
