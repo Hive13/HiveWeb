@@ -43,7 +43,7 @@ while (my $action = $queue->next())
 			from_name  => $mail_config->{from_name},
 			temp_plain => $c->config_path($key, 'temp_plain'),
 			temp_html  => $c->config_path($key, 'temp_html'),
-		  subject    => $c->config_path($key, 'subject'),
+			subject    => $c->config_path($key, 'subject'),
 			to         => $c->config_path($key, 'to'),
 			};
 		$message->{temp_plain} //= $path . '_plain.tt' if (-f $c->path_to('root', 'src', $path . '_plain.tt'));
