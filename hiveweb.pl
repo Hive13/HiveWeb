@@ -17,7 +17,8 @@
 		},
 	storage =>
 		{
-		remind => '1 month',
+		remind       => '1 month',
+		remind_group => 'needs_storage_renewal',
 		},
 	paypal =>
 		{

@@ -1,6 +1,9 @@
 Hello [% slot.member.fname %],
 
 You have just been assigned storage slot [% slot.name %].  It can be found at the following location: [% slot.hierarchy('->') %]
+[%~ IF slot.expire_date %]
+Your slot assignment will expire on [% slot.expire_date.strftime('%x') %] and must be renewed before then.  You will receive a reminder when this renewal is approaching.
+[%~ END %]
 
 Thank you,
 intweb

@@ -1,7 +1,9 @@
 Hello [% slot.member.fname %],
 
-Your use of storage slot [% slot.name %] has been renewed.  It now expires on [% slot.expire_date.strftime('%x') %]
-
+Your use of storage slot [% slot.name %] has been renewed.
+[%~ IF slot.expire_date %]
+It now expires on [% slot.expire_date.strftime('%x') %].
+[%~ END %]
 It can be found at the following location: [% slot.hierarchy('->') %]
 
 Thank you,
