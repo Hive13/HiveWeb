@@ -42,7 +42,7 @@ while (my $action = $queue->next())
 			from       => $mail_config->{from},
 			from_name  => $mail_config->{from_name},
 			temp_plain => $c->config_path($key, 'temp_plain'),
-			temp_html  => $c->config_path($key, 'temp_html')
+			temp_html  => $c->config_path($key, 'temp_html'),
 		  subject    => $c->config_path($key, 'subject'),
 			to         => $c->config_path($key, 'to'),
 			};
