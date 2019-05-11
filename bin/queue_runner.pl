@@ -202,24 +202,6 @@ elsif (scalar(@emails))
 	{
 	foreach my $message (@emails)
 		{
-		foreach my $to (@{ $message->{to} })
-			{
-			my $to_env;
-			my $to_header;
-			if (ref($to) eq 'HASH')
-				{
-				$to_env = (keys(%$to))[0];
-				$to_header = Email::Address::XS->new((values(%$to))[0], $to_env);
-				}
-			else
-				{
-				$to_env = $to;
-				$to_header = Email::Address::XS->new(undef, $to_env);
-				}
-			warn $to_header;
-			$message->{email}->header_str_set(To => $to_header->as_string());
-			}
-
 		print($message->{email}->as_string() . "\n");
 		}
 	}
