@@ -38,7 +38,7 @@
 			],
 		api => 'https://slack.com/api/users.admin.invite',
 		},
-	cancellations =>
+	membership =>
 		{
 		message_groups =>
 			{
@@ -52,6 +52,7 @@
 		pending_group => 'pending_cancellations',
 		expire_group  => 'pending_expiry',
 		survey_uuid   => 'c061cc14-0a56-4c6b-b589-32760c2e77f6',
+		apply_group   => 'pending_applications',
 		},
 	email =>
 		{
@@ -68,17 +69,11 @@
 			},
 		storage =>
 			{
-			row      => 'StorageSlot',
-			row_as   => 'slot',
-			to       => 'slot.member',
-			renew =>
-				{
-				subject => 'Storage Slot renewed at Hive13',
-				},
-			assign =>
-				{
-				subject => 'Storage Slot assigned at Hive13',
-				},
+			row     => 'StorageSlot',
+			row_as  => 'slot',
+			to      => 'slot.member',
+			renew   => { subject => 'Storage Slot renewed at Hive13' },
+			assign  => { subject => 'Storage Slot assigned at Hive13' },
 			request =>
 				{
 				row     => 'StorageRequest',
@@ -97,14 +92,8 @@
 				priority => 20,
 				subject  => 'Welcome to Hive13',
 				},
-			confirm_cancel =>
-				{
-				subject => 'Hive13 Subscription Cancelled',
-				},
-			notify_cancel =>
-				{
-				subject => 'Member Subscription Cancelled',
-				},
+			confirm_cancel => { subject => 'Hive13 Subscription Cancelled' },
+			notify_cancel  => { subject => 'Member Subscription Cancelled' },
 			password_reset =>
 				{
 				priority => 1,
@@ -121,7 +110,7 @@
 			row    => 'SurveyResponse',
 			row_as => 'survey',
 			to     => 'intwebsandbox@hive13.org',
-			term =>
+			term   =>
 				{
 				priority => 90,
 				subject  => 'Member is Resigning',
@@ -137,14 +126,6 @@
 			finalize => { priority => 70 },
 			pay      => { priority => 80 },
 			}
-		},
-	priorities =>
-		{
-		'paypal.refresh' => 10,
-		},
-	application =>
-		{
-		pending_group => 'pending_applications',
 		},
 	reports =>
 		{

@@ -192,7 +192,7 @@ sub cancel :Local :Args(0)
 	my $user       = $c->user();
 	my $member_id  = $user->member_id();
 	my $request    = $c->request();
-	my $survey     = $c->model('DB::Survey')->find($c->config()->{cancellations}->{survey_uuid}) || die 'Can\'t load survey.';
+	my $survey     = $c->model('DB::Survey')->find($c->config()->{membership}->{survey_uuid}) || die 'Can\'t load survey.';
 
 	if ($request->method() eq 'GET')
 		{

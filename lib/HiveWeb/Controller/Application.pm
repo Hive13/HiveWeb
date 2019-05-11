@@ -126,7 +126,7 @@ sub index :Path
 				}
 
 			$form->{member_id} = $member_id;
-			my $group          = $c->config()->{application}->{pending_group};
+			my $group          = $c->config()->{membership}->{apply_group};
 			my $mgroup         = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
 
 			$application = $c->model('DB::Application')->create($form) || die $!;
