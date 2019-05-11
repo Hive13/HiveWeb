@@ -34,8 +34,7 @@ while (my $action = $queue->next())
 	{
 	$schema->txn_do(sub
 		{
-		my $type = lc($action->action_type());
-		my $key  = 'email.' . $type;
+		my $key  = 'email.' . lc($action->action_type());
 		my $path = $key;
 		$path =~ s/\./\//g;
 		my $message =
@@ -44,6 +43,8 @@ while (my $action = $queue->next())
 			from_name  => $mail_config->{from_name},
 			temp_plain => $c->config_path($key, 'temp_plain'),
 			temp_html  => $c->config_path($key, 'temp_html')
+		  subject    => $c->config_path($key, 'subject'),
+			to         => $c->config_path($key, 'to'),
 			};
 		$message->{temp_plain} //= $path . '_plain.tt' if (-f $c->path_to('root', 'src', $path . '_plain.tt'));
 		$message->{temp_html}  //= $path . '_html.tt' if (-f $c->path_to('root', 'src', $path . '_html.tt'));
@@ -57,9 +58,7 @@ while (my $action = $queue->next())
 			warn "Cannot find referenced $row_name " . $action->row_id();
 			return;
 			}
-		$message->{subject} = $c->config_path($key, 'subject');
-		$message->{to}      = $c->config_path($key, 'to');
-		$message->{stash}   =
+		$message->{stash} =
 			{
 			$row_name => $row,
 			base_url  => $config->{base_url},
@@ -72,10 +71,6 @@ while (my $action = $queue->next())
 		elsif ($message->{to} eq 'member' && $row_name eq 'member')
 			{
 			$message->{to} = { $row->email() => $row->fname() . ' ' . $row->lname() };
-			}
-		elsif ($message->{to} eq 'notify')
-			{
-			$message->{to} = $mail_config->{notify_to};
 			}
 		elsif ($message->{to} eq 'storage')
 			{
@@ -99,7 +94,7 @@ while (my $action = $queue->next())
 			{
 			$message->{stash}->{token} = $row->create_related('reset_tokens', { valid => 1 });
 			}
-		if ($type =~ /^application\./)
+		if ($key =~ /^email\.application\./)
 			{
 			UUID::parse($row->application_id(), my $bin);
 			my $enc_app_id = encode_base64($bin, '');

@@ -55,7 +55,6 @@
 		},
 	email =>
 		{
-		notify_to   => 'intwebsandbox@hive13.org',
 		from        => 'intweb@hive13.org',
 		from_name   => 'Hive13 Intweb',
 		auth        => '< put auth password here >',
@@ -121,7 +120,7 @@
 			{
 			row    => 'SurveyResponse',
 			row_as => 'survey',
-			to     => 'notify',
+			to     => 'intwebsandbox@hive13.org',
 			term =>
 				{
 				priority => 90,
