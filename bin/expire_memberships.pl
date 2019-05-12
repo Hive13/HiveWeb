@@ -88,8 +88,8 @@ while (my $candidate = $candidates->next())
 					{
 					# Skip if we haven't hit number of days yet
 					next if ($days < $message->[$i]->{days});
-					# Skip if already sent message
-					next if ($candidate->in_group($message->[$i]->{group_id}));
+					# Done if already sent message
+					last if ($candidate->in_group($message->[$i]->{group_id}));
 					$schema->resultset('Action')->create(
 						{
 						queuing_member_id => $candidate->member_id(),
