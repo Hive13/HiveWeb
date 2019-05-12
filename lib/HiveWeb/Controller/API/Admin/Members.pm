@@ -110,11 +110,6 @@ sub password :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'change_password',
-				changing_member_id => $c->user()->member_id(),
-				});
 			$member->set_password($password);
 			$out->{data}     = "Member password has been updated.";
 			$out->{response} = \1;
@@ -208,35 +203,11 @@ sub edit :Local :Args(0)
 					else
 						{
 						my $new_link = $c->model('DB::Member')->find($linked_id) || die "Invalid Member ID $linked_id";
-						$member->create_related('changed_audits',
-							{
-							change_type        => 'add_linked',
-							notes              => 'Linked account ' . $linked_id,
-							changing_member_id => $c->user()->member_id(),
-							});
-						$new_link->create_related('changed_audits',
-							{
-							change_type        => 'add_link',
-							notes              => 'Linked to account ' . $member_id,
-							changing_member_id => $c->user()->member_id(),
-							});
 						$new_link->update({ linked_member_id => $member_id });
 						}
 					}
 				foreach my $linked_member_id (keys(%current_links))
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'delete_linked',
-						notes              => 'Unlinked account ' . $linked_member_id,
-						changing_member_id => $c->user()->member_id(),
-						});
-					$current_links{$linked_member_id}->create_related('changed_audits',
-						{
-						change_type        => 'delete_link',
-						notes              => 'Unlinked from account ' . $member_id,
-						changing_member_id => $c->user()->member_id(),
-						});
 					$current_links{$linked_member_id}->update({ linked_member_id => undef });
 					}
 				}

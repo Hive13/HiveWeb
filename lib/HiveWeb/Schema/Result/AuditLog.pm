@@ -49,6 +49,15 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
 );
 
+sub new
+	{
+	my ($self, $attrs) = @_;
+
+	$attrs->{changing_member_id} //= $HiveWeb::Schema::member_id;
+
+	return $self->next::method($attrs);
+	}
+
 sub TO_JSON
 	{
 	my $self = shift;
@@ -66,5 +75,4 @@ sub TO_JSON
 		};
 	}
 
-__PACKAGE__->meta->make_immutable;
 1;

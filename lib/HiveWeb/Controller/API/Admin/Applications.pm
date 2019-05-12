@@ -143,26 +143,15 @@ sub attach_picture_to_member :Local :Args(0)
 		return;
 		}
 
-	$out->{response} = \1;
-	$out->{data}     = 'Picture linked to member account.';
 	try
 		{
-		$c->model('DB')->txn_do(sub
-			{
-			my $member = $application->member();
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'attach_photo_from_application',
-				notes              => 'Attached image ID ' . $application->picture_id(),
-				changing_member_id => $c->user()->member_id(),
-				});
-			$member->update({ member_image_id => $application->picture_id() });
-			});
+		$application->link_picture();
+		$out->{response} = \1;
+		$out->{data}     = 'Picture linked to member account.';
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not link picture: ' . $_;
+		$out->{data} = 'Could not link picture: ' . $_;
 		};
 	}
 

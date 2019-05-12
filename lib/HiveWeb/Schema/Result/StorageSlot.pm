@@ -87,10 +87,9 @@ sub update
 		{
 		$schema->resultset('AuditLog')->create(
 			{
-			change_type        => 'unassign_slot',
-			notes              => 'Unassigned slot ' . $self->slot_id(),
-			changing_member_id => $HiveWeb::Schema::member_id,
-			changed_member_id  => $old_member_id,
+			change_type       => 'unassign_slot',
+			notes             => 'Unassigned slot ' . $self->slot_id(),
+			changed_member_id => $old_member_id,
 			});
 		}
 
@@ -98,10 +97,9 @@ sub update
 		{
 		$schema->resultset('AuditLog')->create(
 			{
-			change_type        => 'assign_slot',
-			notes              => 'Assigned slot ' . $self->slot_id(),
-			changed_member_id  => $new_member_id,
-			changing_member_id => $HiveWeb::Schema::member_id,
+			change_type       => 'assign_slot',
+			notes             => 'Assigned slot ' . $self->slot_id(),
+			changed_member_id => $new_member_id,
 			});
 		$schema->resultset('Action')->create(
 			{
@@ -115,10 +113,9 @@ sub update
 		{
 		$schema->resultset('AuditLog')->create(
 			{
-			change_type        => 'renew_slot',
-			notes              => 'Renew slot ' . $self->slot_id(),
-			changed_member_id  => $new_member_id,
-			changing_member_id => $HiveWeb::Schema::member_id,
+			change_type       => 'renew_slot',
+			notes             => 'Renew slot ' . $self->slot_id(),
+			changed_member_id => $new_member_id,
 			});
 		$schema->resultset('Action')->create(
 			{

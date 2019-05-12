@@ -13,7 +13,7 @@ use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
 use HiveWeb;
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate Helper::Row::StorageValues });
 __PACKAGE__->table('members');
 
 __PACKAGE__->add_columns(
@@ -67,7 +67,12 @@ __PACKAGE__->add_columns(
 	'totp_secret',
 	{ data_type => 'bytea', is_nullable => 1 },
 	'linked_member_id',
-	{ data_type => 'uuid', is_nullable => 1, size => 16 },
+	{
+	data_type          => 'uuid',
+	is_nullable        => 1,
+	size               => 16,
+	keep_storage_value => 1,
+	},
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -231,13 +236,17 @@ sub sqlt_deploy_hook
 
 sub update
 	{
-	my $self  = shift;
-	my $attrs = shift;
-	my %dirty = $self->get_dirty_columns();
+	my $self     = shift;
+	my $attrs    = shift;
+	my $schema   = $self->result_source()->schema();
+	my %dirty    = $self->get_dirty_columns();
+	my $old_link = $self->get_storage_value('linked_member_id');
+	my $ret      = $self->next::method($attrs, @_);
+	my $new_link = $self->linked_member_id();
 
 	if ($dirty{paypal_email} || $attrs->{paypal_email})
 		{
-		$self->result_source()->schema()->resultset('Action')->create(
+		$schema->resultset('Action')->create(
 			{
 			queuing_member_id => $HiveWeb::Schema::member_id // $self->member_id(),
 			action_type       => 'paypal.refresh',
@@ -245,7 +254,39 @@ sub update
 			});
 		}
 
-	return $self->next::method($attrs, @_);
+	if ($old_link ne $new_link)
+		{
+		if ($old_link)
+			{
+			$schema->resultset('AuditLog')->create(
+				{
+				change_type       => 'delete_linked',
+				notes             => 'Unlinked account ' . $self->member_id(),
+				changed_member_id => $old_link,
+				}) || die $!;
+			$self->create_related('changed_audits',
+				{
+				change_type => 'delete_link',
+				notes       => 'Unlinked from account ' . $old_link,
+				}) || die $!;
+			}
+		if ($new_link)
+			{
+			$schema->resultset('AuditLog')->create(
+				{
+				change_type       => 'add_linked',
+				notes             => 'Linked account ' . $self->member_id(),
+				changed_member_id => $new_link,
+				}) || die $!;
+			$self->create_related('changed_audits',
+				{
+				change_type => 'add_link',
+				notes       => 'Linked to account ' . $new_link,
+				}) || die $!;
+			}
+		}
+
+	return $ret;
 	}
 
 sub TO_JSON
@@ -292,10 +333,19 @@ sub check_password
 sub set_password
 	{
 	my ($self, $pw) = @_;
-	my $salt = '$6$' . $self->make_salt(16) . '$';
+	my $schema      = $self->result_source()->schema();
+	my $salt        = '$6$' . $self->make_salt(16) . '$';
 
-	$self->password(crypt($pw, $salt));
-	$self->update();
+	$schema->txn_do(sub
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type => 'change_password',
+			});
+
+		$self->password(crypt($pw, $salt));
+		$self->update();
+		});
 	}
 
 sub has_access
@@ -343,9 +393,8 @@ sub add_vend_credits
 
 	$self->create_related('changed_audits',
 		{
-		change_type        => 'add_credits',
-		changing_member_id => $HiveWeb::Schema::member_id,
-		notes              => 'Added 1 credit',
+		change_type => 'add_credits',
+		notes       => "Added $amount credit" . ($amount == 1 ? '' : 's'),
 		});
 
 	$self->update(

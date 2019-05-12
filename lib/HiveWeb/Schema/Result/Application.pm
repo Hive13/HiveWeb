@@ -112,14 +112,29 @@ sub update
 			}) || die 'Could not queue notification: ' . $!;
 		$schema->resultset('AuditLog')->create(
 			{
-			change_type        => 'finalize_application',
-			notes              => 'Finalized Application ID ' . $self->application_id() . ' - ' . $self->final_result(),
-			changed_member_id  => $self->member_id(),
-			changing_member_id => $HiveWeb::Schema::member_id,
+			change_type       => 'finalize_application',
+			notes             => 'Finalized Application ID ' . $self->application_id() . ' - ' . $self->final_result(),
+			changed_member_id => $self->member_id(),
 			}) || die 'Could not audit finalization: ' . $!;
 		}
 
 	return $self->next::method($attrs, @_);
+	}
+
+sub link_picture
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	$schema->txn_do(sub
+		{
+		my $member = $self->member();
+		$member->create_related('changed_audits',
+			{
+			change_type => 'attach_photo_from_application',
+			notes       => 'Attached image ID ' . $self->picture_id(),
+			});
+		$member->update({ member_image_id => $self->picture_id() });
+		});
 	}
 
 sub TO_JSON
