@@ -63,7 +63,7 @@ __PACKAGE__->belongs_to(
 
 __PACKAGE__->has_many(
   'requests',
-  'HiveWeb::Schema::Result::StorageRequests',
+  'HiveWeb::Schema::Result::StorageRequest',
   { 'foreign.slot_id' => 'self.slot_id' },
   { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
