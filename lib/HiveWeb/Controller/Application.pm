@@ -107,11 +107,6 @@ sub index :Path
 			if ($application)
 				{
 				$application->update($form) || die $!;
-				my $queue = $c->model('DB::Action')->create(
-					{
-					action_type => 'application.update',
-					row_id      => $application->application_id(),
-					}) || die 'Unable to queue notification.';
 
 				$c->flash()->{auto_toast} =
 					{

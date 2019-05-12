@@ -99,10 +99,10 @@ sub update
 	my $self   = shift;
 	my $attrs  = shift;
 	my $schema = $self->result_source()->schema();
+	$self->set_inflated_columns($attrs) if $attrs;
 	my %dirty  = $self->get_dirty_columns();
-	my $ret    = $self->next::method($attrs, @_);
 
-	if ($dirty{decided_at} || exists($attrs->{decided_at}))
+	if ($dirty{decided_at})
 		{
 		$schema->resultset('Action')->create(
 			{
@@ -116,8 +116,40 @@ sub update
 			changed_member_id => $self->member_id(),
 			}) || die 'Could not audit finalization: ' . $!;
 		}
+	elsif ($dirty{app_turned_in_at})
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.mark_submitted',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+	elsif ($dirty{picture_id})
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.attach_picture',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+	elsif ($dirty{form_id})
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.attach_form',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+	else
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.update',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
 
-	return $self->next::method($attrs, @_);
+	return $self->next::method();
 	}
 
 sub link_picture
