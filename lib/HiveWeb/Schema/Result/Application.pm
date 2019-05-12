@@ -94,7 +94,33 @@ __PACKAGE__->belongs_to(
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
-__PACKAGE__->meta->make_immutable;
+sub update
+	{
+	my $self   = shift;
+	my $attrs  = shift;
+	my $schema = $self->result_source()->schema();
+	my %dirty  = $self->get_dirty_columns();
+	my $ret    = $self->next::method($attrs, @_);
+
+	if ($dirty{decided_at} || exists($attrs->{decided_at}))
+		{
+		$schema->resultset('Action')->create(
+			{
+			queuing_member_id => $HiveWeb::Schema::member_id,
+			action_type       => 'application.finalize',
+			row_id            => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		$schema->resultset('AuditLog')->create(
+			{
+			change_type        => 'finalize_application',
+			notes              => 'Finalized Application ID ' . $self->application_id() . ' - ' . $self->final_result(),
+			changed_member_id  => $self->member_id(),
+			changing_member_id => $HiveWeb::Schema::member_id,
+			}) || die 'Could not audit finalization: ' . $!;
+		}
+
+	return $self->next::method($attrs, @_);
+	}
 
 sub TO_JSON
 	{

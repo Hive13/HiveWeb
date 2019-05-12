@@ -235,7 +235,7 @@ sub update
 	my $attrs = shift;
 	my %dirty = $self->get_dirty_columns();
 
-	if ($dirty{paypal_email})
+	if ($dirty{paypal_email} || $attrs->{paypal_email})
 		{
 		$self->result_source()->schema()->resultset('Action')->create(
 			{
@@ -340,6 +340,13 @@ sub add_vend_credits
 	my $credits = $self->vend_credits() // 0;
 
 	$credits += $amount;
+
+	$self->create_related('changed_audits',
+		{
+		change_type        => 'add_credits',
+		changing_member_id => $HiveWeb::Schema::member_id,
+		notes              => 'Added 1 credit',
+		});
 
 	$self->update(
 		{

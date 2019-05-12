@@ -65,18 +65,6 @@ sub finalize :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
-			$c->model('DB::Action')->create(
-				{
-				queuing_member_id => $c->user()->member_id(),
-				action_type       => 'application.finalize',
-				row_id            => $application->application_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'finalize_application',
-				notes              => 'Finalized Application ID ' . $application->application_id(),
-				changing_member_id => $c->user()->member_id(),
-				}) || die 'Could not audit finalization: ' . $!;
 			$application->update(
 				{
 				decided_at   => \'NOW()',
@@ -97,12 +85,6 @@ sub finalize :Local :Args(0)
 						}
 					elsif ($action eq 'add_soda_credit')
 						{
-						$member->create_related('changed_audits',
-							{
-							change_type        => 'add_credits',
-							changing_member_id => $c->user()->member_id(),
-							notes              => 'Added 1 credit',
-							});
 						$member->add_vend_credits(1);
 						}
 					elsif ($action eq 'add_badges')
