@@ -12,6 +12,7 @@ use HiveWeb;
 use LWP::UserAgent;
 use DateTime::TimeZone;
 use DateTime::Format::Strptime;
+use JSON;
 
 extends 'HiveWeb::DBIx::Class::Core';
 

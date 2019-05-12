@@ -106,6 +106,11 @@
 				subject  => 'Your Hive13 Subscription is past due',
 				priority => 40,
 				},
+			past_due =>
+				{
+				temp_plain => 'email/member/past_due_plain.tt',
+				subject    => 'Your Hive13 Subscription is past due',
+				},
 			},
 		notify =>
 			{
