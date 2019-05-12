@@ -94,6 +94,24 @@ __PACKAGE__->belongs_to(
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
+sub insert
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	my $guard  = $schema->txn_scope_guard();
+
+	$self->next::method(@_);
+
+	$schema->resultset('Action')->create(
+		{
+		action_type => 'application.create',
+		row_id      => $self->application_id(),
+		}) || die 'Unable to queue notification.';
+
+	$guard->commit();
+	return $self;
+	}
+
 sub update
 	{
 	my $self   = shift;

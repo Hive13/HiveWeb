@@ -121,11 +121,6 @@ sub index :Path
 			$user->add_group(\$c->config()->{membership}->{apply_group}, 'Submitted application');
 
 			$application = $c->model('DB::Application')->create($form) || die $!;
-			my $queue = $c->model('DB::Action')->create(
-				{
-				action_type => 'application.create',
-				row_id      => $application->application_id(),
-				}) || die 'Unable to queue notification.';
 
 			$c->stash(
 				{
