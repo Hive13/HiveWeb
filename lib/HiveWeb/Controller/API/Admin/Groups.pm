@@ -96,7 +96,6 @@ sub edit :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
-			my $changing_id = $c->user()->member_id();
 			if (!$mgroup)
 				{
 				$mgroup    = $c->model('DB::MGroup')->create({ name => $name }) || die $!;
@@ -112,11 +111,11 @@ sub edit :Local :Args(0)
 				my $member_id = $member->member_id();
 				if ($new_members{$member_id})
 					{
-					$member->add_group($mgroup_id, $changing_id);
+					$member->add_group($mgroup_id);
 					}
 				else
 					{
-					$member->remove_group($mgroup_id, $changing_id);
+					$member->remove_group($mgroup_id);
 					}
 				}
 			$out->{response} = \1;

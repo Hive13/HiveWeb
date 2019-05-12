@@ -491,11 +491,10 @@ sub check_2fa
 
 sub add_group
 	{
-	my ($self, $group_id, $changing_id, $notes_extra) = @_;
+	my ($self, $group_id, $notes_extra) = @_;
 
-	$group_id    = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
-	$changing_id = $changing_id->member_id() if (ref($changing_id));
-	my $notes    = "Added group $group_id";
+	$group_id = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
+	my $notes = "Added group $group_id";
 	if ($notes_extra)
 		{
 		$notes .= " - $notes_extra";
@@ -507,9 +506,8 @@ sub add_group
 		{
 		$self->create_related('changed_audits',
 			{
-			change_type        => 'add_group',
-			changing_member_id => $changing_id,
-			notes              => $notes,
+			change_type => 'add_group',
+			notes       => $notes,
 			}) || die $!;
 		$mg->insert();
 		}
@@ -517,11 +515,10 @@ sub add_group
 
 sub remove_group
 	{
-	my ($self, $group_id, $changing_id, $notes_extra) = @_;
+	my ($self, $group_id, $notes_extra) = @_;
 
-	$group_id    = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
-	$changing_id = $changing_id->member_id() if (ref($changing_id));
-	my $notes    = "Removed group $group_id";
+	$group_id = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
+	my $notes = "Removed group $group_id";
 	if ($notes_extra)
 		{
 		$notes .= " - $notes_extra";
@@ -533,9 +530,8 @@ sub remove_group
 		{
 		$self->create_related('changed_audits',
 			{
-			change_type        => 'remove_group',
-			changing_member_id => $changing_id,
-			notes              => $notes,
+			change_type => 'remove_group',
+			notes       => $notes,
 			}) || die $!;
 		$mg->delete();
 		}

@@ -213,11 +213,11 @@ sub cancel :Local :Args(0)
 			});
 		if ($expired->get_column('expired'))
 			{
-			$user->remove_group(\'members', undef, 'cancellation confirmation');
+			$user->remove_group(\'members', 'cancellation confirmation');
 			}
 		else
 			{
-			$user->add_group(\'pending_expiry', undef, 'cancellation confirmation');
+			$user->add_group(\'pending_expiry', 'cancellation confirmation');
 			}
 
 		my $response = $c->model('DB::SurveyResponse')->fill_out($user, $survey, $request->params()) || die $!;

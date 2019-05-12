@@ -211,11 +211,11 @@ sub edit :Local :Args(0)
 				my $group_id = $group->mgroup_id();
 				if ($new_groups{$group_id})
 					{
-					$member->add_group($group_id, $c->user());
+					$member->add_group($group_id);
 					}
 				else
 					{
-					$member->remove_group($group_id, $c->user());
+					$member->remove_group($group_id);
 					}
 				}
 			$out->{response} = \1;
