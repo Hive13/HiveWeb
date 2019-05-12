@@ -1,8 +1,0 @@
-Hello [% member.fname %],
-
-You have just been assigned storage slot [% slot.name %].  It can be found at the following location: [% slot.hierarchy('->') %]
-
-Thank you,
-intweb
-
-[%~# vim:set filetype=tt2: ~%]

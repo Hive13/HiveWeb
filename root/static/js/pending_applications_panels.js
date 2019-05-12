@@ -1,5 +1,6 @@
 function display_application_status(data)
 	{
+	var self = this;
 	var html = "<h4>What do I do next?</h4>", steps = [], app_id = data.application_id, date, $div;
 
 	if (!data.has_picture)

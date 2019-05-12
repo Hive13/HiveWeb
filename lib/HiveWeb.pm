@@ -138,4 +138,22 @@ __PACKAGE__->allow_access_if_any('/api/admin/storage',        ['board', 'storage
 __PACKAGE__->allow_access_if_any('/api/admin/members/search', ['board', 'storage']);
 __PACKAGE__->deny_access_unless( '/admin',                    ['board']);
 __PACKAGE__->deny_access_unless( '/',                  sub { return shift->user_exists(); });
+
+sub config_path
+	{
+	my ($self, $path, $key) = @_;
+
+	my @path = split(/\./, $path);
+	my $ref  = $self->config();
+	my $ret  = $ref->{$key};
+
+	while (my $piece = shift(@path))
+		{
+		last if (!exists($ref->{$piece}));
+		$ref = $ref->{$piece};
+		$ret = $ref->{$key} if (exists($ref->{$key}));
+		}
+	return $ret;
+	}
+
 1;

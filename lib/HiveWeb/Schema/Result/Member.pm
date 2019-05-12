@@ -11,6 +11,7 @@ extends 'HiveWeb::DBIx::Class::Core';
 
 use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
+use HiveWeb;
 
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate });
 __PACKAGE__->table('members');
@@ -351,10 +352,22 @@ sub add_vend_credits
 sub list_slots
 	{
 	my $self  = shift;
-	my @slots = $self->slots();
+	my $outstanding_renew = $self->result_source()->schema->resultset('StorageRequest')->search(
+		{
+		slot_id    => { -ident => 'me.slot_id' },
+		decided_at => undef,
+		},
+		{
+		alias => 'renew'
+		})->count_rs()->as_query();
+	my $slots = $self->search_related('slots', {},
+		{
+		'+select' => [ \['(now() + ?::interval) > expire_date', HiveWeb->config->{storage}->{remind} ], $outstanding_renew ],
+		'+as'     => [ 'can_renew', 'outstanding_renew' ],
+		});
 	my @ret;
 
-	foreach my $slot (@slots)
+	while (my $slot = $slots->next())
 		{
 		my $location = $slot->location();
 		my $lname = "";
@@ -367,9 +380,12 @@ sub list_slots
 			}
 		push(@ret,
 			{
-			slot_id  => $slot->slot_id(),
-			name     => $slot->name(),
-			location => $lname,
+			slot_id         => $slot->slot_id(),
+			name            => $slot->name(),
+			location        => $lname,
+			can_renew       => $slot->get_column('can_renew') ? \1 : \0,
+			renew_submitted => $slot->get_column('outstanding_renew') > 0 ? \1 : \0,
+			expire_date     => $slot->expire_date(),
 			});
 		}
 

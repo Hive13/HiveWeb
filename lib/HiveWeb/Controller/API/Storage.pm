@@ -21,13 +21,64 @@ sub list :Local :Args(0)
 
 	my $user     = $c->user() || return;
 	my @slots    = $user->list_slots();
-	my @requests = $user->requests()->search({ hidden => 'f' })->all();
+	my @requests = $user->requests()->search(
+		{
+		hidden  => 'f',
+		type_id => { '!=' => undef },
+		})->all();
 
 	$out->{slots}    = \@slots;
 	$out->{requests} = \@requests;
 	$out->{response} = \1;
 	}
 
+sub requests :Local :Args(0)
+	{
+	my ($self, $c)   = @_;
+	my $out          = $c->stash()->{out};
+	my $user         = $c->user() || return;
+	$out->{requests} = [ $user->requests()->search({}, { order_by => { -desc => 'created_at' } })->all() ];
+	$out->{response} = \1;
+	}
+
+sub types :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+
+	$out->{types}    = [ $c->model('DB::StorageSlotType')->search({ can_request => 't' })->all() ];
+	$out->{response} = \1;
+	}
+
+sub request :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+	my $out        = $c->stash()->{out};
+	my $in         = $c->stash()->{in};
+
+	if (exists($in->{slot_id}))
+		{
+		my $slot = $c->model('DB::StorageSlot')->find($in->{slot_id});
+		if (!$slot)
+			{
+			$out->{data} = 'Invalid Slot ID';
+			return;
+			}
+		if ($slot->member_id() && $slot->member_id() ne $c->user()->member_id())
+			{
+			$out->{data} = 'This slot does not belong to you.';
+			return;
+			}
+		}
+	my $request = $c->user->create_related('requests',
+		{
+		notes   => $in->{notes},
+		type_id => $in->{type_id},
+		slot_id => $in->{slot_id},
+		}) || die $!;
+	$out->{response}   = \1;
+	$out->{request_id} = $request->request_id();
+	}
 sub relinquish :Local :Args(0)
 	{
 	my ($self, $c) = @_;

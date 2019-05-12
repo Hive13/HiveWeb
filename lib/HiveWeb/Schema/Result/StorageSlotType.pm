@@ -13,12 +13,14 @@ __PACKAGE__->load_components(qw{ UUIDColumns });
 __PACKAGE__->table('storage_slot_type');
 
 __PACKAGE__->add_columns(
-  'type_id',
-  { data_type => 'uuid', is_nullable => 0, size => 16 },
-  'name',
-  { data_type => 'character varying', is_nullable => 0 },
-  'can_request',
-  { data_type => 'boolean', is_nullable => 0, default_value => 't' },
+	'type_id',
+	{ data_type => 'uuid', is_nullable => 0, size => 16 },
+	'name',
+	{ data_type => 'character varying', is_nullable => 0 },
+	'default_expire_time',
+	{ data_type => 'character varying', is_nullable => 1 },
+	'can_request',
+	{ data_type => 'boolean', is_nullable => 0, default_value => 't' },
 );
 
 __PACKAGE__->set_primary_key('type_id');
@@ -30,8 +32,6 @@ __PACKAGE__->has_many(
   { 'foreign.type_id' => 'self.type_id' },
   { cascade_copy => 0, cascade_delete => 0 },
 );
-
-__PACKAGE__->meta->make_immutable;
 
 sub TO_JSON
 	{
