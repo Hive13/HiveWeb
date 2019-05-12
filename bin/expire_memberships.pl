@@ -74,11 +74,15 @@ while (my $candidate = $candidates->next())
 		return if ($days < $begin_days && !$expire);
 		$schema->txn_do(sub
 			{
-			if ($expire && $days > 31)
+			printf("Looking at %s %s: %i/%i\n", $candidate->fname(), $candidate->lname(), $days, $expire);
+			my $lpc = $candidate->linked_members();
+			if ($expire)
 				{
-				printf("Looking at %s %s: %i\n", $candidate->fname(), $candidate->lname(), $days);
-				$candidate->mod_group({ group => $pe_group_id, notes => 'end of subscription', linked => 1, del => 1});
-				$candidate->mod_group({ group => $mem_group_id, notes => 'end of subscription', linked => 1, del => 1});
+				if ($days > 31)
+					{
+					$candidate->mod_group({ group => $pe_group_id, notes => 'end of subscription', linked => 1, del => 1});
+					$candidate->mod_group({ group => $mem_group_id, notes => 'end of subscription', linked => 1, del => 1});
+					}
 				}
 			elsif ($days < $config->{expire_days})
 				{
