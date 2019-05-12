@@ -101,14 +101,8 @@ sub subscr_payment
 	my $pending = $member->search_related('member_mgroups', { 'mgroup.name' => 'pending_payments' }, { join => 'mgroup' });
 	if ($pending->count())
 		{
-		$member->remove_group(\'pending_payments', 'initial payment');
-		$member->add_group(\'members', 'initial payment');
-		my $lpc = $member->linked_members();
-		while (my $link = $lpc->next())
-			{
-			$link->remove_group(\'pending_payments', 'initial payment');
-			$link->remove_group(\'members', 'initial payment');
-			}
+		$member->mod_group({ group => \'pending_payments', notes => 'initial payment', del => 1, linked => 1 });
+		$member->mod_group({ group => \'members', notes => 'initial payment', linked => 1 });
 
 		my $application = $member->find_related('applications',
 			{

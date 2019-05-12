@@ -240,6 +240,7 @@ sub update
 	my $self     = shift;
 	my $attrs    = shift;
 	my $schema   = $self->result_source()->schema();
+	my $txn      = $schema->txn_scope_guard();
 	my %dirty    = $self->get_dirty_columns();
 	my $old_link = $self->get_storage_value('linked_member_id');
 	my $old_cred = $self->get_storage_value('vend_credits') || 0;
@@ -316,7 +317,9 @@ sub update
 			});
 		}
 
-	return $self->next::method();
+	my $ret = $self->next::method();
+	$txn->commit();
+	return $ret;
 	}
 
 sub TO_JSON
@@ -488,44 +491,31 @@ sub check_2fa
 	return (($code eq $candidate_code1) || ($code eq $candidate_code2) || ($code eq $candidate_code3));
 	}
 
-sub add_group
+sub mod_group
 	{
-	my ($self, $group_id, $notes_extra) = @_;
+	my $self     = shift;
+	my $opts     = ref($_[0]) eq 'HASH' ? $_[0] : { @_ };
+	my $schema   = $self->result_source()->schema();
+	my $txn      = $schema->txn_scope_guard();
+	my $group_id = $opts->{group_id} // $schema->resultset('Mgroup')->find_group_id($opts->{group});
+	my $notes    = $opts->{del} ? "Removed group $group_id" : "Added group $group_id";
 
-	$group_id = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
-	my $notes = "Added group $group_id";
-	if ($notes_extra)
+	if ($opts->{notes})
 		{
-		$notes .= " - $notes_extra";
+		$notes .= ' - ' . $opts->{notes};
 		}
 
-	my $mg = $self->find_or_new_related('member_mgroups', { mgroup_id => $group_id }) || die $!;
-
-	if (!$mg->in_storage())
+	my $mg = $self->find_related('member_mgroups', { mgroup_id => $group_id });
+	if (!$mg && !$opts->{del})
 		{
 		$self->create_related('changed_audits',
 			{
 			change_type => 'add_group',
 			notes       => $notes,
 			}) || die $!;
-		$mg->insert();
+		$self->create_related('member_mgroups', { mgroup_id => $group_id }) || die $!
 		}
-	}
-
-sub remove_group
-	{
-	my ($self, $group_id, $notes_extra) = @_;
-
-	$group_id = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
-	my $notes = "Removed group $group_id";
-	if ($notes_extra)
-		{
-		$notes .= " - $notes_extra";
-		}
-
-	my $mg = $self->find_related('member_mgroups', { mgroup_id => $group_id });
-
-	if ($mg)
+	elsif ($mg && $opts->{del})
 		{
 		$self->create_related('changed_audits',
 			{
@@ -534,6 +524,22 @@ sub remove_group
 			}) || die $!;
 		$mg->delete();
 		}
+
+	if ($opts->{linked})
+		{
+		my $copts = { %$opts };
+		delete($copts->{linked});
+		delete($copts->{group});
+		$copts->{notes}   .= ' - linked to ' . $self->member_id();
+		$copts->{group_id} = $group_id;
+		my $links = $self->linked_members();
+		while (my $link = $links->next())
+			{
+			$link->mod_group($copts);
+			}
+		}
+
+	$txn->commit();
 	}
 
 sub in_group

@@ -209,15 +209,13 @@ sub cancel :Local :Args(0)
 			{
 			select => \"max(payment_date) + interval '1 month' <= now()",
 			as     => 'expired',
+			})->get_column('expired');
+		$user->mod_group(
+			{
+			notes => 'cancellation confirmation',
+			group => ($expired ? \'members' : \'pending_expiry'),
+			(($expired) ? () : (del => 1)),
 			});
-		if ($expired->get_column('expired'))
-			{
-			$user->remove_group(\'members', 'cancellation confirmation');
-			}
-		else
-			{
-			$user->add_group(\'pending_expiry', 'cancellation confirmation');
-			}
 
 		my $response = $c->model('DB::SurveyResponse')->fill_out($user, $survey, $request->params()) || die $!;
 

@@ -209,14 +209,11 @@ sub edit :Local :Args(0)
 			foreach my $group (@groups)
 				{
 				my $group_id = $group->mgroup_id();
-				if ($new_groups{$group_id})
+				$member->mod_group(
 					{
-					$member->add_group($group_id);
-					}
-				else
-					{
-					$member->remove_group($group_id);
-					}
+					group_id => $group_id,
+					(($new_groups{$group_id}) ? () : (del => 1)),
+					});
 				}
 			$out->{response} = \1;
 			$out->{data}     = 'Member profile has been updated.';

@@ -74,25 +74,15 @@ while (my $candidate = $candidates->next())
 		return if ($days < $begin_days && !$expire);
 		$schema->txn_do(sub
 			{
-			my $lpc = $candidate->linked_members();
 			if ($expire && $days > 31)
 				{
 				printf("Looking at %s %s: %i\n", $candidate->fname(), $candidate->lname(), $days);
-				$candidate->remove_group($pe_group_id, 'end of subscription');
-				$candidate->remove_group($mem_group_id, 'end of subscription');
-				while (my $link = $lpc->next())
-					{
-					$link->remove_group($pe_group_id, 'end of subscription of linked account');
-					$link->remove_group($mem_group_id, 'end of subscription of linked account');
-					}
+				$candidate->mod_group({ group => $pe_group_id, notes => 'end of subscription', linked => 1, del => 1});
+				$candidate->mod_group({ group => $mem_group_id, notes => 'end of subscription', linked => 1, del => 1});
 				}
 			elsif ($days < $config->{expire_days})
 				{
-				$candidate->add_group($pc_group_id, 'lapsed payment');
-				while (my $link = $lpc->next())
-					{
-					$candidate->add_group($pc_group_id, 'lapsed payment of linked account');
-					}
+				$candidate->mod_group({ group => $pc_group_id, notes => 'lapsed payment', linked => 1});
 				# Loop through the list of when to send messages BACKWARDS
 				for (my $i = scalar(@$message) - 1; $i >= 0; $i--)
 					{
@@ -106,19 +96,14 @@ while (my $candidate = $candidates->next())
 						action_type       => $config->{late_email},
 						row_id            => $candidate->member_id(),
 						}) || die 'Could not queue notification: ' . $!;
-					$candidate->add_group($message->[$i]->{group_id}, 'lapsed payment');
+					$candidate->mod_group({ group => $message->[$i]->{group_id}, notes => 'lapsed payment' });
 					last;
 					}
 				}
 			else
 				{
-				$candidate->remove_group($pc_group_id, 'lapsed payment');
-				$candidate->remove_group($mem_group_id, 'lapsed payment');
-				while (my $link = $lpc->next())
-					{
-					$link->remove_group($pc_group_id, 'lapsed payment of linked account');
-					$link->remove_group($mem_group_id, 'lapsed payment of linked account');
-					}
+				$candidate->mod_group({ group => $pc_group_id, notes => 'lapsed payment', linked => 1, del => 1});
+				$candidate->mod_group({ group => $mem_group_id, notes => 'lapsed payment', linked => 1, del => 1});
 				}
 
 			die "Debug Rollback" if !$real;

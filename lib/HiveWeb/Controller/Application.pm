@@ -118,7 +118,7 @@ sub index :Path
 				}
 
 			$form->{member_id} = $user->member_id();
-			$user->add_group(\$c->config()->{membership}->{apply_group}, 'Submitted application');
+			$user->mod_group({ group => \$c->config()->{membership}->{apply_group}, notes => 'Submitted application' });
 
 			$application = $c->model('DB::Application')->create($form) || die $!;
 
