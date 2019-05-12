@@ -211,28 +211,12 @@ sub edit :Local :Args(0)
 					$current_links{$linked_member_id}->update({ linked_member_id => undef });
 					}
 				}
-			if (exists($in->{member_image_id}))
+			$member->update(
 				{
-				$member->update({ member_image_id => $in->{member_image_id} });
-				}
-			if (exists($in->{paypal_email}))
-				{
-				$member->update({ paypal_email => $in->{paypal_email} });
-				}
-			if (exists($in->{vend_credits}))
-				{
-				my $vend_credits = int($in->{vend_credits});
-				if ($member->vend_credits() != $vend_credits)
-					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'change_credits',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Set credits to ' . $vend_credits,
-						});
-					$member->update({ vend_credits => $vend_credits });
-					}
-				}
+				(exists($in->{member_image_id}) ? (member_image_id => $in->{member_image_id}) : ()),
+				(exists($in->{paypal_email})    ? (paypal_email    => $in->{paypal_email}) : ()),
+				(exists($in->{vend_credits})    ? (vend_credits    => $in->{vend_credits}) : ()),
+				});
 
 			foreach my $group (@groups)
 				{

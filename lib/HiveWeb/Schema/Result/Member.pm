@@ -37,9 +37,10 @@ __PACKAGE__->add_columns(
 	{ data_type => 'varchar', is_nullable => 0, size => 255, accessor => 'password' },
 	'vend_credits',
 		{
-		data_type     => 'integer',
-		default_value => 0,
-		is_nullable   => 0,
+		data_type          => 'integer',
+		default_value      => 0,
+		is_nullable        => 0,
+		keep_storage_value => 1,
 		},
 	'vend_total',
 		{
@@ -252,10 +253,12 @@ sub update
 	my $old_link = $self->get_storage_value('linked_member_id');
 	my $old_miid = $self->get_storage_value('member_image_id');
 	my $old_ppe  = $self->get_storage_value('paypal_email');
+	my $old_cred = $self->get_storage_value('vend_credits') || 0;
 	my $ret      = $self->next::method($attrs, @_);
 	my $new_link = $self->linked_member_id();
 	my $new_miid = $self->member_image_id();
 	my $new_ppe  = $self->paypal_email();
+	my $new_cred = $self->vend_credits() || 0;
 
 	if ($dirty{paypal_email} || $attrs->{paypal_email})
 		{
@@ -310,10 +313,19 @@ sub update
 
 	if (defined($old_ppe) != defined($new_ppe) || (defined($old_ppe) && defined($new_ppe) && $old_ppe ne $new_ppe))
 		{
-		$member->create_related('changed_audits',
+		$self->create_related('changed_audits',
 			{
 			change_type => 'change_paypal_email',
 			notes       => 'Set paypal e-mail to ' . ($new_ppe // '(null)'),
+			});
+		}
+
+	if ($old_cred != $new_cred)
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type => 'add_credits',
+			notes       => "Changed credits from $old_cred to $new_cred",
 			});
 		}
 
@@ -421,12 +433,6 @@ sub add_vend_credits
 	my $credits = $self->vend_credits() // 0;
 
 	$credits += $amount;
-
-	$self->create_related('changed_audits',
-		{
-		change_type => 'add_credits',
-		notes       => "Added $amount credit" . ($amount == 1 ? '' : 's'),
-		});
 
 	$self->update(
 		{
