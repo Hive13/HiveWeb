@@ -170,22 +170,10 @@ sub edit :Local :Args(0)
 					my $badge = $c->model('DB::Badge')->find($badge_id);
 					die
 						if (!defined($badge));
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'delete_badge',
-						notes              => 'Badge number ' . $badge->badge_number(),
-						changing_member_id => $c->user()->member_id(),
-						});
 					$badge->delete();
 					}
 				foreach my $badge_number (@new_badges)
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'add_badge',
-						notes              => 'Badge number ' . $badge_number,
-						changing_member_id => $c->user()->member_id(),
-						});
 					my $badge = $member->create_related('badges', { badge_number => $badge_number });
 					}
 				}
