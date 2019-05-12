@@ -44,7 +44,8 @@ sub new
 	{
 	my ($self, $attrs)   = @_;
 	my $c                = HiveWeb->new;
-	$attrs->{priority} //= $c->config_path('email.' . $attrs->{action_type}, 'priority') // 1000;
+	$attrs->{priority} //= $c->config_path('email.' . $attrs->{action_type}, 'priority')
+		// $self->columns_info()->{priority}->{default_value};
 
 	return $self->next::method($attrs);
 	}

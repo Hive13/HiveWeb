@@ -1,18 +1,10 @@
-[%~
-	IF request.slot_id;
-		SET type = 'renew';
-	ELSE;
-		SET type = 'request';
-	END;
-~%]
-
 Hello Storage Admin,
 
-[%- IF request.slot_id %]
-A renewal request has been submitted for slot [% request.slot.name %].
-[%~ ELSE %]
-A request has been submitted for a storage slot.
-[%~ END %]
+A
+[%= IF request.slot_id =%]
+renewal
+[%~ END ~%]
+has been submitted for storage slot [% request.slot.name %].
 
 Requestor: [% request.member.fname %] [% request.member.lname %]
 [%~ IF request.type_id %]
