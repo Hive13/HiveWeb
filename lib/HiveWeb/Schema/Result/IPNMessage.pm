@@ -128,9 +128,8 @@ sub subscr_payment
 
 		$schema->resultset('Action')->create(
 			{
-			queuing_member_id => $member->member_id(),
-			action_type       => 'member.welcome',
-			row_id            => $member->member_id(),
+			action_type => 'member.welcome',
+			row_id      => $member->member_id(),
 			}) || die 'Could not queue notification: ' . $!;
 
 		my $slack = HiveWeb->config()->{slack};

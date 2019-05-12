@@ -73,9 +73,8 @@ sub submit :Local :Args(0)
 			$application->update({ app_turned_in_at => \'current_timestamp' });
 			$c->model('DB')->resultset('Action')->create(
 				{
-				queuing_member_id => $c->user()->member_id(),
-				action_type       => 'application.mark_submitted',
-				row_id            => $application->application_id(),
+				action_type => 'application.mark_submitted',
+				row_id      => $application->application_id(),
 				}) || die 'Could not queue notification: ' . $!;
 			});
 		}
@@ -109,9 +108,8 @@ sub attach_picture :Local :Args(0)
 			$application->update({ picture_id => $image->image_id() }) || die $!;
 			$c->model('DB::Action')->create(
 				{
-				queuing_member_id => $c->user()->member_id(),
-				action_type       => 'application.attach_picture',
-				row_id            => $application->application_id(),
+				action_type => 'application.attach_picture',
+				row_id      => $application->application_id(),
 				}) || die 'Could not queue notification: ' . $!;
 			});
 		}
@@ -147,9 +145,8 @@ sub attach_form :Local :Args(0)
 			$application->update({ form_id => $image->image_id() }) || die $!;
 			$c->model('DB::Action')->create(
 				{
-				queuing_member_id => $c->user()->member_id(),
-				action_type       => 'application.attach_form',
-				row_id            => $application->application_id(),
+				action_type => 'application.attach_form',
+				row_id      => $application->application_id(),
 				}) || die 'Could not queue notification: ' . $!;
 			});
 		}

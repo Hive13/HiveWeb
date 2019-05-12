@@ -106,9 +106,8 @@ sub update
 		{
 		$schema->resultset('Action')->create(
 			{
-			queuing_member_id => $HiveWeb::Schema::member_id,
-			action_type       => 'application.finalize',
-			row_id            => $self->application_id(),
+			action_type => 'application.finalize',
+			row_id      => $self->application_id(),
 			}) || die 'Could not queue notification: ' . $!;
 		$schema->resultset('AuditLog')->create(
 			{

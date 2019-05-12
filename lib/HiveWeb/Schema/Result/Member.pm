@@ -251,9 +251,8 @@ sub update
 		{
 		$schema->resultset('Action')->create(
 			{
-			queuing_member_id => $HiveWeb::Schema::member_id // $self->member_id(),
-			action_type       => 'paypal.refresh',
-			row_id            => $self->member_id(),
+			action_type => 'paypal.refresh',
+			row_id      => $self->member_id(),
 			});
 		}
 

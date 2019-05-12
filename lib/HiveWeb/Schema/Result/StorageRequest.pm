@@ -93,9 +93,8 @@ sub insert
 
 	$schema->resultset('Action')->create(
 		{
-		queuing_member_id => $HiveWeb::Schema::member_id,
-		action_type       => 'storage.request',
-		row_id            => $self->request_id(),
+		action_type => 'storage.request',
+		row_id      => $self->request_id(),
 		}) || die 'Could not queue notification: ' . $!;
 
 	$guard->commit();

@@ -42,9 +42,10 @@ __PACKAGE__->belongs_to(
 
 sub new
 	{
-	my ($self, $attrs)   = @_;
-	my $c                = HiveWeb->new;
-	$attrs->{priority} //= $c->config_path('email.' . $attrs->{action_type}, 'priority') // 1000;
+	my ($self, $attrs)            = @_;
+	my $c                         = HiveWeb->new;
+	$attrs->{priority}          //= $c->config_path('email.' . $attrs->{action_type}, 'priority') // 1000;
+	$attrs->{queuing_member_id} //= $HiveWeb::Schema::member_id;
 
 	return $self->next::method($attrs);
 	}

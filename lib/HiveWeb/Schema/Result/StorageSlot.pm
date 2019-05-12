@@ -109,9 +109,8 @@ sub update
 			});
 		$schema->resultset('Action')->create(
 			{
-			action_type       => 'storage.assign',
-			queuing_member_id => $HiveWeb::Schema::member_id,
-			row_id            => $self->slot_id(),
+			action_type => 'storage.assign',
+			row_id      => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;
 		}
 
@@ -125,9 +124,8 @@ sub update
 			});
 		$schema->resultset('Action')->create(
 			{
-			action_type       => 'storage.renew',
-			queuing_member_id => $HiveWeb::Schema::member_id,
-			row_id            => $self->slot_id(),
+			action_type => 'storage.renew',
+			row_id      => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;
 		}
 

@@ -104,16 +104,13 @@ sub index :Path
 		{
 		$c->model('DB')->schema()->txn_do(sub
 			{
-			my $member_id = $user->member_id();
-
 			if ($application)
 				{
 				$application->update($form) || die $!;
 				my $queue = $c->model('DB::Action')->create(
 					{
-					queuing_member_id => $member_id,
-					action_type       => 'application.update',
-					row_id            => $application->application_id(),
+					action_type => 'application.update',
+					row_id      => $application->application_id(),
 					}) || die 'Unable to queue notification.';
 
 				$c->flash()->{auto_toast} =
@@ -125,17 +122,14 @@ sub index :Path
 				return;
 				}
 
-			$form->{member_id} = $member_id;
-			my $group          = $c->config()->{membership}->{apply_group};
-			my $mgroup         = $c->model('DB::MGroup')->find({ name => $group }) || die 'Unable to locate group ' . $group;
+			$form->{member_id} = $user->member_id();
+			$user->add_group(\$c->config()->{membership}->{apply_group}, 'Submitted application');
 
 			$application = $c->model('DB::Application')->create($form) || die $!;
-			$mgroup->find_or_create_related('member_mgroups', { member_id => $member_id }) || die 'Unable to add user to group.';
 			my $queue = $c->model('DB::Action')->create(
 				{
-				queuing_member_id => $member_id,
-				action_type       => 'application.create',
-				row_id            => $application->application_id(),
+				action_type => 'application.create',
+				row_id      => $application->application_id(),
 				}) || die 'Unable to queue notification.';
 
 			$c->stash(

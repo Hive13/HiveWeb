@@ -190,7 +190,6 @@ sub cancel :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 	my $user       = $c->user();
-	my $member_id  = $user->member_id();
 	my $request    = $c->request();
 	my $survey     = $c->model('DB::Survey')->find($c->config()->{membership}->{survey_uuid}) || die 'Can\'t load survey.';
 
@@ -206,7 +205,7 @@ sub cancel :Local :Args(0)
 
 	$c->model('DB')->txn_do(sub
 		{
-		my $expired = $c->model('DB::Payment')->find({ member_id => $member_id },
+		my $expired = $c->model('DB::Payment')->find({ member_id => $user->member_id() },
 			{
 			select => \"max(payment_date) + interval '1 month' <= now()",
 			as     => 'expired',
@@ -224,9 +223,8 @@ sub cancel :Local :Args(0)
 
 		$c->model('DB::Action')->create(
 			{
-			queuing_member_id => $member_id,
-			action_type       => 'notify.term',
-			row_id            => $response->survey_response_id(),
+			action_type => 'notify.term',
+			row_id      => $response->survey_response_id(),
 			}) || die 'Could not queue notification: ' . $!;
 		$c->flash()->{auto_toast} =
 			{
