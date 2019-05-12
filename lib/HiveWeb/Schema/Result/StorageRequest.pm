@@ -9,6 +9,8 @@ use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
 extends 'DBIx::Class::Core';
 
+use Text::Markdown 'markdown';
+
 __PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
 __PACKAGE__->table('storage_request');
 
@@ -48,7 +50,7 @@ __PACKAGE__->add_columns(
 	'type_id',
 	{
 		data_type      => 'uuid',
-		is_nullable    => 0,
+		is_nullable    => 1,
 		is_foreign_key => 1,
 	},
 );
@@ -81,7 +83,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
-__PACKAGE__->meta->make_immutable;
+sub insert
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	my $guard  = $schema->txn_scope_guard();
+
+	$self->next::method(@_);
+
+	$schema->resultset('Action')->create(
+		{
+		queuing_member_id => $HiveWeb::Schema::member_id,
+		action_type       => 'storage.request',
+		row_id            => $self->request_id(),
+		}) || die 'Could not queue notification: ' . $!;
+
+	$guard->commit();
+	return $self;
+	}
 
 sub TO_JSON
 	{
@@ -92,10 +111,10 @@ sub TO_JSON
 		request_id     => $self->request_id(),
 		member_id      => $self->member_id(),
 		created_at     => $self->created_at(),
-		notes          => $self->notes(),
+		notes          => markdown($self->notes()),
 		status         => $self->status(),
 		decided_at     => $self->decided_at(),
-		decision_notes => $self->decision_notes(),
+		decision_notes => markdown($self->decision_notes()),
 		hidden         => $self->hidden() ? \1 : \0,
 		type_id        => $self->type_id(),
 		};
@@ -141,6 +160,7 @@ sub TO_FULL_JSON
 		hidden      => $self->hidden() ? \1 : \0,
 		type_id     => $self->type_id(),
 		type        => $self->type(),
+		slot        => $self->slot(),
 		};
 	}
 

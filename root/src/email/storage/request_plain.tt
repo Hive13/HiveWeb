@@ -1,9 +1,15 @@
 Hello Storage Admin,
 
-A request has been submitted for a storage slot.
+A
+[%= IF request.slot_id =%]
+renewal
+[%~ END ~%]
+has been submitted for storage slot [% request.slot.name %].
 
 Requestor: [% request.member.fname %] [% request.member.lname %]
+[%~ IF request.type_id %]
 Type: [% request.type.name %]
+[%~ END %]
 
 Notes:
 [% request.notes %]

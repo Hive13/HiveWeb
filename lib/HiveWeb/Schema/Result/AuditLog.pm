@@ -49,5 +49,22 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
 );
 
+sub TO_JSON
+	{
+	my $self = shift;
+
+	return
+		{
+		audit_id           => $self->audit_id(),
+		change_time        => $self->change_time(),
+		changed_member_id  => $self->changed_member_id(),
+		changed_member     => $self->changed_member()->fname() . ' ' . $self->changed_member()->lname(),
+		changing_member_id => $self->changing_member_id(),
+		changing_member    => $self->changing_member()->fname() . ' ' . $self->changing_member()->lname(),
+		change_type        => $self->change_type(),
+		notes              => $self->notes(),
+		};
+	}
+
 __PACKAGE__->meta->make_immutable;
 1;

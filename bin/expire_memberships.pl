@@ -17,7 +17,7 @@ GetOptions(
 
 my $config = HiveWeb->config();
 my $schema = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) || die $!;
-$config = $config->{cancellations};
+$config = $config->{membership};
 
 my $message = [];
 foreach my $freq (sort(keys(%{$config->{message_groups}})))

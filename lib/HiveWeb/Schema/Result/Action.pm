@@ -42,11 +42,10 @@ __PACKAGE__->belongs_to(
 
 sub new
 	{
-	my ($self, $attrs) = @_;
-	my $defaults = HiveWeb->config()->{priorities};
-
-	$attrs->{priority} = $defaults->{ $attrs->{action_type} }
-		if (!$attrs->{priority} && $attrs->{action_type});
+	my ($self, $attrs)   = @_;
+	my $c                = HiveWeb->new;
+	$attrs->{priority} //= $c->config_path('email.' . $attrs->{action_type}, 'priority')
+		// $self->columns_info()->{priority}->{default_value};
 
 	return $self->next::method($attrs);
 	}

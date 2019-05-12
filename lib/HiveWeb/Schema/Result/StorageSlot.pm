@@ -7,9 +7,10 @@ use warnings;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
+use DateTime;
 extends 'DBIx::Class::Core';
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime Helper::Row::StorageValues });
 __PACKAGE__->table('storage_slot');
 
 __PACKAGE__->add_columns(
@@ -18,7 +19,17 @@ __PACKAGE__->add_columns(
   'name',
   { data_type => 'character varying', is_nullable => 0, size => 32 },
   'member_id',
-  { data_type => 'uuid', is_nullable => 1 },
+  {
+	data_type          => 'uuid',
+	is_nullable        => 1,
+	keep_storage_value => 1,
+	},
+	'expire_date',
+	{
+	data_type          => 'timestamp with time zone',
+	is_nullable        => 1,
+	keep_storage_value => 1,
+	},
   'location_id',
   { data_type => 'uuid', is_nullable => 0 },
 	'type_id',
@@ -50,30 +61,75 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
 );
 
-__PACKAGE__->meta->make_immutable;
+__PACKAGE__->has_many(
+  'requests',
+  'HiveWeb::Schema::Result::StorageRequests',
+  { 'foreign.slot_id' => 'self.slot_id' },
+  { is_deferrable => 0, cascade_copy => 0, cascade_delete => 0 },
+);
 
-sub assign
+sub update
 	{
-	my ($self, $member_id, $assigning_member_id) = @_;
+	my $self   = shift;
 	my $schema = $self->result_source()->schema();
+	my $guard  = $schema->txn_scope_guard();
 
-	return
-		if (!$member_id || !$assigning_member_id);
-	$member_id = $member_id->member_id()
-		if (ref($member_id));
-	$assigning_member_id = $assigning_member_id->member_id()
-		if (ref($assigning_member_id));
+	my $old_member_id   = $self->get_storage_value('member_id');
+	my $old_expire_date = $self->get_storage_value('expire_date');
 
-	$schema->txn_do(sub
+	my $res = $self->next::method(@_);
+	$self->discard_changes();
+
+	my $new_member_id   = $self->member_id();
+	my $new_expire_date = $self->expire_date();
+
+	if ($old_member_id && $old_member_id ne $new_member_id)
 		{
+		$schema->resultset('AuditLog')->create(
+			{
+			change_type        => 'unassign_slot',
+			notes              => 'Unassigned slot ' . $self->slot_id(),
+			changing_member_id => $HiveWeb::Schema::member_id,
+			changed_member_id  => $old_member_id,
+			});
+		}
+
+	if ($new_member_id && $old_member_id ne $new_member_id)
+		{
+		$schema->resultset('AuditLog')->create(
+			{
+			change_type        => 'assign_slot',
+			notes              => 'Assigned slot ' . $self->slot_id(),
+			changed_member_id  => $new_member_id,
+			changing_member_id => $HiveWeb::Schema::member_id,
+			});
 		$schema->resultset('Action')->create(
 			{
 			action_type       => 'storage.assign',
-			queuing_member_id => $assigning_member_id,
+			queuing_member_id => $HiveWeb::Schema::member_id,
 			row_id            => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;
-		$self->update({ member_id => $member_id }) || die $!;
-		});
+		}
+
+	if ($new_member_id eq $old_member_id && DateTime->compare($old_expire_date, $new_expire_date))
+		{
+		$schema->resultset('AuditLog')->create(
+			{
+			change_type        => 'renew_slot',
+			notes              => 'Renew slot ' . $self->slot_id(),
+			changed_member_id  => $new_member_id,
+			changing_member_id => $HiveWeb::Schema::member_id,
+			});
+		$schema->resultset('Action')->create(
+			{
+			action_type       => 'storage.renew',
+			queuing_member_id => $HiveWeb::Schema::member_id,
+			row_id            => $self->slot_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+
+	$guard->commit();
+	return $res;
 	}
 
 sub TO_JSON
@@ -103,11 +159,28 @@ sub TO_FULL_JSON
 		member_id   => $self->member_id(),
 		member      => $self->member(),
 		location_id => $self->location_id(),
-		location    => $self->location(),
 		sort_order  => $self->sort_order(),
 		type_id     => $self->type_id(),
 		type        => $self->type(),
 		};
+	}
+
+sub assign
+	{
+	my ($self, $member_id) = @_;
+
+	$member_id = $member_id->member_id() if (ref($member_id));
+	my $schema = $self->result_source()->schema();
+	$schema->txn_do(sub
+		{
+		my $cols = { member_id => $member_id };
+		my $type = $self->type();
+		if (defined(my $i = $type->default_expire_time()))
+			{
+			$cols->{expire_date} = \['now() + ?', $i];
+			}
+		$self->update($cols) || (warn $! && die $!);
+		});
 	}
 
 sub hierarchy

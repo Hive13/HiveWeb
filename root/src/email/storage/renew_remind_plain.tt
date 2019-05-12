@@ -1,0 +1,9 @@
+Hello [% slot.member.fname %],
+
+Your use of storage slot [% slot.name %] is expiring on [% slot.expire_date.strftime('%x') %].
+Please visit intweb at [% base_url %] to renew the slot.
+
+Thank you,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]
