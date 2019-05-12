@@ -213,33 +213,11 @@ sub edit :Local :Args(0)
 				}
 			if (exists($in->{member_image_id}))
 				{
-				my $image_id = $in->{member_image_id};
-				my $current  = $member->member_image_id();
-				if (defined($image_id) != defined($current) || (defined($image_id) && defined($current) && $image_id ne $current))
-					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'change_member_image',
-						changing_member_id => $c->user()->member_id(),
-						notes              => $image_id ? 'Set member image ID to ' . $image_id : 'Remove member image',
-						});
-					$member->update({ member_image_id => $image_id });
-					}
+				$member->update({ member_image_id => $in->{member_image_id} });
 				}
 			if (exists($in->{paypal_email}))
 				{
-				my $paypal  = $in->{paypal_email};
-				my $current = $member->paypal_email();
-				if (defined($current) != defined($paypal) || (defined($paypal) && defined($current) && $current ne $paypal))
-					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'change_paypal_email',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Set paypal e-mail to ' . ($paypal // '(null)'),
-						});
-					$member->update({ paypal_email => $paypal });
-					}
+				$member->update({ paypal_email => $in->{paypal_email} });
 				}
 			if (exists($in->{vend_credits}))
 				{

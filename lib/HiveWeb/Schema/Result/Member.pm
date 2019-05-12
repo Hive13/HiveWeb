@@ -26,7 +26,11 @@ __PACKAGE__->add_columns(
 	'email',
 	{ data_type => 'citext', is_nullable => 0 },
 	'paypal_email',
-	{ data_type => 'citext', is_nullable => 1 },
+		{
+		data_type          => 'citext',
+		is_nullable        => 1,
+		keep_storage_value => 1,
+		},
 	'phone',
 	{ data_type => 'bigint', is_nullable => 1 },
 	'encrypted_password',
@@ -61,18 +65,23 @@ __PACKAGE__->add_columns(
 	'handle',
 	{ data_type => 'citext', is_nullable   => 1	},
 	'member_image_id',
-	{ data_type => 'uuid', is_nullable => 1, size => 16 },
+		{
+		data_type          => 'uuid',
+		is_nullable        => 1,
+		size               => 16,
+		keep_storage_value => 1,
+		},
 	'door_count',
 	{ data_type => 'integer', is_nullable => 1 },
 	'totp_secret',
 	{ data_type => 'bytea', is_nullable => 1 },
 	'linked_member_id',
-	{
-	data_type          => 'uuid',
-	is_nullable        => 1,
-	size               => 16,
-	keep_storage_value => 1,
-	},
+		{
+		data_type          => 'uuid',
+		is_nullable        => 1,
+		size               => 16,
+		keep_storage_value => 1,
+		},
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -241,8 +250,12 @@ sub update
 	my $schema   = $self->result_source()->schema();
 	my %dirty    = $self->get_dirty_columns();
 	my $old_link = $self->get_storage_value('linked_member_id');
+	my $old_miid = $self->get_storage_value('member_image_id');
+	my $old_ppe  = $self->get_storage_value('paypal_email');
 	my $ret      = $self->next::method($attrs, @_);
 	my $new_link = $self->linked_member_id();
+	my $new_miid = $self->member_image_id();
+	my $new_ppe  = $self->paypal_email();
 
 	if ($dirty{paypal_email} || $attrs->{paypal_email})
 		{
@@ -254,7 +267,7 @@ sub update
 			});
 		}
 
-	if ($old_link ne $new_link)
+	if (defined($old_link) != defined($new_link) || (defined($old_link) && defined($new_link) && $old_link ne $new_link))
 		{
 		if ($old_link)
 			{
@@ -284,6 +297,24 @@ sub update
 				notes       => 'Linked to account ' . $new_link,
 				}) || die $!;
 			}
+		}
+
+	if (defined($old_miid) != defined($new_miid) || (defined($old_miid) && defined($new_miid) && $old_miid ne $new_miid))
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type => 'change_member_image',
+			notes       => $new_miid ? 'Set member image ID to ' . $new_miid : 'Remove member image',
+			});
+		}
+
+	if (defined($old_ppe) != defined($new_ppe) || (defined($old_ppe) && defined($new_ppe) && $old_ppe ne $new_ppe))
+		{
+		$member->create_related('changed_audits',
+			{
+			change_type => 'change_paypal_email',
+			notes       => 'Set paypal e-mail to ' . ($new_ppe // '(null)'),
+			});
 		}
 
 	return $ret;
