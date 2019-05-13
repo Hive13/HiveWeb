@@ -13,7 +13,7 @@ use Crypt::Eksblowfish::Bcrypt qw* bcrypt en_base64 *;
 use Authen::OATH;
 use HiveWeb;
 
-__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate });
+__PACKAGE__->load_components(qw{ UUIDColumns InflateColumn::DateTime AutoUpdate Helper::Row::StorageValues });
 __PACKAGE__->table('members');
 
 __PACKAGE__->add_columns(
@@ -33,9 +33,10 @@ __PACKAGE__->add_columns(
 	{ data_type => 'varchar', is_nullable => 0, size => 255, accessor => 'password' },
 	'vend_credits',
 		{
-		data_type     => 'integer',
-		default_value => 0,
-		is_nullable   => 0,
+		data_type          => 'integer',
+		default_value      => 0,
+		is_nullable        => 0,
+		keep_storage_value => 1,
 		},
 	'vend_total',
 		{
@@ -59,7 +60,7 @@ __PACKAGE__->add_columns(
 		auto_update   => \'current_timestamp',
 		},
 	'handle',
-	{ data_type => 'citext', is_nullable   => 1	},
+	{ data_type => 'citext', is_nullable => 1 },
 	'member_image_id',
 	{ data_type => 'uuid', is_nullable => 1, size => 16 },
 	'door_count',
@@ -67,7 +68,12 @@ __PACKAGE__->add_columns(
 	'totp_secret',
 	{ data_type => 'bytea', is_nullable => 1 },
 	'linked_member_id',
-	{ data_type => 'uuid', is_nullable => 1, size => 16 },
+		{
+		data_type          => 'uuid',
+		is_nullable        => 1,
+		size               => 16,
+		keep_storage_value => 1,
+		},
 );
 
 __PACKAGE__->uuid_columns('member_id');
@@ -231,21 +237,86 @@ sub sqlt_deploy_hook
 
 sub update
 	{
-	my $self  = shift;
-	my $attrs = shift;
-	my %dirty = $self->get_dirty_columns();
+	my $self     = shift;
+	my $attrs    = shift;
+	my $schema   = $self->result_source()->schema();
+	$self->set_inflated_columns($attrs) if $attrs;
+	my %dirty    = $self->get_dirty_columns();
+	my $old_link = $self->get_storage_value('linked_member_id');
+	my $old_cred = $self->get_storage_value('vend_credits') || 0;
+	my $new_link = $self->linked_member_id();
+	my $new_cred = $self->vend_credits() || 0;
 
 	if ($dirty{paypal_email})
 		{
-		$self->result_source()->schema()->resultset('Action')->create(
+		$schema->resultset('Action')->create(
 			{
-			queuing_member_id => $HiveWeb::Schema::member_id // $self->member_id(),
-			action_type       => 'paypal.refresh',
-			row_id            => $self->member_id(),
+			action_type => 'paypal.refresh',
+			row_id      => $self->member_id(),
 			});
 		}
 
-	return $self->next::method($attrs, @_);
+	if (defined($old_link) != defined($new_link) || (defined($old_link) && defined($new_link) && $old_link ne $new_link))
+		{
+		if ($old_link)
+			{
+			$schema->resultset('AuditLog')->create(
+				{
+				change_type       => 'delete_linked',
+				notes             => 'Unlinked account ' . $self->member_id(),
+				changed_member_id => $old_link,
+				}) || die $!;
+			$self->create_related('changed_audits',
+				{
+				change_type => 'delete_link',
+				notes       => 'Unlinked from account ' . $old_link,
+				}) || die $!;
+			}
+		if ($new_link)
+			{
+			$schema->resultset('AuditLog')->create(
+				{
+				change_type       => 'add_linked',
+				notes             => 'Linked account ' . $self->member_id(),
+				changed_member_id => $new_link,
+				}) || die $!;
+			$self->create_related('changed_audits',
+				{
+				change_type => 'add_link',
+				notes       => 'Linked to account ' . $new_link,
+				}) || die $!;
+			}
+		}
+
+	if ($dirty{member_image_id})
+		{
+		my $new = $self->member_image_id();
+		$self->create_related('changed_audits',
+			{
+			change_type => 'change_member_image',
+			notes       => $new ? 'Set member image ID to ' . $new : 'Remove member image',
+			});
+		}
+
+	if ($dirty{paypal_email})
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type => 'change_paypal_email',
+			notes       => 'Set paypal e-mail to ' . ($self->paypal_email() // '(null)'),
+			});
+		}
+
+	if ($old_cred != $new_cred)
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type => 'add_credits',
+			notes       => "Changed credits from $old_cred to $new_cred",
+			});
+		}
+
+	return $self->next::method();
 	}
 
 sub TO_JSON
@@ -292,10 +363,19 @@ sub check_password
 sub set_password
 	{
 	my ($self, $pw) = @_;
-	my $salt = '$6$' . $self->make_salt(16) . '$';
+	my $schema      = $self->result_source()->schema();
+	my $salt        = '$6$' . $self->make_salt(16) . '$';
 
-	$self->password(crypt($pw, $salt));
-	$self->update();
+	$schema->txn_do(sub
+		{
+		$self->create_related('changed_audits',
+			{
+			change_type => 'change_password',
+			});
+
+		$self->password(crypt($pw, $salt));
+		$self->update();
+		});
 	}
 
 sub has_access
@@ -410,11 +490,10 @@ sub check_2fa
 
 sub add_group
 	{
-	my ($self, $group_id, $changing_id, $notes_extra) = @_;
+	my ($self, $group_id, $notes_extra) = @_;
 
-	$group_id    = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
-	$changing_id = $changing_id->member_id() if (ref($changing_id));
-	my $notes    = "Added group $group_id";
+	$group_id = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
+	my $notes = "Added group $group_id";
 	if ($notes_extra)
 		{
 		$notes .= " - $notes_extra";
@@ -426,9 +505,8 @@ sub add_group
 		{
 		$self->create_related('changed_audits',
 			{
-			change_type        => 'add_group',
-			changing_member_id => $changing_id,
-			notes              => $notes,
+			change_type => 'add_group',
+			notes       => $notes,
 			}) || die $!;
 		$mg->insert();
 		}
@@ -436,11 +514,10 @@ sub add_group
 
 sub remove_group
 	{
-	my ($self, $group_id, $changing_id, $notes_extra) = @_;
+	my ($self, $group_id, $notes_extra) = @_;
 
-	$group_id    = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
-	$changing_id = $changing_id->member_id() if (ref($changing_id));
-	my $notes    = "Removed group $group_id";
+	$group_id = $self->result_source()->schema->resultset('Mgroup')->find_group_id($group_id);
+	my $notes = "Removed group $group_id";
 	if ($notes_extra)
 		{
 		$notes .= " - $notes_extra";
@@ -452,9 +529,8 @@ sub remove_group
 		{
 		$self->create_related('changed_audits',
 			{
-			change_type        => 'remove_group',
-			changing_member_id => $changing_id,
-			notes              => $notes,
+			change_type => 'remove_group',
+			notes       => $notes,
 			}) || die $!;
 		$mg->delete();
 		}

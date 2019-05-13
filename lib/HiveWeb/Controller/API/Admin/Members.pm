@@ -110,11 +110,6 @@ sub password :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'change_password',
-				changing_member_id => $c->user()->member_id(),
-				});
 			$member->set_password($password);
 			$out->{data}     = "Member password has been updated.";
 			$out->{response} = \1;
@@ -175,22 +170,10 @@ sub edit :Local :Args(0)
 					my $badge = $c->model('DB::Badge')->find($badge_id);
 					die
 						if (!defined($badge));
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'delete_badge',
-						notes              => 'Badge number ' . $badge->badge_number(),
-						changing_member_id => $c->user()->member_id(),
-						});
 					$badge->delete();
 					}
 				foreach my $badge_number (@new_badges)
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'add_badge',
-						notes              => 'Badge number ' . $badge_number,
-						changing_member_id => $c->user()->member_id(),
-						});
 					my $badge = $member->create_related('badges', { badge_number => $badge_number });
 					}
 				}
@@ -208,93 +191,31 @@ sub edit :Local :Args(0)
 					else
 						{
 						my $new_link = $c->model('DB::Member')->find($linked_id) || die "Invalid Member ID $linked_id";
-						$member->create_related('changed_audits',
-							{
-							change_type        => 'add_linked',
-							notes              => 'Linked account ' . $linked_id,
-							changing_member_id => $c->user()->member_id(),
-							});
-						$new_link->create_related('changed_audits',
-							{
-							change_type        => 'add_link',
-							notes              => 'Linked to account ' . $member_id,
-							changing_member_id => $c->user()->member_id(),
-							});
 						$new_link->update({ linked_member_id => $member_id });
 						}
 					}
 				foreach my $linked_member_id (keys(%current_links))
 					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'delete_linked',
-						notes              => 'Unlinked account ' . $linked_member_id,
-						changing_member_id => $c->user()->member_id(),
-						});
-					$current_links{$linked_member_id}->create_related('changed_audits',
-						{
-						change_type        => 'delete_link',
-						notes              => 'Unlinked from account ' . $member_id,
-						changing_member_id => $c->user()->member_id(),
-						});
 					$current_links{$linked_member_id}->update({ linked_member_id => undef });
 					}
 				}
-			if (exists($in->{member_image_id}))
+			$member->update(
 				{
-				my $image_id = $in->{member_image_id};
-				my $current  = $member->member_image_id();
-				if (defined($image_id) != defined($current) || (defined($image_id) && defined($current) && $image_id ne $current))
-					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'change_member_image',
-						changing_member_id => $c->user()->member_id(),
-						notes              => $image_id ? 'Set member image ID to ' . $image_id : 'Remove member image',
-						});
-					$member->update({ member_image_id => $image_id });
-					}
-				}
-			if (exists($in->{paypal_email}))
-				{
-				my $paypal  = $in->{paypal_email};
-				my $current = $member->paypal_email();
-				if (defined($current) != defined($paypal) || (defined($paypal) && defined($current) && $current ne $paypal))
-					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'change_paypal_email',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Set paypal e-mail to ' . ($paypal // '(null)'),
-						});
-					$member->update({ paypal_email => $paypal });
-					}
-				}
-			if (exists($in->{vend_credits}))
-				{
-				my $vend_credits = int($in->{vend_credits});
-				if ($member->vend_credits() != $vend_credits)
-					{
-					$member->create_related('changed_audits',
-						{
-						change_type        => 'change_credits',
-						changing_member_id => $c->user()->member_id(),
-						notes              => 'Set credits to ' . $vend_credits,
-						});
-					$member->update({ vend_credits => $vend_credits });
-					}
-				}
+				(exists($in->{member_image_id}) ? (member_image_id => $in->{member_image_id}) : ()),
+				(exists($in->{paypal_email})    ? (paypal_email    => $in->{paypal_email}) : ()),
+				(exists($in->{vend_credits})    ? (vend_credits    => $in->{vend_credits}) : ()),
+				});
 
 			foreach my $group (@groups)
 				{
 				my $group_id = $group->mgroup_id();
 				if ($new_groups{$group_id})
 					{
-					$member->add_group($group_id, $c->user());
+					$member->add_group($group_id);
 					}
 				else
 					{
-					$member->remove_group($group_id, $c->user());
+					$member->remove_group($group_id);
 					}
 				}
 			$out->{response} = \1;

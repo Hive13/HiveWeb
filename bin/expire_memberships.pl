@@ -80,21 +80,21 @@ while (my $candidate = $candidates->next())
 				{
 				if ($days > 31)
 					{
-					$candidate->remove_group($pe_group_id, undef, 'end of subscription');
-					$candidate->remove_group($mem_group_id, undef, 'end of subscription');
+					$candidate->remove_group($pe_group_id, 'end of subscription');
+					$candidate->remove_group($mem_group_id, 'end of subscription');
 					while (my $link = $lpc->next())
 						{
-						$link->remove_group($pe_group_id, undef, 'end of subscription of linked account');
-						$link->remove_group($mem_group_id, undef, 'end of subscription of linked account');
+						$link->remove_group($pe_group_id, 'end of subscription of linked account');
+						$link->remove_group($mem_group_id, 'end of subscription of linked account');
 						}
 					}
 				}
 			elsif ($days < $config->{expire_days})
 				{
-				$candidate->add_group($pc_group_id, undef, 'lapsed payment');
+				$candidate->add_group($pc_group_id, 'lapsed payment');
 				while (my $link = $lpc->next())
 					{
-					$candidate->add_group($pc_group_id, undef, 'lapsed payment of linked account');
+					$candidate->add_group($pc_group_id, 'lapsed payment of linked account');
 					}
 				# Loop through the list of when to send messages BACKWARDS
 				for (my $i = scalar(@$message) - 1; $i >= 0; $i--)
@@ -109,18 +109,18 @@ while (my $candidate = $candidates->next())
 						action_type       => $config->{late_email},
 						row_id            => $candidate->member_id(),
 						}) || die 'Could not queue notification: ' . $!;
-					$candidate->add_group($message->[$i]->{group_id}, undef, 'lapsed payment');
+					$candidate->add_group($message->[$i]->{group_id}, 'lapsed payment');
 					last;
 					}
 				}
 			else
 				{
-				$candidate->remove_group($pc_group_id, undef, 'lapsed payment');
-				$candidate->remove_group($mem_group_id, undef, 'lapsed payment');
+				$candidate->remove_group($pc_group_id, 'lapsed payment');
+				$candidate->remove_group($mem_group_id, 'lapsed payment');
 				while (my $link = $lpc->next())
 					{
-					$link->remove_group($pc_group_id, undef, 'lapsed payment of linked account');
-					$link->remove_group($mem_group_id, undef, 'lapsed payment of linked account');
+					$link->remove_group($pc_group_id, 'lapsed payment of linked account');
+					$link->remove_group($mem_group_id, 'lapsed payment of linked account');
 					}
 				}
 

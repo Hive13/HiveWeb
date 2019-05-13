@@ -93,13 +93,31 @@ sub insert
 
 	$schema->resultset('Action')->create(
 		{
-		queuing_member_id => $HiveWeb::Schema::member_id,
-		action_type       => 'storage.request',
-		row_id            => $self->request_id(),
+		action_type => 'storage.request',
+		row_id      => $self->request_id(),
 		}) || die 'Could not queue notification: ' . $!;
 
 	$guard->commit();
 	return $self;
+	}
+
+sub update
+	{
+	my $self  = shift;
+	my $attrs = shift;
+	my %dirty = $self->get_dirty_columns();
+
+	if (exists($attrs->{hidden}) || $dirty{hidden})
+		{
+		$self->result_source()->schema()->resultset('AuditLog')->create(
+			{
+			change_type       => 'hide_request',
+			notes             => 'Hid request ' . $self->request_id(),
+			changed_member_id => $self->member_id(),
+			}) || die $!;
+		}
+
+	return $self->next::method($attrs, @_);
 	}
 
 sub TO_JSON

@@ -63,26 +63,16 @@ sub submit :Local :Args(0)
 
 	my $out          = $c->stash()->{out};
 	my $application  = $c->stash()->{application};
-	$out->{response} = \1;
-	$out->{data}     = 'Application marked as submitted.';
 
 	try
 		{
-		$c->model('DB')->txn_do(sub
-			{
-			$application->update({ app_turned_in_at => \'current_timestamp' });
-			$c->model('DB')->resultset('Action')->create(
-				{
-				queuing_member_id => $c->user()->member_id(),
-				action_type       => 'application.mark_submitted',
-				row_id            => $application->application_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			});
+		$application->update({ app_turned_in_at => \'current_timestamp' });
+		$out->{response} = \1;
+		$out->{data}     = 'Application marked as submitted.';
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not mark application as submitted: ' . $_;
+		$out->{data} = 'Could not mark application as submitted: ' . $_;
 		};
 	}
 
@@ -100,25 +90,16 @@ sub attach_picture :Local :Args(0)
 		$out->{data} = 'Cannot find that image.';
 		return;
 		}
-	$out->{response} = \1;
 
 	try
 		{
-		$c->model('DB')->txn_do(sub
-			{
-			$application->update({ picture_id => $image->image_id() }) || die $!;
-			$c->model('DB::Action')->create(
-				{
-				queuing_member_id => $c->user()->member_id(),
-				action_type       => 'application.attach_picture',
-				row_id            => $application->application_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			});
+		$application->update({ picture_id => $image->image_id() }) || die $!;
+		$out->{response} = \1;
+		$out->{data}     = 'Picture attached to application.';
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not attach picture: ' . $_;
+		$out->{data} = 'Could not attach picture: ' . $_;
 		};
 	}
 
@@ -137,26 +118,15 @@ sub attach_form :Local :Args(0)
 		return;
 		}
 
-	$out->{response} = \1;
-	$out->{data}     = 'The scanned form has been attached to the application.';
-
 	try
 		{
-		$c->model('DB')->txn_do(sub
-			{
-			$application->update({ form_id => $image->image_id() }) || die $!;
-			$c->model('DB::Action')->create(
-				{
-				queuing_member_id => $c->user()->member_id(),
-				action_type       => 'application.attach_form',
-				row_id            => $application->application_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			});
+		$application->update({ form_id => $image->image_id() }) || die $!;
+		$out->{response} = \1;
+		$out->{data}     = 'The scanned form has been attached to the application.';
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not attach the form to the application: ' . $_;
+		$out->{data} = 'Could not attach the form to the application: ' . $_;
 		};
 	}
 

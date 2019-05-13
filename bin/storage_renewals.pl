@@ -50,7 +50,7 @@ while (my $candidate = $candidates->next())
 				action_type       => 'storage.renew_remind',
 				row_id            => $candidate->slot_id(),
 				});
-			$member->add_group(\$config->{storage}->{remind_group}, undef, 'Slot ' . $candidate->name() . ' expiring');
+			$member->add_group(\$config->{storage}->{remind_group}, 'Slot ' . $candidate->name() . ' expiring');
 			die "Debug Rollback" if !$real;
 			});
 		}

@@ -65,18 +65,6 @@ sub finalize :Local :Args(0)
 		{
 		$c->model('DB')->txn_do(sub
 			{
-			$c->model('DB::Action')->create(
-				{
-				queuing_member_id => $c->user()->member_id(),
-				action_type       => 'application.finalize',
-				row_id            => $application->application_id(),
-				}) || die 'Could not queue notification: ' . $!;
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'finalize_application',
-				notes              => 'Finalized Application ID ' . $application->application_id(),
-				changing_member_id => $c->user()->member_id(),
-				}) || die 'Could not audit finalization: ' . $!;
 			$application->update(
 				{
 				decided_at   => \'NOW()',
@@ -89,34 +77,21 @@ sub finalize :Local :Args(0)
 					$action = lc($action);
 					if ($action eq 'remove_from_group')
 						{
-						$member->remove_group(\'pending_applications', $c->user());
+						$member->remove_group(\'pending_applications');
 						}
 					elsif ($action eq 'add_to_pending_payments')
 						{
-						$member->add_group(\'pending_payments', $c->user());
+						$member->add_group(\'pending_payments');
 						}
 					elsif ($action eq 'add_soda_credit')
 						{
-						$member->create_related('changed_audits',
-							{
-							change_type        => 'add_credits',
-							changing_member_id => $c->user()->member_id(),
-							notes              => 'Added 1 credit',
-							});
 						$member->add_vend_credits(1);
 						}
 					elsif ($action eq 'add_badges')
 						{
 						foreach my $badge (@{ $in->{badges} })
 							{
-							my $badge_number = $badge->{val};
-							$member->create_related('changed_audits',
-								{
-								change_type        => 'add_badge',
-								notes              => 'Badge number ' . $badge_number,
-								changing_member_id => $c->user()->member_id(),
-								});
-							$badge = $member->create_related('badges', { badge_number => $badge_number });
+							$badge = $member->create_related('badges', { badge_number => $badge->{val} });
 							}
 						}
 					}
@@ -161,26 +136,15 @@ sub attach_picture_to_member :Local :Args(0)
 		return;
 		}
 
-	$out->{response} = \1;
-	$out->{data}     = 'Picture linked to member account.';
 	try
 		{
-		$c->model('DB')->txn_do(sub
-			{
-			my $member = $application->member();
-			$member->create_related('changed_audits',
-				{
-				change_type        => 'attach_photo_from_application',
-				notes              => 'Attached image ID ' . $application->picture_id(),
-				changing_member_id => $c->user()->member_id(),
-				});
-			$member->update({ member_image_id => $application->picture_id() });
-			});
+		$application->link_picture();
+		$out->{response} = \1;
+		$out->{data}     = 'Picture linked to member account.';
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not link picture: ' . $_;
+		$out->{data} = 'Could not link picture: ' . $_;
 		};
 	}
 

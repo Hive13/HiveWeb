@@ -99,24 +99,14 @@ sub relinquish :Local :Args(0)
 		return;
 		}
 
-	$out->{response} = \1;
 	try
 		{
-		$c->model('DB')->txn_do(sub
-			{
-			$user->create_related('changed_audits',
-				{
-				change_type        => 'relinquish_slot',
-				notes              => 'Relinquished slot ' . $slot->slot_id(),
-				changing_member_id => $user->member_id(),
-				}) || die $!;
-			$slot->update({ member_id => undef }) || die $!;
-			});
+		$slot->update({ member_id => undef }) || die $!;
+		$out->{response} = \1;
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not relinquish slot.';
+		$out->{data} = 'Could not relinquish slot.';
 		};
 	}
 
@@ -145,24 +135,14 @@ sub hide :Local :Args(0)
 		return;
 		}
 
-	$out->{response} = \1;
 	try
 		{
-		$c->model('DB')->txn_do(sub
-			{
-			$user->create_related('changed_audits',
-				{
-				change_type        => 'hide_request',
-				notes              => 'Hid request ' . $request->request_id(),
-				changing_member_id => $user->member_id(),
-				}) || die $!;
-			$request->update({ hidden => 't' }) || die $!;
-			});
+		$request->update({ hidden => 't' }) || die $!;
+		$out->{response} = \1;
 		}
 	catch
 		{
-		$out->{response} = \0;
-		$out->{data}     = 'Could not relinquish slot.';
+		$out->{data} = 'Could not relinquish slot.';
 		};
 	}
 

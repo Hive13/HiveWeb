@@ -123,7 +123,7 @@ sub decide_request :Local :Args(0)
 					{
 					$updates->{status} = 'renewed';
 					$slot = $request->slot();
-					$request->member()->remove_group(\$c->config()->{storage}->{remind_group}, $c->user(), 'Renewed slot ' . $slot->name());
+					$request->member()->remove_group(\$c->config()->{storage}->{remind_group}, 'Renewed slot ' . $slot->name());
 					}
 				else
 					{

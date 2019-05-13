@@ -94,7 +94,97 @@ __PACKAGE__->belongs_to(
 	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
 );
 
-__PACKAGE__->meta->make_immutable;
+sub insert
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	my $guard  = $schema->txn_scope_guard();
+
+	$self->next::method(@_);
+
+	$schema->resultset('Action')->create(
+		{
+		action_type => 'application.create',
+		row_id      => $self->application_id(),
+		}) || die 'Unable to queue notification.';
+
+	$guard->commit();
+	return $self;
+	}
+
+sub update
+	{
+	my $self   = shift;
+	my $attrs  = shift;
+	my $schema = $self->result_source()->schema();
+	$self->set_inflated_columns($attrs) if $attrs;
+	my %dirty  = $self->get_dirty_columns();
+
+	if ($dirty{decided_at})
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.finalize',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		$schema->resultset('AuditLog')->create(
+			{
+			change_type       => 'finalize_application',
+			notes             => 'Finalized Application ID ' . $self->application_id() . ' - ' . $self->final_result(),
+			changed_member_id => $self->member_id(),
+			}) || die 'Could not audit finalization: ' . $!;
+		}
+	elsif ($dirty{app_turned_in_at})
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.mark_submitted',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+	elsif ($dirty{picture_id})
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.attach_picture',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+	elsif ($dirty{form_id})
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.attach_form',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+	else
+		{
+		$schema->resultset('Action')->create(
+			{
+			action_type => 'application.update',
+			row_id      => $self->application_id(),
+			}) || die 'Could not queue notification: ' . $!;
+		}
+
+	return $self->next::method();
+	}
+
+sub link_picture
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	$schema->txn_do(sub
+		{
+		my $member = $self->member();
+		$member->create_related('changed_audits',
+			{
+			change_type => 'attach_photo_from_application',
+			notes       => 'Attached image ID ' . $self->picture_id(),
+			});
+		$member->update({ member_image_id => $self->picture_id() });
+		});
+	}
 
 sub TO_JSON
 	{

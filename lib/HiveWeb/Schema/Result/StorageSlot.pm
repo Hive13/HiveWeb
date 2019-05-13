@@ -85,29 +85,32 @@ sub update
 
 	if ($old_member_id && $old_member_id ne $new_member_id)
 		{
-		$schema->resultset('AuditLog')->create(
+		my $change = { changed_member_id => $old_member_id };
+		if ($HiveWeb::Schema::member_id eq $old_member_id)
 			{
-			change_type        => 'unassign_slot',
-			notes              => 'Unassigned slot ' . $self->slot_id(),
-			changing_member_id => $HiveWeb::Schema::member_id,
-			changed_member_id  => $old_member_id,
-			});
+			$change->{notes}       = 'Relinquished slot ' . $self->slot_id();
+			$change->{change_type} = 'relinquish_slot';
+			}
+		else
+			{
+			$change->{change_type} = 'unassign_slot';
+			$change->{notes}       = 'Unassigned slot ' . $self->slot_id();
+			}
+		$schema->resultset('AuditLog')->create($change);
 		}
 
 	if ($new_member_id && $old_member_id ne $new_member_id)
 		{
 		$schema->resultset('AuditLog')->create(
 			{
-			change_type        => 'assign_slot',
-			notes              => 'Assigned slot ' . $self->slot_id(),
-			changed_member_id  => $new_member_id,
-			changing_member_id => $HiveWeb::Schema::member_id,
+			change_type       => 'assign_slot',
+			notes             => 'Assigned slot ' . $self->slot_id(),
+			changed_member_id => $new_member_id,
 			});
 		$schema->resultset('Action')->create(
 			{
-			action_type       => 'storage.assign',
-			queuing_member_id => $HiveWeb::Schema::member_id,
-			row_id            => $self->slot_id(),
+			action_type => 'storage.assign',
+			row_id      => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;
 		}
 
@@ -115,16 +118,14 @@ sub update
 		{
 		$schema->resultset('AuditLog')->create(
 			{
-			change_type        => 'renew_slot',
-			notes              => 'Renew slot ' . $self->slot_id(),
-			changed_member_id  => $new_member_id,
-			changing_member_id => $HiveWeb::Schema::member_id,
+			change_type       => 'renew_slot',
+			notes             => 'Renew slot ' . $self->slot_id(),
+			changed_member_id => $new_member_id,
 			});
 		$schema->resultset('Action')->create(
 			{
-			action_type       => 'storage.renew',
-			queuing_member_id => $HiveWeb::Schema::member_id,
-			row_id            => $self->slot_id(),
+			action_type => 'storage.renew',
+			row_id      => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;
 		}
 
