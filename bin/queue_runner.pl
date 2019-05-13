@@ -66,6 +66,11 @@ while (my $action = $queue->next())
 		if ($message->{to} =~ /^$row_name\.member$/ && $row->can('member'))
 			{
 			my $member = $row->member();
+			if (!$member)
+				{
+				warn 'No member for ' . $row_name;
+				return;
+				}
 			$message->{to} = { $member->email() => $member->fname() . ' ' . $member->lname() };
 			}
 		elsif ($message->{to} eq 'member' && $row_name eq 'member')

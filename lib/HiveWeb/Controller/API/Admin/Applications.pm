@@ -77,11 +77,11 @@ sub finalize :Local :Args(0)
 					$action = lc($action);
 					if ($action eq 'remove_from_group')
 						{
-						$member->remove_group(\'pending_applications');
+						$member->mod_group({ group => \'pending_applications', del => 1 });
 						}
 					elsif ($action eq 'add_to_pending_payments')
 						{
-						$member->add_group(\'pending_payments');
+						$member->mod_group({ group => \'pending_payments' });
 						}
 					elsif ($action eq 'add_soda_credit')
 						{

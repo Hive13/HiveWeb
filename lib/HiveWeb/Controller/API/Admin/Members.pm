@@ -209,14 +209,11 @@ sub edit :Local :Args(0)
 			foreach my $group (@groups)
 				{
 				my $group_id = $group->mgroup_id();
-				if ($new_groups{$group_id})
+				$member->mod_group(
 					{
-					$member->add_group($group_id);
-					}
-				else
-					{
-					$member->remove_group($group_id);
-					}
+					group_id => $group_id,
+					(($new_groups{$group_id}) ? () : (del => 1)),
+					});
 				}
 			$out->{response} = \1;
 			$out->{data}     = 'Member profile has been updated.';
@@ -255,7 +252,6 @@ sub index :Path :Args(0)
 		{
 		alias => 'al_count',
 		})->count_rs()->as_query();
-	$$count_query->[0] .= ' AS accesses';
 
 	my $sum_query = $c->model('DB::AccessLog')->search(
 		{
@@ -267,7 +263,6 @@ sub index :Path :Args(0)
 		select => \'count(access_total.*) + coalesce(me.door_count, 0)',
 		as     => 'atot'
 		})->get_column('atot')->as_query();
-	$$sum_query->[0] .= ' AS access_total';
 
 	my $last_query = $c->model('DB::AccessLog')->search(
 		{
@@ -280,12 +275,11 @@ sub index :Path :Args(0)
 		alias  => 'al_time',
 		}
 	)->get_column('last_access_time')->as_query();
-	$$last_query->[0] .= ' AS last_access_time';
 
-	# Cannot prefetch 'member_mgroups' as it conflicts with the 'AS X' hack on the subqueries.
 	my $member_attrs =
 		{
-		'+select' => [ $count_query, $last_query, $sum_query ],
+		prefetch  => 'member_mgroups',
+		'+select' => [ { '' => $count_query, -as => 'accesses' }, { '' => $last_query, -as => 'last_access_time' }, { '' => $sum_query, -as => 'access_total' } ],
 		'+as'     => [ 'accesses', 'last_access_time', 'access_total' ],
 		};
 
@@ -538,7 +532,7 @@ sub index :Path :Args(0)
 	$member_attrs->{rows} = $member_table->{per_page};
 	$member_attrs->{page} = $member_table->{page};
 	my @members           = $c->model('DB::Member')->search($filters, $member_attrs);
-	my @groups            = $c->model('DB::MGroup')->search({});
+	my @groups            = $c->model('DB::MGroup')->search({}, { prefetch => 'member_mgroups' });
 
 	$out->{groups}   = \@groups;
 	$out->{members}  = \@members;

@@ -109,14 +109,11 @@ sub edit :Local :Args(0)
 			foreach my $member (@members)
 				{
 				my $member_id = $member->member_id();
-				if ($new_members{$member_id})
+				$member->mod_group(
 					{
-					$member->add_group($mgroup_id);
-					}
-				else
-					{
-					$member->remove_group($mgroup_id);
-					}
+					group_id => $mgroup_id,
+					(($new_members{$member_id}) ? () : (del => 1)),
+					});
 				}
 			$out->{response} = \1;
 			$out->{data}     = 'Group has been updated.';
