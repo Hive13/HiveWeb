@@ -241,10 +241,10 @@ sub update
 	my $attrs    = shift;
 	my $schema   = $self->result_source()->schema();
 	my $txn      = $schema->txn_scope_guard();
+	$self->set_inflated_columns($attrs) if $attrs;
 	my %dirty    = $self->get_dirty_columns();
 	my $old_link = $self->get_storage_value('linked_member_id');
 	my $old_cred = $self->get_storage_value('vend_credits') || 0;
-	$self->set_inflated_columns($attrs) if $attrs;
 	my $new_link = $self->linked_member_id();
 	my $new_cred = $self->vend_credits() || 0;
 
