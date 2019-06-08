@@ -1,3 +1,5 @@
+dbicdh/PostgreSQL/deploy/** linguist-generated
+dbicdh/PostgreSQL/upgrade/*/001-auto.sql linguist-generated
 *.pl linguist-language=Perl
 *.pm linguist-language=Perl
 *.sql linguist-language=PLpgSQL
