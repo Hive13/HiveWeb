@@ -19,6 +19,10 @@ __PACKAGE__->add_columns(
   { data_type => 'char', is_nullable => 0, size => 32 },
   'display_name',
   { data_type => 'character varying', is_nullable => 0 },
+	'scale',
+	{ data_type => 'integer', is_nullable => 0, default_value => -1 },
+	'unit',
+  { data_type => 'character varying', is_nullable => 0, default_value => \"CHR(176) || 'F'" },
 );
 
 __PACKAGE__->set_primary_key('item_id');
