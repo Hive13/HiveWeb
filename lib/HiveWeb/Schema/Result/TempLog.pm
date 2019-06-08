@@ -54,7 +54,8 @@ sub TO_JSON
 		{
 		display_name => $item->display_name(),
 		name         => $item->name(),
-		value        => $self->temperature() / 10,
+		value        => $self->temperature() * 10 ** ($item->scale()),
+		unit         => $item->unit(),
 		};
 	}
 
