@@ -4,6 +4,7 @@ use namespace::autoclean;
 
 use Bytes::Random::Secure qw(random_bytes);
 use Try::Tiny;
+use DateTime;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -253,6 +254,30 @@ sub get_nonce :Private
 	{
 	my ($self, $c)   = @_;
 	my $out          = $c->stash()->{out};
+	$out->{response} = \1;
+	}
+
+sub quiet_hours :Local
+	{
+	my ($self, $c)  = @_;
+	my $quiet_hours = $c->config()->{quiet_hours};
+	my $out         = $c->stash()->{out};
+	my $now         = DateTime->now( time_zone => 'local' );
+
+	foreach my $event ('start', 'end')
+		{
+		my $e = $now->clone()->set($quiet_hours->{$event});
+		my $time;
+		do
+			{
+			my $when = $e->subtract_datetime($now);
+			my @time = $when->in_units('minutes', 'seconds', 'nanoseconds');
+			$time = ($time[0] * 60 + $time[1]) * 1000 + int($time[2] / 1_000_000);
+			$e->add( days => 1 );
+			} while ($time < 0);
+		$out->{"${event}_ms"} = $time;
+		}
+	$out->{in_quiet} = $out->{start_ms} > $out->{end_ms} ? \1 : \0;
 	$out->{response} = \1;
 	}
 

@@ -143,4 +143,19 @@
 			temp_html => 'admin/reports/member.tt',
 			},
 		},
+	quiet_hours =>
+		{
+		start =>
+			{
+			hour   => 22,
+			minute => 30,
+			second => 0,
+			},
+		end =>
+			{
+			hour   => 7,
+			minute => 0,
+			second => 0,
+			},
+		},
 	}
