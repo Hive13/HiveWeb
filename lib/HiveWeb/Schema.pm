@@ -1,6 +1,9 @@
 use utf8;
 package HiveWeb::Schema;
 
+use warnings;
+use strict;
+
 our $VERSION = 13;
 
 use Moose;
