@@ -29,8 +29,7 @@ sub index :Path :Args(0)
 
 	my $member_attrs = {};
 
-	my $sorder .= "$order $dir";
-	$member_attrs->{order_by} = $sorder;
+	$member_attrs->{order_by} = "$order $dir";
 
 	$filters->{granted} = ($in->{filters}->{granted} ? 't' : 'f')
 		if (defined($in->{filters}->{granted}));
