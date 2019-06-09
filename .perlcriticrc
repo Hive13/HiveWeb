@@ -1,2 +1,2 @@
 severity = 4
-exclude  = RequireFinalReturn RequireVersionVar ProhibitBuiltinHomonyms
+exclude  = RequireFinalReturn RequireVersionVar ProhibitBuiltinHomonyms ProhibitParensWithBuiltins RequireDotMatchAnything RequireLineBoundaryMatching RequireExtendedFormatting ProhibitPunctuationVars ProhibitDoubleSigils RequireTidyCode
