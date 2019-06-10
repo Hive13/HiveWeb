@@ -1,2 +1,8 @@
 severity = 4
-exclude  = RequireFinalReturn RequireVersionVar ProhibitBuiltinHomonyms ProhibitParensWithBuiltins RequireDotMatchAnything RequireLineBoundaryMatching RequireExtendedFormatting ProhibitPunctuationVars ProhibitDoubleSigils RequireTidyCode ProhibitLongChainsOfMethodCalls RequireCarping
+exclude  = RequireFinalReturn RequireVersionVar ProhibitBuiltinHomonyms ProhibitParensWithBuiltins RequireDotMatchAnything RequireLineBoundaryMatching RequireExtendedFormatting ProhibitPunctuationVars ProhibitDoubleSigils RequireTidyCode ProhibitLongChainsOfMethodCalls RequireCarping RequireExplicitPackage ProhibitMultiplePackages ProhibitCascadingIfElse
+
+[Subroutines::RequireArgUnpacking]
+allow_delegation_to = next::method
+
+[Variables::ProhibitPackageVars]
+add_packages = HiveWeb::Schema
