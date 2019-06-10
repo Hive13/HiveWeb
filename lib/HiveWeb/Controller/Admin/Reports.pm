@@ -13,7 +13,7 @@ sub index :Path :Args(0)
 
 sub membership_status
 	{
-	my ($self, $schema) = @_;
+	my ($self, $schema, $config) = @_;
 	my $dtp        = $schema->storage()->datetime_parser();
 	my $tz         = DateTime::TimeZone->new(name => 'America/Los_Angeles');
 	my $payment_p  = DateTime::Format::Strptime->new( pattern => '%H:%M:%S %b %d, %Y', time_zone => $tz);
@@ -52,13 +52,16 @@ sub membership_status
 	my $categories = {};
 	my $totals     = {};
 
+	my @groups = map { "%$_%" } $schema->resultset('Mgroup')->search({ name => [ values(%{ $config->{message_groups} }) ] })->get_column('mgroup_id')->all();
+
 	while (my $member = $members->next())
 		{
 		my $category;
 		my $days_paid = $member->get_column('days_since_paid');
-		my $is_paid   = defined($days_paid) && $days_paid < 31;
+		my $is_paid   = defined($days_paid) && $days_paid < $config->{past_due_days};
 		my $is_member = $member->get_column('is_member') > 0;
 		my $has_badge = $member->get_column('badge_count') > 0;
+		my @reminders;
 
 		if ($is_paid && $is_member)
 			{
@@ -80,7 +83,20 @@ sub membership_status
 				}
 			elsif (defined($days_paid))
 				{
-				$category = 'expired'
+				$category       = 'expired';
+				my $reminder_rs = $member->search_related('changed_audits',
+					{
+					change_type => 'add_group',
+					notes       => { like => \@groups },
+					},
+					{
+					select   => 'change_time',
+					order_by => { -asc => 'change_time' },
+					});
+				while (my $reminder = $reminder_rs->next())
+					{
+					push(@reminders, $reminder->change_time());
+					}
 				}
 			else
 				{
@@ -123,8 +139,10 @@ sub membership_status
 				email        => $member->email(),
 				paypal_email => $member->paypal_email(),
 				pay_date     => $pay_date,
+				days_paid    => $days_paid,
 				created_at   => $member->created_at(),
 				linked       => $linked,
+				reminders    => \@reminders,
 				});
 			}
 		}
@@ -156,7 +174,7 @@ sub member :Local :Args(0)
 	{
 	my ($self, $c) = @_;
 
-	my $report = $self->membership_status($c->model('DB'));
+	my $report = $self->membership_status($c->model('DB'), $c->config()->{membership});
 
 	$report->{show_pii} = 1;
 	$report->{full}     = 1;

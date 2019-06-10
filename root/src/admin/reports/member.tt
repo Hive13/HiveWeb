@@ -21,6 +21,8 @@ SET labels =
 	paid_at        => { name => 'Payment Received', date => 1 },
 	created_at     => { name => 'Account Created', date => 1 },
 	payer_email    => { name => 'Payer Email' },
+	days_paid      => { name => 'Days Since Last Payment' },
+	reminders      => { name => 'Date(s) Reminders Sent', date => 1 },
 	};
 
 BLOCK category;
@@ -82,14 +84,18 @@ END;
 		[%~
 			FOREACH column IN columns;
 				SET info = labels.$column;
+				SET data = member.$column;
 				IF info.pii AND !show_pii;
 					NEXT;
 				END;
 				IF info.date;
-					SET data = member.$column.strftime('X%m/X%d/%y X%I:%M %p').replace('X0', 'X').replace('X', '');
-				ELSE;
-					SET data = member.$column;
+					SET new = [];
+					FOREACH item IN data;
+						new.push(item.strftime('X%m/X%d/%y X%I:%M %p').replace('X0', 'X').replace('X', ''));
+					END;
+					SET data = new;
 				END;
+				SET data = data.join(', ');
 				IF loop.first;
 					SET col = ' colspan="2"';
 				ELSE;
@@ -159,7 +165,8 @@ INCLUDE category
 	total   = totals.expired
 	color   ='yellow'
 	title   = 'Lapsed Payments'
-	tagline = 'Member has access to the space, payments are no longer being received';
+	tagline = 'Member has access to the space, payments are no longer being received'
+	columns = ['fname', 'lname', 'paypal_email', 'pay_date', 'days_paid', 'reminders'];
 
 IF full;
 	INCLUDE category

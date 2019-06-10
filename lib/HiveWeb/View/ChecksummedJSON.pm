@@ -1,6 +1,8 @@
 package HiveWeb::View::ChecksummedJSON;
 
 use strict;
+use warnings;
+
 use base 'Catalyst::View::JSON';
 use Digest::SHA qw(sha512_hex);
 use JSON ();
