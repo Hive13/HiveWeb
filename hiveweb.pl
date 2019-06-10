@@ -49,6 +49,7 @@
 			},
 		late_email    => 'member.past_due',
 		expire_days   => 90,
+		past_due_days => 31,
 		member_group  => 'members',
 		pending_group => 'pending_cancellations',
 		expire_group  => 'pending_expiry',
