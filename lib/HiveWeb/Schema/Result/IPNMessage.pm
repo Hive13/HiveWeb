@@ -123,8 +123,9 @@ sub subscr_payment
 
 		$schema->resultset('Action')->create(
 			{
-			action_type => 'member.welcome',
-			row_id      => $member->member_id(),
+			queuing_member_id => $member->member_id(),
+			action_type       => 'member.welcome',
+			row_id            => $member->member_id(),
 			}) || die 'Could not queue notification: ' . $!;
 
 		my $slack = HiveWeb->config()->{slack};
@@ -138,7 +139,7 @@ sub subscr_payment
 			};
 
 		my $ua = LWP::UserAgent->new();
-		$ua->agent(sprintf("HiveWeb/%s (%s)", $HiveWeb::VERSION, $ua->agent));
+		$ua->agent(sprintf('HiveWeb/%s (%s)', $HiveWeb::VERSION, $ua->agent));
 		my $response = $ua->post($slack->{api}, $slack_invite);
 		my $slack_result = decode_json($response->content());
 		if (!$slack_result->{ok})

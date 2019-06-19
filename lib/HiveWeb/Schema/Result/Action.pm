@@ -23,7 +23,7 @@ __PACKAGE__->add_columns(
 	'queuing_member_id',
 	{ data_type => 'uuid', is_nullable => 0, is_foreign_key => 1, size => 16 },
 	'priority',
-	{ data_type => 'interger', is_nullable => 0, default_value => 1000 },
+	{ data_type => 'integer', is_nullable => 0, default_value => 1000 },
 	'action_type',
 	{ data_type => 'character varying', is_nullable => 0, },
 	'row_id',
@@ -37,7 +37,7 @@ __PACKAGE__->belongs_to(
 	'queuing_member',
 	'HiveWeb::Schema::Result::Member',
 	{ member_id => 'queuing_member_id' },
-	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
+	{ is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
 );
 
 sub new
