@@ -1,0 +1,8 @@
+Hello Leadership,
+
+[% member.fname %] [% member.lname %]'s PayPal payment has failed.  I've sent out an alert to [% member.fname %] about it.
+
+Sincerely,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]
