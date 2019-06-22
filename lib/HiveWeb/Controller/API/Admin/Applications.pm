@@ -123,6 +123,31 @@ sub pending :Local :Args(0)
 	$out->{app_info} = \@pending_applications;
 	}
 
+sub remove_picture_from_member :Local :Args(0)
+	{
+	my ($self, $c)   = @_;
+	my $out          = $c->stash()->{out};
+	my $in           = $c->stash()->{in};
+	my $application  = $c->stash()->{application};
+
+	if (!$application->member->member_image_id())
+		{
+		$out->{data} = 'This member does not have a picture attached.';
+		return;
+		}
+
+	try
+		{
+		$application->unlink_picture();
+		$out->{response} = \1;
+		$out->{data}     = 'Picture unlinked from member account.';
+		}
+	catch
+		{
+		$out->{data} = 'Could not unlink picture: ' . $_;
+		};
+	}
+
 sub attach_picture_to_member :Local :Args(0)
 	{
 	my ($self, $c)   = @_;
