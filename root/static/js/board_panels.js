@@ -185,6 +185,23 @@ function init_pending_applications()
 
 			return false;
 			})
+		.on("click", ".detach-picture", function reject_picture()
+			{
+			var $this = $(this), application_id = $(this).parents(".hive-application").data("application-id");
+
+			$this.off("click");
+			api_json(
+				{
+				path: "/admin/applications/remove_picture_from_member",
+				what: "Remove Picture from Member Profile",
+				data: { application_id: application_id },
+				$el: $this,
+				success: function () { self.load_panel_data(); },
+				failure: function () { $this.click(reject_picture); }
+				});
+
+			return false;
+			})
 		.on("click", ".accept-picture", function accept_picture()
 			{
 			var $this = $(this), application_id = $(this).parents(".hive-application").data("application-id");
@@ -285,7 +302,7 @@ function display_pending_applications(data)
 			actions.push("<a class=\"anchor-style show-picture\">Picture Attached</a>" +
 				((app.picture_id != app.member.member_image_id) ?
 				" - <a class=\"anchor-style accept-picture\">Accept Picture and attach to member's profile</a>" :
-				" - accepted and attached to member's profile"));
+				" - accepted and attached to member's profile (<a class=\"anchor-style detach-picture\">Detach</a>)"));
 			icons.push("<span class=\"fas fa-user anchor-style show-picture\" title=\"View Picture\"></span>");
 			if (app.picture_id != app.member.member_image_id)
 				icons.push("<span class=\"fas fa-user-tag anchor-style accept-picture\" title=\"Accept Picture and attach to profile\"></span>");
