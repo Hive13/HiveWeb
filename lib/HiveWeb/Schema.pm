@@ -4,7 +4,7 @@ package HiveWeb::Schema;
 use warnings;
 use strict;
 
-our $VERSION = 13;
+our $VERSION = 14;
 
 use Moose;
 use MooseX::MarkAsMethods autoclean => 1;
