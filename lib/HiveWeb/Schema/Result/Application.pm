@@ -79,19 +79,19 @@ __PACKAGE__->belongs_to(
 	'member',
 	'HiveWeb::Schema::Result::Member',
 	{ member_id => 'member_id' },
-	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
+	{ is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
 );
 __PACKAGE__->belongs_to(
 	'form',
 	'HiveWeb::Schema::Result::Image',
 	{ 'foreign.image_id' => 'self.form_id' },
-	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
+	{ is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
 );
 __PACKAGE__->belongs_to(
 	'picture',
 	'HiveWeb::Schema::Result::Image',
 	{ 'foreign.image_id' => 'self.picture_id' },
-	{ is_deferrable => 0, on_delete => "RESTRICT", on_update => "RESTRICT" },
+	{ is_deferrable => 0, on_delete => 'RESTRICT', on_update => 'RESTRICT' },
 );
 
 sub insert
@@ -183,6 +183,25 @@ sub link_picture
 			notes       => 'Attached image ID ' . $self->picture_id(),
 			});
 		$member->update({ member_image_id => $self->picture_id() });
+		});
+	}
+
+sub unlink_picture
+	{
+	my $self   = shift;
+	my $schema = $self->result_source()->schema();
+	$schema->txn_do(sub
+		{
+		my $member = $self->member();
+		if ($member->member_image_id() eq $self->picture_id())
+			{
+			$member->create_related('changed_audits',
+				{
+				change_type => 'remove_photo_from_application',
+				notes       => 'Detached image ID ' . $self->picture_id(),
+				});
+			$member->update({ member_image_id => undef });
+			}
 		});
 	}
 
