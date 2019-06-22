@@ -494,7 +494,7 @@ sub check_2fa
 sub mod_group
 	{
 	my $self     = shift;
-	my $opts     = ref($_[0]) eq 'HASH' ? $_[0] : { @_ };
+	my $opts     = shift;
 	my $schema   = $self->result_source()->schema();
 	my $txn      = $schema->txn_scope_guard();
 	my $group_id = $opts->{group_id} // $schema->resultset('Mgroup')->find_group_id($opts->{group});
