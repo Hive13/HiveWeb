@@ -90,8 +90,6 @@ function view_requests(slot_id)
 					html += "Renewing " + request.slot.name;
 				else if (!slot_id)
 					html += "Requesting: " + request.type.name;
-				else
-					html += "Corrupt request data";
 				html += "</div>"
 					+ "<div id=\"body_" + request.request_id + "\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"heading_" + request.request_id + "\">"
 					+ "<div class=\"panel-body\">"
