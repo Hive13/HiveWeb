@@ -221,7 +221,7 @@ function init_pending_applications()
 			})
 		.on("click", ".attach-picture", function ()
 			{
-			var application_id = $(this).parents(".hive-application").data("id");
+			var application_id = $(this).parents(".hive-application").data("application-id");
 
 			new Picture(
 				{
