@@ -74,7 +74,7 @@ function display_status(data)
 	for (i = 0; i < data.temps.length; i++)
 		{
 		temp = data.temps[i];
-		html += temp.display_name + ": " + temp.value.toFixed(1) + temp.unit + "<br />";
+		html += temp.display_name + ": " + temp.value.toFixed(1) + " " + temp.unit + "<br />";
 		}
 	$temp_div.html(html);
 
