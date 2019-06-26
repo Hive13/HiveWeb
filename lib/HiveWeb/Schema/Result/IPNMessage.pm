@@ -75,6 +75,7 @@ sub subscr_payment
 	return if ($parameters->{payment_status} ne 'Completed');
 
 	my $schema = $self->result_source()->schema();
+	my $config = HiveWeb->config();
 
 	my $existing = $schema->resultset('Payment')->search(
 		{ 'ipn_message.txn_id' => $parameters->{txn_id} },
@@ -90,6 +91,11 @@ sub subscr_payment
 		return;
 		}
 
+	foreach my $group (values($config->{membership}->{message_groups}))
+		{
+		$member->mod_group({ group => \$group, notes => 'made payment', del => 1, linked => 1 });
+		}
+
 	my $tz         = DateTime::TimeZone->new(name => 'America/Los_Angeles');
 	my $payment_p  = DateTime::Format::Strptime->new( pattern => '%H:%M:%S %b %d, %Y', time_zone => $tz);
 	my $payment_dt = $payment_p->parse_datetime($parameters->{payment_date});
@@ -99,11 +105,13 @@ sub subscr_payment
 		payment_date   => $payment_dt,
 		}) || die;
 
-	my $pending = $member->search_related('member_mgroups', { 'mgroup.name' => 'pending_payments' }, { join => 'mgroup' });
+	my $p_group = $config->{membership}->{welcome_group};
+	my $m_group = $config->{membership}->{member_group};
+	my $pending = $member->search_related('member_mgroups', { 'mgroup.name' => $p_group }, { join => 'mgroup' });
 	if ($pending->count())
 		{
-		$member->mod_group({ group => \'pending_payments', notes => 'initial payment', del => 1, linked => 1 });
-		$member->mod_group({ group => \'members', notes => 'initial payment', linked => 1 });
+		$member->mod_group({ group => \$p_group, notes => 'initial payment', linked => 1, del => 1 });
+		$member->mod_group({ group => \$m_group, notes => 'initial payment', linked => 1 });
 
 		my $application = $member->find_related('applications',
 			{
@@ -128,19 +136,18 @@ sub subscr_payment
 			row_id            => $member->member_id(),
 			}) || die 'Could not queue notification: ' . $!;
 
-		my $slack = HiveWeb->config()->{slack};
 		my $slack_invite =
 			{
 			first_name => $member->fname(),
 			last_name  => $member->lname(),
-			channels   => join(',', @{ $slack->{channels} }),
+			channels   => join(',', @{ $config->{slack}->{channels} }),
 			email      => $member->email(),
-			token      => $slack->{token},
+			token      => $config->{slack}->{token},
 			};
 
 		my $ua = LWP::UserAgent->new();
 		$ua->agent(sprintf('HiveWeb/%s (%s)', $HiveWeb::VERSION, $ua->agent));
-		my $response = $ua->post($slack->{api}, $slack_invite);
+		my $response = $ua->post($config->{slack}->{api}, $slack_invite);
 		my $slack_result = decode_json($response->content());
 		if (!$slack_result->{ok})
 			{
