@@ -84,6 +84,19 @@ sub two_factor :Local :Args(0)
 		}
 	}
 
+sub soda :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in      = $c->stash()->{in};
+	my $out     = $c->stash()->{out};
+
+	$out->{credits}  = $c->user()->vend_credits();
+	$out->{config}   = $c->config()->{soda};
+	$out->{key}      = $c->config()->{stripe}->{public_key};
+	$out->{response} = \1;
+	}
+
 sub charge :Local :Args(0)
 	{
 	my ($self, $c) = @_;

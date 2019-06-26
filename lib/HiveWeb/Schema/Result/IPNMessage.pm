@@ -91,7 +91,7 @@ sub subscr_payment
 		return;
 		}
 
-	foreach my $group (values($config->{membership}->{message_groups}))
+	foreach my $group (values(%{ $config->{membership}->{message_groups} }))
 		{
 		$member->mod_group({ group => \$group, notes => 'made payment', del => 1, linked => 1 });
 		}
