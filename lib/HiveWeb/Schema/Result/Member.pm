@@ -74,6 +74,12 @@ __PACKAGE__->add_columns(
 		size               => 16,
 		keep_storage_value => 1,
 		},
+	'alert_credits',
+	{ data_type => 'integer', is_nullable => 1 },
+	'alert_email',
+	{ data_type => 'boolean', is_nullable => 1 },
+	'alert_machine',
+	{ data_type => 'boolean', is_nullable => 1 },
 );
 
 __PACKAGE__->uuid_columns('member_id');
