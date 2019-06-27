@@ -532,8 +532,61 @@ function display_soda_credits(data)
 			"Add " + data.config.add_amount + " credits to your account for $" + (data.config.cost / 100) + ".<br />",
 			"<button id=\"add_soda_credits\">Add Soda Credits</button>",
 		"</div>",
+		"<div class=\"col-xs-12 well u-mt-3\">",
+			"<h5 class=\"u-text-center\">Low Credit Alerts</h5>",
+			"<label>",
+				"<input type=\"radio\" name=\"alert_enable\" value=\"true\"" + (data.alerts === null ? "" : " checked") + ">",
+				"Enable",
+			"</label>",
+			"<br />",
+			"<label>",
+				"<input type=\"radio\" name=\"alert_enable\" value=\"false\"" + (data.alerts === null ? " checked" : "") + ">",
+				"Disable",
+			"</label>",
+			"<div class=\"alert-panel\"" + (data.alerts === null ? " style=\"display:none\"" : "") + ">",
+				"<label>",
+					"Alert at ",
+					"<input type=\"input\" class=\"alert-credits\" size=\"1\" value=\"" + (data.alerts ? data.alerts.credits : 0) + "\">",
+					" credit(s)",
+				"</label>",
+				"<br />",
+				"<label>",
+					"<input type=\"checkbox\" class=\"alert-email\"" + (data.alerts && data.alerts.email ? " checked" : "") + ">",
+					"Send E-mail",
+				"</label>",
+				"<br />",
+				"<label>",
+					"<input type=\"checkbox\" class=\"alert-machine\"" + (data.alerts && data.alerts.machine ? " checked" : "") + ">",
+					"Display when Vending",
+				"</label>",
+			"</div>",
+		"</div>",
 		].join(""));
-	
+
+	this.$panel.on("change", ".well input", function (e)
+		{
+		var alerts;
+		var $alert  = self.$panel.find(".well");
+		var enabled = $alert.find("input[name=alert_enable]:checked").val() === "true";
+		$alert.find(".alert-panel").css("display", (enabled ? "" : "none"));
+
+		if (enabled)
+			{
+			alerts =
+				{
+				email:   $alert.find(".alert-email").prop("checked"),
+				machine: $alert.find(".alert-machine").prop("checked"),
+				credits: parseInt($alert.find(".alert-credits").val())
+				};
+			}
+		api_json(
+			{
+			path: "/member/soda",
+			what: "Save Soda Alerts",
+			data: { alerts: alerts }
+			});
+		});
+
 	this.handler = StripeCheckout.configure(
 		{
 		key:    data.key,
