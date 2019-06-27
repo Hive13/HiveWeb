@@ -31,10 +31,10 @@ sub accesses :Local :Args(0)
 	my $dow   = [];
 	my $max   = 0;
 	my $scale = sub { return shift; };
-	my $item  = $in->{item} // 'main_door';
-	my $i     = $c->model('DB::Item')->find({ name => $item });
+	my $iname = $in->{item} // 'main_door';
+	my $item  = $c->model('DB::Item')->find({ name => $iname });
 
-	if (!$i)
+	if (!$item)
 		{
 		$out->{data} = 'Invalid item name.';
 		return;
@@ -43,7 +43,7 @@ sub accesses :Local :Args(0)
 	my $search =
 		{
 		granted => 't',
-		item_id => $i->item_id(),
+		item_id => $item->item_id(),
 		};
 
 	$scale = \&log10
@@ -55,19 +55,19 @@ sub accesses :Local :Args(0)
 		my $range = lc($in->{range});
 		if ($range eq 'year')
 			{
-			$search->{access_time} = { '>=' => \"now() - interval '1 year'" };
+			$search->{access_time} = { '>=' => \'now() - interval \'1 year\'' };
 			}
 		elsif ($range eq 'half_year')
 			{
-			$search->{access_time} = { '>=' => \"now() - interval '6 months'" };
+			$search->{access_time} = { '>=' => \'now() - interval \'6 months\'' };
 			}
 		elsif ($range eq 'quarter')
 			{
-			$search->{access_time} = { '>=' => \"now() - interval '3 months'" };
+			$search->{access_time} = { '>=' => \'now() - interval \'3 months\'' };
 			}
 		elsif ($range eq 'month')
 			{
-			$search->{access_time} = { '>=' => \"now() - interval '1 month'" };
+			$search->{access_time} = { '>=' => \'now() - interval \'1 month\'' };
 			}
 		elsif ($range eq 'custom')
 			{
@@ -92,37 +92,27 @@ sub accesses :Local :Args(0)
 			}
 		}
 
-	for (my $i = 0; $i < 7; $i++)
-		{
-		my $qhour = [];
-		for (my $j = 0; $j < (24 * 4); $j++)
-			{
-			push(@$qhour, 0);
-			}
-		push(@$dow, $qhour);
-		}
-
 	while (my $entry = $heatmap->next())
 		{
 		my $column = $entry->get_column('hour') * 4 + $entry->get_column('qhour');
 		my $value  = $entry->get_column('count');
+		my $cdow   = $entry->get_column('dow');
 		$max = $value
 			if ($max < $value);
-		$dow->[$entry->get_column('dow')]->[$column] = $value;
+		$dow->[$cdow] //= [];
+		$dow->[$cdow]->[$column] = $value;
 		}
 
-	$max = $scale->($max);
+	$max = $scale->($max) || 1;
 
 	for (my $i = 0; $i < 7; $i++)
 		{
+		$dow->[$i] //= [];
 		for (my $j = 0; $j < (24 * 4); $j++)
 			{
-			my $v = int($dow->[$i]->[$j]);
-			if ($v)
-				{
-				$v = ($scale->($v) * 100) / $max;
-				$dow->[$i]->[$j] = round($v);
-				}
+			my $v = int($dow->[$i]->[$j] || 0);
+			$v = ($scale->($v) * 100) / $max;
+			$dow->[$i]->[$j] = round($v);
 			}
 		}
 
