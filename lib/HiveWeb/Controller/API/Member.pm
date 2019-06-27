@@ -168,7 +168,7 @@ sub charge :Local :Args(0)
 	else
 		{
 		$out->{error} = $stripe->{error}->{error};
-		if ($out->{error} eq "card_declined")
+		if ($out->{error} eq 'card_declined')
 			{
 			$out->{message} = $stripe->{error}->{message};
 			}

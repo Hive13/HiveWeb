@@ -102,7 +102,7 @@ sub access :Private
 
 	if ($device->search_related('device_items', { item_id => $item->item_id() })->count() < 1)
 		{
-		$out->{error} = "Device not authorized for " . $item;
+		$out->{error} = "Device not authorized for $item";
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
@@ -153,7 +153,7 @@ sub vend :Private
 
 	my $credits = $member->vend_credits() || 0;
 	my $count   = $self->vend_total() || 0;
-	$schema->txn_do(sub
+	$c->model('DB')->txn_do(sub
 		{
 		if ($credits < 1)
 			{
@@ -226,7 +226,7 @@ sub log :Private
 
 	if (!$item)
 		{
-		$out->{error} = "Unknown item " . $iname;
+		$out->{error} = "Unknown item $iname";
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
@@ -237,7 +237,7 @@ sub log :Private
 
 	if ($d_i->count() < 1)
 		{
-		$out->{error} = "Device not authorized for " . $iname;
+		$out->{error} = "Device not authorized for $iname";
 		$c->response()->status(401)
 			if ($data->{http});
 		return;

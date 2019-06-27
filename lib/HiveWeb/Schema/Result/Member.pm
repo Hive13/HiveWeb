@@ -439,7 +439,7 @@ sub list_slots
 	while (my $slot = $slots->next())
 		{
 		my $location = $slot->location();
-		my $lname = "";
+		my $lname = '';
 		while ($location)
 			{
 			$lname = ' &rarr; ' . $lname
