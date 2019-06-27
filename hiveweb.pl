@@ -96,6 +96,11 @@
 				priority => 20,
 				subject  => 'Welcome to Hive13',
 				},
+			alert_credit =>
+				{
+				priority => 5,
+				subject  => 'Hive13 Soda Credit Alert',
+				},
 			confirm_cancel => { subject => 'Hive13 Subscription Cancelled' },
 			notify_cancel  => { subject => 'Member Subscription Cancelled' },
 			password_reset =>

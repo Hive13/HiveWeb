@@ -1,0 +1,16 @@
+[%~
+	SET credits = member.vend_credits;
+	IF credits == 1;
+		SET noun = 'credit';
+	ELSE;
+		SET noun = 'credits';
+	END;
+~%]
+Hello [% member.fname %],
+
+This is a reminder that you currently have [% credits %] [% noun %] left.
+
+Thank you,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]
