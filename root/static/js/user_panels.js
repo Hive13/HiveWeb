@@ -528,11 +528,11 @@ function display_soda_credits(data)
 	this.$panel.find(".panel-body").html(
 		[
 		"You have " + data.credits + " soda credit" + (data.credits === 1 ? "" : "s") + " remaining.",
-		"<div class=\"col-sm-10 col-sm-offset-1 alert alert-info u-text-center u-mt-3\">",
+		"<div class=\"col-xs-12 col-sm-10 col-sm-offset-1 alert alert-info u-text-center u-mt-3\">",
 			"Add " + data.config.add_amount + " credits to your account for $" + (data.config.cost / 100) + ".<br />",
 			"<button id=\"add_soda_credits\">Add Soda Credits</button>",
 		"</div>",
-		"<div class=\"col-xs-12 well u-mt-3\">",
+		"<div class=\"col-xs-12 col-sm-10 col-sm-offset-1 well u-mt-3\">",
 			"<h5 class=\"u-text-center\">",
 				"<label>",
 					"<input type=\"checkbox\" class=\"alert-enable\"" + (data.alerts === null ? "" : " checked") + ">",
