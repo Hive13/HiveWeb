@@ -533,16 +533,12 @@ function display_soda_credits(data)
 			"<button id=\"add_soda_credits\">Add Soda Credits</button>",
 		"</div>",
 		"<div class=\"col-xs-12 well u-mt-3\">",
-			"<h5 class=\"u-text-center\">Low Credit Alerts</h5>",
-			"<label>",
-				"<input type=\"radio\" name=\"alert_enable\" value=\"true\"" + (data.alerts === null ? "" : " checked") + ">",
-				"Enable",
-			"</label>",
-			"<br />",
-			"<label>",
-				"<input type=\"radio\" name=\"alert_enable\" value=\"false\"" + (data.alerts === null ? " checked" : "") + ">",
-				"Disable",
-			"</label>",
+			"<h5 class=\"u-text-center\">",
+				"<label>",
+					"<input type=\"checkbox\" class=\"alert-enable\"" + (data.alerts === null ? "" : " checked") + ">",
+					"Enable Low Credit Alerts",
+				"</label>",
+			"</h5>",
 			"<div class=\"alert-panel\"" + (data.alerts === null ? " style=\"display:none\"" : "") + ">",
 				"<label>",
 					"Alert at ",
@@ -567,7 +563,7 @@ function display_soda_credits(data)
 		{
 		var alerts;
 		var $alert  = self.$panel.find(".well");
-		var enabled = $alert.find("input[name=alert_enable]:checked").val() === "true";
+		var enabled = $alert.find("input.alert-enable").prop("checked");
 		$alert.find(".alert-panel").css("display", (enabled ? "" : "none"));
 
 		if (enabled)
