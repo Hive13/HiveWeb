@@ -401,26 +401,6 @@ sub has_access
 	return $access > 0;
 	}
 
-sub do_vend
-	{
-	my $self    = shift;
-	my $credits = $self->vend_credits() || 0;
-
-	return 0
-		if $credits < 1;
-
-	my $count = $self->vend_total() || 0;
-	$count++;
-	$credits--;
-	$self->update(
-		{
-		vend_total   => $count,
-		vend_credits => $credits,
-		});
-
-	return 1;
-	}
-
 sub add_vend_credits
 	{
 	my $self   = shift;
