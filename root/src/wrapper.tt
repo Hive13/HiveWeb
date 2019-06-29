@@ -65,32 +65,30 @@
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/solid.css" integrity="sha384-VGP9aw4WtGH/uPAOseYxZ+Vz/vaTb1ehm1bwx92Fm8dTrE+3boLfF1SpAtB1z7HW" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/fontawesome.css" integrity="sha384-1rquJLNOM3ijoueaaeS5m+McXPJCGdr5HcA03/VHXxcp2kX2sUrQDmFc3jR5i/C7" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.min.css" crossorigin="anonymous">
-	<link rel="stylesheet" href="[% Catalyst.uri_for('/static/css/main.min.css') %]" type="text/css" />
-[%~ FOREACH link IN extra_css %]
-	<link rel="stylesheet" href="[% link %]" type="text/css" />
-[%~ END %]
 	<script src="//code.jquery.com/jquery-3.1.1.min.js" type="text/javascript"></script>
-	<script src="[% Catalyst.uri_for('/static/js/jquery.toast.min.js') %]" type="text/javascript"></script>
-	<script src="[% Catalyst.uri_for('/static/js/api.js') %]" type="text/javascript"></script>
-	<script src="[% Catalyst.uri_for('/static/js/picture_dialogue.js') %]" type="text/javascript"></script>
-	[%~
+	[%
+	GET Catalyst.css_link('/static/css/main.min.css');
+	FOREACH link IN extra_css;
+		GET Catalyst.css_link(link);
+	END;
+	GET Catalyst.javascript_link('/static/js/jquery.toast.min.js');
+	GET Catalyst.javascript_link('/static/js/api.js');
+	GET Catalyst.javascript_link('/static/js/picture_dialogue.js');
 	IF Catalyst.user_exists;
 		FOREACH group IN Catalyst.user.mgroups;
 			SET fname = '/static/css/' _ group.name _ '.min.css';
 			TRY;
 				USE File(Catalyst.config.home _ '/root' _ fname);
-				GET '<link rel="stylesheet" href="'
-					_ Catalyst.uri_for(fname)
-					_ '" type="text/css" />' _ "\n";
+				GET Catalyst.css_link(fname);
 			CATCH File;
 			END;
 		END;
 	END;
-	%]
-	[%~ IF Catalyst.check_user_roles('board') %]
-	<script src="[% Catalyst.uri_for('/static/js/admin.js') %]" type="text/javascript"></script>
-	<script src="[% Catalyst.uri_for('/static/js/editor.js') %]" type="text/javascript"></script>
-	[%~ END %]
+	IF Catalyst.check_user_roles('board');
+		GET Catalyst.javascript_link('/static/js/admin.js');
+		GET Catalyst.javascript_link('/static/js/editor.js');
+	END;
+	~%]
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
