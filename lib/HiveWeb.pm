@@ -225,7 +225,7 @@ sub current_version
 
 	$cached_git_info =
 		{
-		head_id => $head_id,
+		head_id => $self->debug() ? time() : $head_id,
 		refs    => $refs_by_id->{$head_id},
 		tags    => $tags_by_id->{$head_id},
 		branch  => $branch,
