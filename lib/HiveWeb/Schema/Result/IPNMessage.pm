@@ -160,6 +160,27 @@ sub subscr_payment
 		}
 	}
 
+sub subscr_failed
+	{
+	my ($self) = @_;
+
+	my $schema = $self->result_source()->schema();
+
+	$schema->resultset('Action')->create(
+		{
+		queuing_member_id => $self->member_id(),
+		action_type       => 'member.alert_failed',
+		row_id            => $self->member_id(),
+		}) || die 'Could not queue notification: ' . $!;
+
+	$schema->resultset('Action')->create(
+		{
+		queuing_member_id => $self->member_id(),
+		action_type       => 'member.notify_failed',
+		row_id            => $self->member_id(),
+		}) || die 'Could not queue notification: ' . $!;
+	}
+
 sub subscr_cancel
 	{
 	my ($self) = @_;
@@ -227,6 +248,10 @@ sub process
 			{
 			$self->subscr_payment($member, $parameters);
 			}
+		elsif ($type eq 'subscr_failed')
+			{
+			$self->subscr_failed();
+			}
 		elsif ($type eq 'subscr_cancel')
 			{
 			$self->subscr_cancel();
@@ -240,7 +265,7 @@ sub process
 			$schema->resultset('Log')->new_log(
 				{
 				type    => 'ipn.unknown_type',
-				message => 'Unknown payment type in message ' . $self->ipn_message_id()
+				message => "Unknown payment type $type in message $self->ipn_message_id"
 				});
 			}
 		}
