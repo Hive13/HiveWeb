@@ -102,7 +102,17 @@
 				subject  => 'Hive13 Soda Credit Alert',
 				},
 			confirm_cancel => { subject => 'Hive13 Subscription Cancelled' },
-			notify_cancel  => { subject => 'Member Subscription Cancelled' },
+			alert_failed   => { subject => 'Hive13 Subscription Payment Failed' },
+			notify_cancel  =>
+				{
+				subject => 'Member Subscription Cancelled',
+				to      => 'intwebsandbox@hive13.org',
+				},
+			notify_failed  =>
+				{
+				subject => 'Member Payment Failed',
+				to      => 'intwebsandbox@hive13.org',
+				},
 			password_reset =>
 				{
 				priority => 1,
@@ -112,11 +122,6 @@
 				{
 				subject  => 'Your Hive13 Subscription is past due',
 				priority => 40,
-				},
-			past_due =>
-				{
-				temp_plain => 'email/member/past_due_plain.tt',
-				subject    => 'Your Hive13 Subscription is past due',
 				},
 			},
 		notify =>

@@ -1,0 +1,10 @@
+Hello [% member.fname %],
+
+We've noticed your PayPal subscription has failed.
+
+Please login to PayPal to view and correct any notifications such as an expired credit card.  If you need to re-subscribe, just visit [% base_url _ 'member/pay' %] and you'll see the subscribe button.  If you have any questions, contact our Treasurer at treasurer@hive13.org.
+
+Thank you,
+intweb
+
+[%~# vim:set filetype=tt2: ~%]

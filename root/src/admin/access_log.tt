@@ -88,7 +88,6 @@
 	</div>
 </div>
 
-<script type="text/javascript" src="[% Catalyst.uri_for('/static/js/pages/admin_access_log.js').dquote %]"></script>
 <script type="text/javascript">
 var page       = [% Catalyst.session.access_log_table.page %];
 var per_page   = [% Catalyst.session.access_log_table.per_page %];
