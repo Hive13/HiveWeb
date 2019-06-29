@@ -521,6 +521,123 @@ function display_curse_data(data)
 	this.$panel.find(".panel-body").html(html);
 	}
 
+function display_soda_credits(data)
+	{
+	var self = this;
+
+	this.$panel.find(".panel-body").html(
+		[
+		"You have " + data.credits + " soda credit" + (data.credits === 1 ? "" : "s") + " remaining.",
+		"<div class=\"col-xs-12 col-sm-10 col-sm-offset-1 alert alert-info u-text-center u-mt-3\">",
+			"Add " + data.config.add_amount + " credits to your account for $" + (data.config.cost / 100) + ".<br />",
+			"<button id=\"add_soda_credits\">Add Soda Credits</button>",
+		"</div>",
+		"<div class=\"col-xs-12 col-sm-10 col-sm-offset-1 well u-mt-3\">",
+			"<h5 class=\"u-text-center\">",
+				"<label>",
+					"<input type=\"checkbox\" class=\"alert-enable\"" + (data.alerts === null ? "" : " checked") + ">",
+					"Enable Low Credit Alerts",
+				"</label>",
+			"</h5>",
+			"<div class=\"alert-panel\"" + (data.alerts === null ? " style=\"display:none\"" : "") + ">",
+				"<label>",
+					"Alert at ",
+					"<input type=\"input\" class=\"alert-credits\" size=\"1\" value=\"" + (data.alerts ? data.alerts.credits : 0) + "\">",
+					" credit(s)",
+				"</label>",
+				"<br />",
+				"<label>",
+					"<input type=\"checkbox\" class=\"alert-email\"" + (data.alerts && data.alerts.email ? " checked" : "") + ">",
+					"Send E-mail",
+				"</label>",
+				"<br />",
+				"<label>",
+					"<input type=\"checkbox\" class=\"alert-machine\"" + (data.alerts && data.alerts.machine ? " checked" : "") + ">",
+					"Display when Vending",
+				"</label>",
+			"</div>",
+		"</div>",
+		].join(""));
+
+	this.$panel.on("change", ".well input", function (e)
+		{
+		var alerts;
+		var $alert  = self.$panel.find(".well");
+		var enabled = $alert.find("input.alert-enable").prop("checked");
+		$alert.find(".alert-panel").css("display", (enabled ? "" : "none"));
+
+		if (enabled)
+			{
+			alerts =
+				{
+				email:   $alert.find(".alert-email").prop("checked"),
+				machine: $alert.find(".alert-machine").prop("checked"),
+				credits: parseInt($alert.find(".alert-credits").val())
+				};
+			}
+		api_json(
+			{
+			path: "/member/soda",
+			what: "Save Soda Alerts",
+			data: { alerts: alerts }
+			});
+		});
+
+	this.handler = StripeCheckout.configure(
+		{
+		key:    data.key,
+		image:  "/static/images/Hive13_Logo.png",
+		locale: "auto",
+		token: function(token)
+			{
+			api_json(
+				{
+				path: "/member/charge",
+				what: "Load Soda Credits",
+				data: { token: token.id },
+				button: $("#add_soda_credits"),
+				success_toast: false,
+				success: function(data)
+					{
+					if (data.success)
+						{
+						$.toast(
+							{
+							heading:  "Payment Succeeded",
+							position: "top-right",
+							icon:     "success",
+							text:     "Credits have been added to your account."
+							});
+						return;
+						}
+					if (data.error == "card_error")
+						{
+						alert("There was an error with your card: " + data.message);
+						return;
+						}
+					alert("There was an error with payment processing.");
+					}
+				});
+			}
+		});
+
+	this.$panel.on("click", "#add_soda_credits", function ()
+		{
+		self.handler.open(
+			{
+			//name:        'Sad Bee, Inc. (dba Hive13)',
+			description: data.config.add_amount + " Soda Credits",
+			amount:      data.config.cost
+			});
+		evt.preventDefault();
+		});
+	window.addEventListener('popstate', function()
+		{
+		self.handler.close();
+		});
+
+	var credits = 1;
+	}
 register_panel("curse",
 	{
 	panel_name:     "Notifications",
@@ -534,6 +651,14 @@ register_panel("storage",
 	panel_function: display_storage_data,
 	init_function:  init_storage,
 	load_path:      "/storage/list",
+	refresh:        false
+	});
+
+register_panel("soda",
+	{
+	panel_name:     "Soda Credits",
+	panel_function: display_soda_credits,
+	load_path:      "/member/soda",
 	refresh:        false
 	});
 

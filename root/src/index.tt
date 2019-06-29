@@ -1,3 +1,4 @@
+<script src="https://checkout.stripe.com/checkout.js"></script>
 <script src="[% Catalyst.uri_for('/static/js/panels.js') %]" type="text/javascript"></script>
 [%
 IF Catalyst.user_exists;
@@ -33,99 +34,20 @@ END;
 		ELSE;
 			SET pstyle = panel_style;
 		END;
+		IF loop.first;
+			pstyle = pstyle _ ' hive-panel-first';
+		ELSIF loop.last;
+			pstyle = pstyle _ ' hive-panel-last';
+		END;
 %]
-	<div id="[% panel.panel_id.dquote %]" class="hive-panel [% pstyle %]
-		[%~
-			IF loop.first;
-				GET ' hive-panel-first';
-			ELSIF loop.last;
-				GET ' hive-panel-last';
-			END;
-		~%]
-		">
+	<div id="[% panel.panel_id.dquote %]" class="hive-panel [% pstyle %]">
 		<div class="panel [% panel.style %] hive-panel-[% panel.name %]">
 			<div class="panel-heading">
 				<div class="panel-icons u-f-r"></div>
 				<h4>[% panel.title %]</h4>
 			</div>
 			<div class="panel-body">
-[%~
-		SWITCH panel.name;
-			CASE 'soda';
-				SET credits = Catalyst.user.vend_credits;
-%]
-				You have [% credits %] soda credit
-				[%~ IF credits != 1 ~%]
-					s
-				[%~ END =%]
-				remaining.
-				<div class="col-sm-10 col-sm-offset-1 alert alert-info u-text-center u-mt-3">
-					<script src="https://checkout.stripe.com/checkout.js"></script>
-					Add [% Catalyst.config.soda.add_amount %] credits to your account for $[% Catalyst.config.soda.cost / 100 %].<br />
-					<button id="add_soda_credits">Add Soda Credits</button>
-					<script>
-					var handler = StripeCheckout.configure(
-						{
-						key:    "[% Catalyst.config.stripe.public_key %]",
-						image:  "[% Catalyst.uri_for('/static/images/Hive13_Logo.png').dquote %]",
-						locale: "auto",
-						token: function(token)
-							{
-							api_json(
-								{
-								path: "/member/charge",
-								what: "Load Soda Credits",
-								data: { token: token.id },
-								button: $("#add_soda_credits"),
-								success_toast: false,
-								success: function(data)
-									{
-									if (data.success)
-										{
-										$.toast(
-											{
-											heading:  "Payment Succeeded",
-											position: "top-right",
-											icon:     "success",
-											text:     "Credits have been added to your account."
-											});
-										return;
-										}
-									if (data.error == "card_error")
-										{
-										alert("There was an error with your card: " + data.message);
-										return;
-										}
-									alert("There was an error with payment processing.");
-									}
-								});
-							}
-						});
-					$(function ()
-						{
-						$("#add_soda_credits").click(function (evt)
-							{
-							handler.open(
-								{
-								//name:        'Sad Bee, Inc. (dba Hive13)',
-								description: "[% Catalyst.config.soda.add_amount %] Soda Credits",
-								amount:      [% Catalyst.config.soda.cost %]
-								});
-							evt.preventDefault();
-							});
-						});
-						
-					window.addEventListener('popstate', function()
-						{
-						handler.close();
-						});
-					</script>
-				</div>
-[%~
-			CASE DEFAULT;
-				GET 'Loading ' _ panel.title _ '...';
-		END;
-~%]
+				Loading [% panel.title ~%] ...
 			</div>
 		</div>
 	</div>

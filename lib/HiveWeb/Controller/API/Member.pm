@@ -84,6 +84,60 @@ sub two_factor :Local :Args(0)
 		}
 	}
 
+sub soda :Local :Args(0)
+	{
+	my ($self, $c) = @_;
+
+	my $in   = $c->stash()->{in};
+	my $out  = $c->stash()->{out};
+	my $user = $c->user();
+
+	if ($c->request()->method() eq 'POST')
+		{
+		my $alerts  = $in->{alerts};
+		if (ref($alerts) eq 'HASH')
+			{
+			$c->user()->update(
+				{
+				alert_credits => $alerts->{credits},
+				alert_email   => $alerts->{email},
+				alert_machine => $alerts->{machine},
+				});
+			$out->{alerts} =
+				{
+				credits => $alerts->{credits},
+				email   => $alerts->{email} ? \1 : \0,
+				machine => $alerts->{machine} ? \1 : \0,
+				};
+			}
+		else
+			{
+			$c->user()->update({ alert_credits => undef });
+			$out->{alerts} = undef;
+			}
+		$out->{response} = \1;
+		return;
+		}
+
+	if (defined($user->alert_credits()))
+		{
+		$out->{alerts} =
+			{
+			credits => $user->alert_credits(),
+			email   => $user->alert_email() ? \1 : \0,
+			machine => $user->alert_machine() ? \1 : \0,
+			};
+		}
+	else
+		{
+		$out->{alerts} = undef;
+		}
+	$out->{credits}  = $user->vend_credits();
+	$out->{config}   = $c->config()->{soda};
+	$out->{key}      = $c->config()->{stripe}->{public_key};
+	$out->{response} = \1;
+	}
+
 sub charge :Local :Args(0)
 	{
 	my ($self, $c) = @_;
@@ -114,7 +168,7 @@ sub charge :Local :Args(0)
 	else
 		{
 		$out->{error} = $stripe->{error}->{error};
-		if ($out->{error} eq "card_declined")
+		if ($out->{error} eq 'card_declined')
 			{
 			$out->{message} = $stripe->{error}->{message};
 			}

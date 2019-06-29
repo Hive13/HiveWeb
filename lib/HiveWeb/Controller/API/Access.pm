@@ -102,7 +102,7 @@ sub access :Private
 
 	if ($device->search_related('device_items', { item_id => $item->item_id() })->count() < 1)
 		{
-		$out->{error} = "Device not authorized for " . $item;
+		$out->{error} = "Device not authorized for $item";
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
@@ -149,19 +149,54 @@ sub vend :Private
 	$out->{vend}     = \$vend;
 	$out->{response} = \1;
 
-	if ($member)
-		{
-		$vend         = $member->do_vend() ? 1 : 0;
-		$out->{error} = $vend ? 'Have a soda!' : 'You have no soda credits.';
-		}
+	return if (!$member);
 
-	$device->create_related('vend_logs',
+	my $credits = $member->vend_credits() || 0;
+	my $count   = $self->vend_total() || 0;
+	$c->model('DB')->txn_do(sub
 		{
-		member_id => $member ? $member->member_id() : undef,
-		vended    => $vend,
-		badge_id  => $data->{badge},
+		if ($credits < 1)
+			{
+			$out->{error} = 'You have no soda credits.';
+			}
+		else
+			{
+			my $alert_credits = $member->alert_credits();
+			$count++;
+			$credits--;
+			$member->update(
+				{
+				vend_total   => $count,
+				vend_credits => $credits,
+				});
+			if (defined($alert_credits) && $credits <= $alert_credits)
+				{
+				$out->{alert} = \1
+					if ($member->alert_machine());
+
+				if ($member->alert_email())
+					{
+					$c->model('DB::Action')->create(
+						{
+						action_type       => 'member.alert_credit',
+						queuing_member_id => $member->member_id(),
+						row_id            => $member->member_id(),
+						}) || die 'Could not queue notification: ' . $!;
+					}
+				}
+			$vend = 1;
+			$out->{error} = 'Have a soda.';
+			}
+
+		$member->create_related('vend_logs',
+			{
+			device_id => $device->device_id(),
+			vended    => $vend,
+			badge_id  => $data->{badge},
+			});
 		});
 	}
+
 
 sub get_light_state
 	{
@@ -191,7 +226,7 @@ sub log :Private
 
 	if (!$item)
 		{
-		$out->{error} = "Unknown item " . $iname;
+		$out->{error} = "Unknown item $iname";
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
@@ -202,7 +237,7 @@ sub log :Private
 
 	if ($d_i->count() < 1)
 		{
-		$out->{error} = "Device not authorized for " . $iname;
+		$out->{error} = "Device not authorized for $iname";
 		$c->response()->status(401)
 			if ($data->{http});
 		return;
