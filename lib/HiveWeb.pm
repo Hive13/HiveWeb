@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use Catalyst::Runtime 5.80;
+use Git;
 
 # Set flags and add plugins for the application.
 #
@@ -154,6 +155,55 @@ sub config_path
 		$ret = $ref->{$key} if (exists($ref->{$key}));
 		}
 	return $ret;
+	}
+
+sub current_version
+	{
+	my $self = shift;
+	
+	my $repo = Git->repository($self->config()->{home});
+	my $head_id;
+	my $refs_by_id = {};
+	my $tags_by_id = {};
+	
+	my @refs   = $repo->command('show-ref', '--head');
+	my $branch = $repo->command('rev-parse', '--abbrev-ref', 'HEAD');
+	chomp($branch);
+	
+	foreach my $ref (@refs)
+		{
+		my ($id, $name) = split(/ /, $ref);
+		if (!defined($refs_by_id->{$id}))
+			{ 
+			$refs_by_id->{$id} = [];
+			}
+		if ($name eq 'HEAD')
+			{ 
+			$head_id = $id;
+			}
+		else
+			{ 
+			push(@{$refs_by_id->{$id}}, $name);
+
+			if ($name =~ m{^refs/tags/(.+)}xmsi)
+				{
+				my $tag = $1;
+				if (!defined($tags_by_id->{$id}))
+					{ 
+					$tags_by_id->{$id} = [];
+					}
+				push(@{$tags_by_id->{$id}}, $tag);
+				}
+			}
+		}
+	
+	return
+		{
+		head_id => $head_id,
+		refs    => $refs_by_id->{$head_id},
+		tags    => $tags_by_id->{$head_id},
+		branch  => $branch,
+		};
 	}
 
 1;

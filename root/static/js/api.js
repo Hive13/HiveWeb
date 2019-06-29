@@ -50,6 +50,9 @@ function api_json(options)
 		cache: false,
 		success: function (data)
 			{
+			var version = data.version;
+			delete data.version;
+
 			if ($button)
 				$button.removeClass("has-spinner").attr("disabled", false).find("span.spinner").remove();
 			if ($icon)
