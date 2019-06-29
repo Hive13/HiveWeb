@@ -118,5 +118,4 @@
 	</div>
 </div>
 
-<script type="text/javascript" src="[% Catalyst.uri_for('/static/js/pages/admin_storage.js').dquote %]"></script>
 [%~ # vim:set filetype=tt2html: ~%]

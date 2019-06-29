@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 
 use Catalyst::Runtime 5.80;
+use Git;
 
 # Set flags and add plugins for the application.
 #
@@ -31,6 +32,7 @@ use Catalyst qw/
 extends 'Catalyst';
 
 our $VERSION = '0.01';
+my $cached_git_info;
 
 # Configure the application.
 #
@@ -154,6 +156,82 @@ sub config_path
 		$ret = $ref->{$key} if (exists($ref->{$key}));
 		}
 	return $ret;
+	}
+
+sub versioned_uri_for
+	{
+	my ($self, @args) = @_;
+	my $git_info      = $self->current_version();
+
+	return $self->uri_for(@args) . '?' . $git_info->{head_id};
+	}
+
+sub javascript_link
+	{
+	my ($self, @args) = @_;
+
+	return sprintf("<script src=\"%s\" type=\"text/javascript\"></script>\n", $self->versioned_uri_for(@args));
+	}
+
+sub css_link
+	{
+	my ($self, @args) = @_;
+
+	return sprintf("<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\" />\n", $self->versioned_uri_for(@args));
+	}
+
+sub current_version
+	{
+	my $self = shift;
+
+	return $cached_git_info
+		if ($cached_git_info);
+
+	my $repo = Git->repository($self->config()->{home});
+	my $head_id;
+	my $refs_by_id = {};
+	my $tags_by_id = {};
+
+	my @refs   = $repo->command('show-ref', '--head');
+	my $branch = $repo->command('rev-parse', '--abbrev-ref', 'HEAD');
+	chomp($branch);
+
+	foreach my $ref (@refs)
+		{
+		my ($id, $name) = split(/ /, $ref);
+		if (!defined($refs_by_id->{$id}))
+			{
+			$refs_by_id->{$id} = [];
+			}
+		if ($name eq 'HEAD')
+			{
+			$head_id = $id;
+			}
+		else
+			{
+			push(@{$refs_by_id->{$id}}, $name);
+
+			if ($name =~ m{^refs/tags/(.+)}xmsi)
+				{
+				my $tag = $1;
+				if (!defined($tags_by_id->{$id}))
+					{
+					$tags_by_id->{$id} = [];
+					}
+				push(@{$tags_by_id->{$id}}, $tag);
+				}
+			}
+		}
+
+	$cached_git_info =
+		{
+		head_id => $self->debug() ? time() : $head_id,
+		refs    => $refs_by_id->{$head_id},
+		tags    => $tags_by_id->{$head_id},
+		branch  => $branch,
+		};
+
+	return $cached_git_info;
 	}
 
 1;

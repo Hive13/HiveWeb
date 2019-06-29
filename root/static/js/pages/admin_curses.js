@@ -172,7 +172,7 @@ $(function()
 		api_json(
 			{
 			what: "Delete Curse Action",
-			url: "[% Catalyst.uri_for('/api/admin/curses/action_delete').dquote %]",
+			path: "/admin/curses/action_delete",
 			data: { action_id: action_id },
 			button: $(this),
 			success: function ()
@@ -294,7 +294,7 @@ $(function()
 		api_json(
 			{
 			data: data,
-			url: "[% Catalyst.uri_for('/api/admin/curses/action_edit').dquote %]",
+			path: "/admin/curses/action_edit",
 			what: ((action_idx >= 0) ? "Edit Curse Action" : "Add Curse Action"),
 			button: $(this),
 			success: function (rdata)

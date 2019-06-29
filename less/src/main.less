@@ -45,6 +45,24 @@ body
 	margin-top: 100px
 	}
 
+div.version-div
+	{
+	position: fixed;
+	text-align: center;
+	top: 0;
+	z-index: 1031;
+	padding: 2px;
+	right: 0;
+	left: 0;
+	animation: fadein 2s;
+
+	@keyframes fadein
+		{
+		from { opacity: 0; }
+		to   { opacity: 1; }
+		}
+	}
+
 ol.accesses li.denied
 	{
 	background-color: #ff0000;

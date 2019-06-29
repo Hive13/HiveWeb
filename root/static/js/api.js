@@ -50,6 +50,19 @@ function api_json(options)
 		cache: false,
 		success: function (data)
 			{
+			var version = data.version;
+			delete data.version;
+
+			if (version != current_version && !$("div.version-div").length)
+				{
+				$("nav.navbar").before($(
+					[
+					"<div class=\"version-div alert alert-warning\">",
+						"There is a new version of intweb available.  Please refresh when convenient.",
+					"</div>",
+					].join('')));
+				}
+
 			if ($button)
 				$button.removeClass("has-spinner").attr("disabled", false).find("span.spinner").remove();
 			if ($icon)
