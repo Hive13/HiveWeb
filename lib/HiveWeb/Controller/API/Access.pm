@@ -152,7 +152,7 @@ sub vend :Private
 	return if (!$member);
 
 	my $credits = $member->vend_credits() || 0;
-	my $count   = $self->vend_total() || 0;
+	my $count   = $member->vend_total() || 0;
 	$c->model('DB')->txn_do(sub
 		{
 		if ($credits < 1)

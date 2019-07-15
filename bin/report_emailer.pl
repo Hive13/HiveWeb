@@ -33,7 +33,7 @@ my $message =
 	subject   => $report->{subject},
 	};
 
-my $data = HiveWeb::Controller::Admin::Reports->membership_status($schema);
+my $data = HiveWeb::Controller::Admin::Reports->membership_status($schema, $config->{membership});
 
 $message->{stash} =
 	{
