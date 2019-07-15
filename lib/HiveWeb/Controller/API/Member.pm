@@ -177,6 +177,41 @@ sub charge :Local :Args(0)
 	$out->{success}  = (($res->code() == 200) ? \1 : \0);
 	}
 
+sub slack_invite :Local
+	{
+	my ($self, $c) = @_;
+
+	my $out    = $c->stash()->{out};
+	my $config = $c->config();
+	my $member = $c->user();
+
+	my $slack_invite =
+		{
+		first_name => $member->fname(),
+		last_name  => $member->lname(),
+		channels   => join(',', @{ $config->{slack}->{channels} }),
+		email      => $member->email(),
+		token      => $config->{slack}->{token},
+		};
+
+	$out->{response} = \1;
+	my $ua = LWP::UserAgent->new();
+	$ua->agent(sprintf('HiveWeb/%s (%s)', $HiveWeb::VERSION, $ua->agent));
+	my $response = $ua->post($config->{slack}->{api}, $slack_invite);
+	my $slack_result = decode_json($response->content());
+	my $schema = $c->model('DB');
+	if (!$slack_result->{ok})
+		{
+		$schema->resultset('Log')->new_log(
+			{
+			type    => 'slack.invite_error',
+			message => 'Cannot invite ' . $member->member_id() . ' to Slack: ' . $slack_result->{error}
+			});
+		$out->{response} = \0;
+		$out->{data}     = 'Could not send a Slack invite.';
+		}
+	}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
