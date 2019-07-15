@@ -83,6 +83,18 @@ function enable_totp()
 		});
 	}
 
+function resend_slack()
+	{
+	var $this = $(this);
+	api_json(
+		{
+		url: "/api/member/slack_invite",
+		data: {},
+		what: "Resend Slack Invite",
+		$el:  $this
+		});
+	}
+
 $(function()
 	{
 	var $tr = $("tr#two_factor");
@@ -92,6 +104,7 @@ $(function()
 	$tr.on("click", "button#enable_2fa", enable_2fa);
 	$tr.on("click", "button#disable_2fa", disable_2fa);
 	$("button#enable_totp").click(enable_totp);
+	$(".slack-invite").click(resend_slack);
 	show_2fa([% GET vals.totp_secret ? 'true' : 'false' %]);
 	});
 </script>
@@ -226,6 +239,11 @@ $(function()
 					<td colspan="2" class="u-text-center bg-primary u-p-2"></td>
 				</tr>
 				[%~ END %]
+				<tr>
+					<td colspan="2" class="u-text-center bg-success u-p-2">
+						<a class="anchor-style slack-invite">Request new Slack invite</a>
+					</td>
+				</tr>
 			</table>
 		</form>
 	</div>
