@@ -136,6 +136,7 @@ sub update
 sub TO_JSON
 	{
 	my $self = shift;
+	my $type = $self->type();
 
 	return
 		{
@@ -146,12 +147,14 @@ sub TO_JSON
 		location_id => $self->location_id(),
 		sort_order  => $self->sort_order(),
 		type_id     => $self->type_id(),
+		can_request => $type->can_request() ? \1 : \0,
 		};
 	}
 
 sub TO_FULL_JSON
 	{
 	my $self = shift;
+	my $type = $self->type();
 
 	return
 		{
@@ -162,7 +165,8 @@ sub TO_FULL_JSON
 		location_id => $self->location_id(),
 		sort_order  => $self->sort_order(),
 		type_id     => $self->type_id(),
-		type        => $self->type(),
+		type        => $type,
+		can_request => $type->can_request() ? \1 : \0,
 		};
 	}
 
