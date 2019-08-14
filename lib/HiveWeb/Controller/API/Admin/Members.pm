@@ -308,28 +308,36 @@ sub index :Path :Args(0)
 
 	if (defined(my $linked = $in->{filters}->{linked}))
 		{
+		$linked = [ $linked ]
+			if (ref($linked) ne 'ARRAY');
 		my $main_query = $c->model('DB::Member')->search({ linked_member_id => { '-ident' => 'me.member_id' } }, { alias => 'links' })->count_rs()->as_query();
-		if ($linked eq 'sub')
+		my @linked_filters;
+
+		foreach my $type (@$linked)
 			{
-			$filters->{linked_member_id} = { '!=' => undef };
+			if ($type eq 'sub')
+				{
+				push(@linked_filters, { linked_member_id => { '!=' => undef } });
+				}
+			elsif ($type eq 'main')
+				{
+				push(@linked_filters, { $$main_query->[0] => { '>=' => 1 } });
+				}
+			elsif ($type eq 'no')
+				{
+				push(@linked_filters,
+					{
+					linked_member_id  => undef,
+					$$main_query->[0] => 0,
+					});
+				}
+			else
+				{
+				$out->{data} = "Unknown linked type $type";
+				return;
+				}
 			}
-		elsif ($linked eq 'main')
-			{
-			$filters->{$$main_query->[0]} = { '>=' => 1 };
-			}
-		elsif ($linked eq 'no')
-			{
-			$filters->{linked_member_id} = undef;
-			$filters->{$$main_query->[0]} = 0;
-			}
-		elsif ($linked eq 'yes')
-			{
-			$filters->{'-or'} =
-				[
-				{ linked_member_id  => { '!=' => undef} },
-				{ $$main_query->[0] => { '>=' => 1} },
-				];
-			}
+		$filters->{'-or'} = \@linked_filters;
 		}
 
 	if (defined(my $pp = $in->{filters}->{paypal}))
