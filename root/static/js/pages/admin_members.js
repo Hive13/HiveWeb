@@ -140,15 +140,35 @@ $(function()
 			$("div#filter_dialogue input[name=paypal][value=any]").prop("checked", false);
 		});
 
+	$filter.find("input[name=linked]").click(function ()
+		{
+		var $this = $(this);
+
+		if ($this.val() === "null")
+			$("div#filter_dialogue input[name=linked][value!=null]").prop("checked", false);
+		else
+			$("div#filter_dialogue input[name=linked][value=null]").prop("checked", false);
+		});
+
 	$filter.find("button#refresh_filters").click(function ()
 		{
-		var paypal = [], group_list = [],
+		var paypal = [], group_list = [], linked = [],
 			photo         = $filter.find("input[name=photo]:checked").val(),
 			group_type    = $filter.find("input[name=group_filter]:checked").val(),
 			storage_value = parseInt($filter.find("input#storage_value").val()) || 0,
-			storage_type  = $filter.find("input[name=storage_type]:checked").val(),
-			linked        = $filter.find("input[name=linked]:checked").val();
+			storage_type  = $filter.find("input[name=storage_type]:checked").val();
 
+		$filter.find("input[name=linked]:checked").each(function ()
+			{
+			var v = $(this).attr("value");
+
+			if (v === "null")
+				{
+				linked = null;
+				return false;
+				}
+			linked.push(v);
+			});
 		$filter.modal("hide").find("input[name=paypal]:checked").each(function ()
 			{
 			var v = $(this).attr("value");
@@ -175,10 +195,6 @@ $(function()
 			filters.group_type = null;
 		else
 			filters.group_type = group_type;
-		if (linked === "null")
-			filters.linked = null;
-		else
-			filters.linked = linked;
 		$filter.find("input[name=group_list]:checked").each(function () { group_list.push($(this).attr("value")); });
 		if (!group_list.length)
 			filters.group_list = null;
@@ -194,6 +210,9 @@ $(function()
 		if (!paypal || !paypal.length)
 			paypal = null;
 		filters.paypal = paypal;
+		if (!linked || !linked.length)
+			linked = null;
+		filters.linked = linked;
 		page = 1;
 		load_members();
 		});
@@ -219,10 +238,6 @@ $(function()
 			$filter.find("input[name=group_filter][value=null]").prop("checked", true);
 		else
 			$filter.find("input[name=group_filter][value=" + filters.group_type + "]").prop("checked", true);
-		if (filters.linked === null)
-			$filter.find("input[name=linked][value=null]").prop("checked", true);
-		else
-			$filter.find("input[name=linked][value=" + filters.linked + "]").prop("checked", true);
 		if (filters.group_list)
 			for (i = 0; i < filters.group_list.length; i++)
 				$filter.find("input[name=group_list][value=" + filters.group_list[i] + "]").prop("checked", true);
@@ -243,6 +258,17 @@ $(function()
 			$filter.find("input[name=paypal][value=any]").prop("checked", false);
 			for (i = 0; i < filters.paypal.length; i++)
 				$filter.find("input[name=paypal][value=" + filters.paypal[i] + "]").prop("checked", true);
+			}
+		if (filters.linked === null)
+			{
+			$filter.find("input[name=linked][value=null]").prop("checked", true);
+			$filter.find("input[name=linked][value!=null]").prop("checked", false);
+			}
+		else
+			{
+			$filter.find("input[name=linked][value=null]").prop("checked", false);
+			for (i = 0; i < filters.linked.length; i++)
+				$filter.find("input[name=linked][value=" + filters.linked[i] + "]").prop("checked", true);
 			}
 		});
 
@@ -449,16 +475,19 @@ function set_top_html(count)
 	if (filters.linked !== null)
 		{
 		html += " <span class=\"label label-info\">Linked: ";
-		if (filters.linked === "main")
-			html += "Main Account";
-		else if (filters.linked === "sub")
-			html += "Linked Account";
-		else if (filters.linked === "yes")
-			html += "Either Main or Linked Account";
-		else if (filters.linked === "no")
-			html += "No";
-		else
-			html += "???";
+		for (i = 0; i < filters.linked.length; i++)
+			{
+			if (i)
+				html += ", ";
+			if (filters.linked[i] === "main")
+				html += "Main Account";
+			else if (filters.linked[i] === "sub")
+				html += "Linked Account";
+			else if (filters.linked[i] === "no")
+				html += "No";
+			else
+				html += "???";
+			}
 		html += "</span>";
 		}
 
