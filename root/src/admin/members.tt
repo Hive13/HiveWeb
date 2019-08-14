@@ -201,24 +201,20 @@
 							</div>
 							<div class="panel-body">
 								<label>
-									<input type="radio" name="linked" value="null" />
+									<input type="checkbox" name="linked" value="null" />
 									Any
 								</label><br />
 								<label>
-									<input type="radio" name="linked" value="no" />
+									<input type="checkbox" name="linked" value="no" />
 									No
 								</label><br />
 								<label>
-									<input type="radio" name="linked" value="main" />
+									<input type="checkbox" name="linked" value="main" />
 									Yes, the main account
 								</label><br />
 								<label>
-									<input type="radio" name="linked" value="sub" />
+									<input type="checkbox" name="linked" value="sub" />
 									Yes, a linked account
-								</label><br />
-								<label>
-									<input type="radio" name="linked" value="yes" />
-									Yes, either main or linked
 								</label>
 							</div>
 						</div>
