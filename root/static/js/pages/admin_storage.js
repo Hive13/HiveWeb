@@ -421,14 +421,14 @@ function handle_slot(slot, selected_id)
 	var html = "<li style=\"display: none\" class=\"storage-slot" + (slot.member_id ? " storage-slot-assigned" : "")
 		+ (slot.slot_id == selected_id ? " selected" : "")
 		+ "\" id=\"" + slot.slot_id + "\" data-sort-order=\"" + slot.sort_order + "\" data-name=\"" + slot.name + "\" data-type-id=\"" + slot.type_id + "\">"
-		+ "<span><i class=\"fas " + (slot.member_id ? "fa-check-square" : "fa-square") + "\"></i>"
+		+ "<span><i class=\"fas " + (slot.can_request ? (slot.member_id ? "fa-check-square" : "fa-square") : "fa-minus-square") + "\"></i>"
 		+ slot.name;
 
 	if (slot.member)
 		html += " - <span class=\"profile-link\" data-member-id=\"" + slot.member.member_id + "\">" + slot.member.fname + " " + slot.member.lname + "</span>";
 
 	html += "</span></li>";
-	return { html: html, assigned: !!slot.member_id };
+	return { html: html, assigned: !!slot.member_id, can_request: slot.can_request };
 	}
 
 function handle_location(loc, show_depth, selected_id)
@@ -450,7 +450,7 @@ function handle_location(loc, show_depth, selected_id)
 			{
 			slot = handle_slot(loc.slots[i], selected_id);
 			c_html += slot.html;
-			if (slot.assigned)
+			if (slot.assigned || !slot.can_request)
 				ret.assigned++;
 			else
 				ret.free++;
