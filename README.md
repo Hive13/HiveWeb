@@ -31,3 +31,6 @@ The new Hive internal Web
 * libemail-address-xs-perl
 * cssmin
 * node-less
+
+### Note to self
+When installing this package, don't forget to initialize the Git submodules and go into the `less` folder and run make.
