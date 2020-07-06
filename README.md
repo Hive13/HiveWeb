@@ -32,5 +32,39 @@ The new Hive internal Web
 * cssmin
 * node-less
 
-### Note to self
+### Note to installer
 When installing this package, don't forget to initialize the Git submodules and go into the `less` folder and run make.
+
+You need to put the following entries in a system-wide crontab:
+```
+*   * * * * root /path/to/HiveWeb/bin/queue_runner.pl -d -e >/dev/null 2>&1
+*   * * * * root /path/to/HiveWeb/bin/paypal_refresh.pl -d -e >/dev/null 2>&1
+0   3 * * * root /path/to/HiveWeb/bin/delete_orphaned_images.pl >/dev/null 2>&1
+0   3 * * * root /path/to/HiveWeb/bin/expire_memberships.pl -r >/dev/null 2>&1
+```
+
+For pest performance, run with mod_perl on Apache 2 **with the prefork MPM enabled, not worker or event**. Inside your VirtualHost directive,
+you need the following lines:
+
+```
+SetEnv DB_USER access
+SetEnv DB_PASS access
+
+DocumentRoot /path/to/HiveWeb/root
+
+PerlSwitches -I/path/to/HiveWeb/lib
+PerlModule HiveWeb
+
+<Location />
+    SetHandler              modperl
+    PerlResponseHandler     HiveWeb
+</Location>
+<Location /static>
+    SetHandler None
+</Location>
+<Directory /path/to/HiveWeb/root>
+    Options FollowSymLinks
+</Directory>
+```
+
+...along with your normal stuff like logging and (ideally) TLS certs from Let's Encrypt.
