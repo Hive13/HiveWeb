@@ -36,6 +36,7 @@ The new Hive internal Web
 When installing this package, don't forget to initialize the Git submodules and go into the `less` folder and run make.
 
 You need to put the following entries in a system-wide crontab:
+**(If you run MULTIPLE application servers, run these on only ONE of them)**
 ```
 *   * * * * root /path/to/HiveWeb/bin/queue_runner.pl -d -e >/dev/null 2>&1
 *   * * * * root /path/to/HiveWeb/bin/paypal_refresh.pl -d -e >/dev/null 2>&1
