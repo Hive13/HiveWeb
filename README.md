@@ -20,6 +20,7 @@ The new Hive internal Web
 * libdatetime-format-dbi-perl
 * libdatetime-format-iso8601-perl
 * libdbd-pg-perl
+* libemail-mime-perl
 * libjson-perl
 * libmath-round-perl
 * libtext-markdown-perl
