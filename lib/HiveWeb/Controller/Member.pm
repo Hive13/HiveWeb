@@ -101,6 +101,12 @@ sub profile :Local :Args(0)
 		if ($c->request()->method() eq 'GET');
 
 	my $form    = $c->request()->params();
+
+	# trim whitespace from beginning and end of email addresses
+	$form->{paypal_email} =~ s/^\s+|\s+$//g;
+	$form->{email} =~ s/^\s+|\s+$//g;
+
+
 	my $message = $self->verify_user_data($c, $form, 0);
 
 	if ($message)
