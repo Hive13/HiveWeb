@@ -2,7 +2,9 @@ Hello [% member.fname %],
 
 We've noticed your PayPal subscription has been cancelled.  If this is intentional, please visit [% base_url _ 'member/cancel' %] to confirm.
 
-If you're canceling your subscription to change membership level, simply visit [% base_url _ 'member/pay' %] to get that set up. We thank you for your continued contribution to our space.
+If you're in the process of changing membership level, you have now successfully canceled your old subscription.
+
+Next, visit [% base_url _ 'member/pay' %] to get your new membership level set up. We thank you for your continued contribution to our space.
 
 If this is not intentional, please login to PayPal to view and correct any notifications such as an expired credit card.  If you need to re-subscribe, just visit [% base_url _ 'member/pay' %] and you'll see the subscribe button.  If you have any questions, contact our Treasurer at treasurer@hive13.org.
 
