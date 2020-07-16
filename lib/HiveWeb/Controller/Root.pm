@@ -174,6 +174,8 @@ sub login :Local
 
 	my $params = $c->request()->params();
 	my $email  = $params->{email} // '';
+	# trim whitespace from beginning and end of the input string
+	$email =~ s/^\s+|\s+$//g;
 	my $users  = $c->model('DB::Member')->search(
 		{
 			-or =>
