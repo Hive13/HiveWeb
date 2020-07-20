@@ -169,7 +169,7 @@ if ($do_smtp && scalar(@emails))
 
 	if (exists($mail_config->{auth}))
 		{
-		$smtp->auth($mail_config->{from}, $mail_config->{auth})
+		$smtp->auth($mail_config->{authuser}, $mail_config->{auth})
 			|| die "Authentication failed!\n";
 		}
 

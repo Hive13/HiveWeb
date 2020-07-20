@@ -61,13 +61,14 @@
 		{
 		from        => 'intweb@hive13.org',
 		from_name   => 'Hive13 Intweb',
+		authuser    => '< put smtp auth user here >',
 		auth        => '< put auth password here >',
 		list        => '<intwebsandbox.hive13.org>',
 		priority    => 100,
 		'Net::SMTP' =>
 			{
 			Hello => 'intweb.at.hive13.org',
-			Host  => 'smtp.gmail.com',
+			Host  => 'smtp.sendgrid.net',
 			SSL   => 1
 			},
 		storage =>
