@@ -138,6 +138,7 @@ __PACKAGE__->deny_access_unless( '/api/admin',                ['board']);
 __PACKAGE__->allow_access_if_any('/admin/storage',            ['board', 'storage']);
 __PACKAGE__->allow_access_if_any('/api/admin/storage',        ['board', 'storage']);
 __PACKAGE__->allow_access_if_any('/api/admin/members/search', ['board', 'storage']);
+__PACKAGE__->allow_access_if_any('/api/member',               ['board', 'storage']);
 __PACKAGE__->deny_access_unless( '/admin',                    ['board']);
 __PACKAGE__->deny_access_unless( '/',                  sub { return shift->user_exists(); });
 
