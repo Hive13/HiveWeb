@@ -31,7 +31,7 @@ sub accesses :Local :Args(0)
 	my $dow   = [];
 	my $max   = 0;
 	my $scale = sub { return shift; };
-	my $iname = $in->{item} // 'main_door';
+	my $iname = $in->{item} // 'street_door';
 	my $item  = $c->model('DB::Item')->find({ name => $iname });
 
 	if (!$item)
