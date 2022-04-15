@@ -182,6 +182,7 @@ sub css_link
 
 sub current_version
 	{
+	=begin gitisstupid
 	my $self = shift;
 
 	return $cached_git_info
@@ -222,13 +223,23 @@ sub current_version
 				}
 			}
 		}
-
+	
 	$cached_git_info =
 		{
 		head_id => $self->debug() ? time() : $head_id,
 		refs    => $refs_by_id->{$head_id},
 		tags    => $tags_by_id->{$head_id},
 		branch  => $branch,
+		};
+
+	=end
+
+	$cached_git_info =
+		{
+		head_id => time(),
+		refs    => time(),
+		tags    => time(),
+		branch  => "master",
 		};
 
 	return $cached_git_info;
