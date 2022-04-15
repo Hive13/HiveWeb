@@ -231,12 +231,12 @@ sub current_version
 	#	tags    => $tags_by_id->{$head_id},
 	#	branch  => $branch,
 	#	};
-	
+
 	$cached_git_info =
 		{
-		head_id => time(),
-		refs    => time(),
-		tags    => time(),
+		head_id => 1,
+		refs    => 1,
+		tags    => 1,
 		branch  => "master",
 		};
 
