@@ -183,58 +183,55 @@ sub css_link
 
 sub current_version
 	{
-	=begin gitisstupid
 	my $self = shift;
 
 	return $cached_git_info
 		if ($cached_git_info);
 
-	my $repo = Git->repository($self->config()->{home});
-	my $head_id;
-	my $refs_by_id = {};
-	my $tags_by_id = {};
+	#my $repo = Git->repository($self->config()->{home});
+	#my $head_id;
+	#my $refs_by_id = {};
+	#my $tags_by_id = {};
 
-	my @refs   = $repo->command('show-ref', '--head');
-	my $branch = $repo->command('rev-parse', '--abbrev-ref', 'HEAD');
-	chomp($branch);
+	#my @refs   = $repo->command('show-ref', '--head');
+	#my $branch = $repo->command('rev-parse', '--abbrev-ref', 'HEAD');
+	#chomp($branch);
 
-	foreach my $ref (@refs)
-		{
-		my ($id, $name) = split(/ /, $ref);
-		if (!defined($refs_by_id->{$id}))
-			{
-			$refs_by_id->{$id} = [];
-			}
-		if ($name eq 'HEAD')
-			{
-			$head_id = $id;
-			}
-		else
-			{
-			push(@{$refs_by_id->{$id}}, $name);
-
-			if ($name =~ m{^refs/tags/(.+)}xmsi)
-				{
-				my $tag = $1;
-				if (!defined($tags_by_id->{$id}))
-					{
-					$tags_by_id->{$id} = [];
-					}
-				push(@{$tags_by_id->{$id}}, $tag);
-				}
-			}
-		}
+	#foreach my $ref (@refs)
+	#	{
+	#	my ($id, $name) = split(/ /, $ref);
+	#	if (!defined($refs_by_id->{$id}))
+	#		{
+	#		$refs_by_id->{$id} = [];
+	#		}
+	#	if ($name eq 'HEAD')
+	#		{
+	#		$head_id = $id;
+	#		}
+	#	else
+	#		{
+	#		push(@{$refs_by_id->{$id}}, $name);
+	#
+	#		if ($name =~ m{^refs/tags/(.+)}xmsi)
+	#			{
+	#			my $tag = $1;
+	#			if (!defined($tags_by_id->{$id}))
+	#				{
+	#				$tags_by_id->{$id} = [];
+	#				}
+	#			push(@{$tags_by_id->{$id}}, $tag);
+	#			}
+	#		}
+	#	}
+	#
+	#$cached_git_info =
+	#	{
+	#	head_id => $self->debug() ? time() : $head_id,
+	#	refs    => $refs_by_id->{$head_id},
+	#	tags    => $tags_by_id->{$head_id},
+	#	branch  => $branch,
+	#	};
 	
-	$cached_git_info =
-		{
-		head_id => $self->debug() ? time() : $head_id,
-		refs    => $refs_by_id->{$head_id},
-		tags    => $tags_by_id->{$head_id},
-		branch  => $branch,
-		};
-
-	=end
-
 	$cached_git_info =
 		{
 		head_id => time(),
