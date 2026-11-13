@@ -91,6 +91,8 @@ sub index :Path
 		$fail->{state} = 'You must provide your mailing state.';
 		}
 
+	$form->{created_at} = \'now()';
+
 	if (scalar(%$fail))
 		{
 		$c->stash(

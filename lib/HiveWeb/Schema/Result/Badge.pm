@@ -37,6 +37,7 @@ sub insert
 
 	$self->result_source()->schema->resultset('AuditLog')->create(
 		{
+		change_time				=> \'now()',
 		change_type       => 'add_badge',
 		notes             => 'Badge number ' . $self->badge_number,
 		changed_member_id => $self->member_id(),
@@ -51,6 +52,7 @@ sub delete
 
 	$self->result_source()->schema->resultset('AuditLog')->create(
 		{
+		change_time				=> \'now()',
 		changed_member_id => $self->member_id(),
 		change_type       => 'delete_badge',
 		notes             => 'Badge number ' . $self->badge_number(),

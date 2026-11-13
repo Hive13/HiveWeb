@@ -269,12 +269,14 @@ sub update
 			{
 			$schema->resultset('AuditLog')->create(
 				{
+				change_time 			=> \'now()',
 				change_type       => 'delete_linked',
 				notes             => 'Unlinked account ' . $self->member_id(),
 				changed_member_id => $old_link,
 				}) || die $!;
 			$self->create_related('changed_audits',
 				{
+				change_time => \'now()',
 				change_type => 'delete_link',
 				notes       => 'Unlinked from account ' . $old_link,
 				}) || die $!;
@@ -283,12 +285,14 @@ sub update
 			{
 			$schema->resultset('AuditLog')->create(
 				{
+				change_time 			=> \'now()',
 				change_type       => 'add_linked',
 				notes             => 'Linked account ' . $self->member_id(),
 				changed_member_id => $new_link,
 				}) || die $!;
 			$self->create_related('changed_audits',
 				{
+				change_time => \'now()',
 				change_type => 'add_link',
 				notes       => 'Linked to account ' . $new_link,
 				}) || die $!;
@@ -300,6 +304,7 @@ sub update
 		my $new = $self->member_image_id();
 		$self->create_related('changed_audits',
 			{
+			change_time => \'now()',
 			change_type => 'change_member_image',
 			notes       => $new ? 'Set member image ID to ' . $new : 'Remove member image',
 			});
@@ -309,6 +314,7 @@ sub update
 		{
 		$self->create_related('changed_audits',
 			{
+			change_time => \'now()',
 			change_type => 'change_paypal_email',
 			notes       => 'Set paypal e-mail to ' . ($self->paypal_email() // '(null)'),
 			});
@@ -318,6 +324,7 @@ sub update
 		{
 		$self->create_related('changed_audits',
 			{
+			change_time => \'now()',
 			change_type => 'add_credits',
 			notes       => "Changed credits from $old_cred to $new_cred",
 			});
@@ -379,6 +386,7 @@ sub set_password
 		{
 		$self->create_related('changed_audits',
 			{
+			change_time => \'now()',
 			change_type => 'change_password',
 			});
 
@@ -496,6 +504,7 @@ sub mod_group
 		{
 		$self->create_related('changed_audits',
 			{
+			change_time => \'now()',
 			change_type => 'add_group',
 			notes       => $notes,
 			}) || die $!;
@@ -505,6 +514,7 @@ sub mod_group
 		{
 		$self->create_related('changed_audits',
 			{
+			change_time => \'now()',
 			change_type => 'remove_group',
 			notes       => $notes,
 			}) || die $!;

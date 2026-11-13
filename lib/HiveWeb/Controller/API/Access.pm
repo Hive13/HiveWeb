@@ -113,9 +113,10 @@ sub access :Private
 
 	$item->create_related('access_logs',
 		{
-		granted   => $access,
-		member_id => $member ? $member->member_id() : undef,
-		badge_id  => $data->{badge},
+		access_time	=> \'now()',
+		granted   	=> $access,
+		member_id 	=> $member ? $member->member_id() : undef,
+		badge_id  	=> $data->{badge},
 		}) || die $!;
 
 	if (!$member)
@@ -178,6 +179,7 @@ sub vend :Private
 					{
 					$c->model('DB::Action')->create(
 						{
+						queued_at					=> \'now()',
 						action_type       => 'member.alert_credit',
 						queuing_member_id => $member->member_id(),
 						row_id            => $member->member_id(),
@@ -245,6 +247,7 @@ sub log :Private
 
 	my $temp_log = $item->create_related('temp_logs',
 		{
+		create_time	=> \'now()',
 		temperature => $data->{log_data}->{temperature},
 		});
 	if ($temp_log)

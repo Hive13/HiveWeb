@@ -85,8 +85,9 @@ sub subscr_payment
 		{
 		$schema->resultset('Log')->new_log(
 			{
-			type    => 'ipn.duplicate',
-			message => 'Payment already exists for IPN Message ' . $self->ipn_message_id()
+			create_time	=> \'now()',
+			type    		=> 'ipn.duplicate',
+			message 		=> 'Payment already exists for IPN Message ' . $self->ipn_message_id()
 			});
 		return;
 		}
@@ -124,6 +125,7 @@ sub subscr_payment
 
 		$schema->resultset('Action')->create(
 			{
+			queued_at					=> \'now()',
 			queuing_member_id => $member->member_id(),
 			action_type       => 'application.pay',
 			row_id            => $application->application_id(),
@@ -131,6 +133,7 @@ sub subscr_payment
 
 		$schema->resultset('Action')->create(
 			{
+			queued_at					=> \'now()',
 			queuing_member_id => $member->member_id(),
 			action_type       => 'member.welcome',
 			row_id            => $member->member_id(),
@@ -168,6 +171,7 @@ sub subscr_failed
 
 	$schema->resultset('Action')->create(
 		{
+		queued_at					=> \'now()',
 		queuing_member_id => $self->member_id(),
 		action_type       => 'member.alert_failed',
 		row_id            => $self->member_id(),
@@ -175,6 +179,7 @@ sub subscr_failed
 
 	$schema->resultset('Action')->create(
 		{
+		queued_at					=> \'now()',
 		queuing_member_id => $self->member_id(),
 		action_type       => 'member.notify_failed',
 		row_id            => $self->member_id(),
@@ -189,6 +194,7 @@ sub subscr_cancel
 
 	$schema->resultset('Action')->create(
 		{
+		queued_at					=> \'now()',
 		queuing_member_id => $self->member_id(),
 		action_type       => 'member.confirm_cancel',
 		row_id            => $self->member_id(),
@@ -196,6 +202,7 @@ sub subscr_cancel
 
 	$schema->resultset('Action')->create(
 		{
+		queued_at					=> \'now()',
 		queuing_member_id => $self->member_id(),
 		action_type       => 'member.notify_cancel',
 		row_id            => $self->member_id(),
@@ -223,8 +230,9 @@ sub process
 			{
 			$schema->resultset('Log')->new_log(
 				{
-				type    => 'ipn.multiple_members',
-				message => 'Multiple members with one PayPal e-mail in message ' . $self->ipn_message_id(),
+				create_time	=> \'now()',
+				type    		=> 'ipn.multiple_members',
+				message 		=> 'Multiple members with one PayPal e-mail in message ' . $self->ipn_message_id(),
 				});
 			}
 		}
@@ -235,8 +243,9 @@ sub process
 			{
 			$schema->resultset('Log')->new_log(
 				{
-				type    => 'ipn.unknown_email',
-				message => 'Cannot locate member in message ' . $self->ipn_message_id(),
+				create_time	=> \'now()',
+				type    		=> 'ipn.unknown_email',
+				message 		=> 'Cannot locate member in message ' . $self->ipn_message_id(),
 				});
 			}
 		}
@@ -264,8 +273,9 @@ sub process
 			{
 			$schema->resultset('Log')->new_log(
 				{
-				type    => 'ipn.unknown_type',
-				message => "Unknown payment type $type in message $self->ipn_message_id"
+				create_time	=> \'now()',
+				type    		=> 'ipn.unknown_type',
+				message 		=> "Unknown payment type $type in message $self->ipn_message_id"
 				});
 			}
 		}

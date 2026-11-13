@@ -195,10 +195,11 @@ sub login :Local
 		});
 	my $log  = $c->model('DB::SignInLog')->create(
 		{
-		email     => $email,
-		valid     => $success ? 1 : 0,
-		member_id => $user ? $user->member_id() : undef,
-		remote_ip => $c->request()->address(),
+		sign_in_time	=> \'now()',
+		email     		=> $email,
+		valid     		=> $success ? 1 : 0,
+		member_id 		=> $user ? $user->member_id() : undef,
+		remote_ip 		=> $c->request()->address(),
 		}) || die $!;
 	if ($success)
 		{
@@ -258,6 +259,7 @@ sub forgot :Local
 		{
 		$c->model('DB::Action')->create(
 			{
+			queued_at					=> \'now()',
 			queuing_member_id => $member->member_id(),
 			action_type       => 'member.password_reset',
 			row_id            => $member->member_id(),

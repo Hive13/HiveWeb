@@ -104,6 +104,7 @@ sub insert
 
 	$schema->resultset('Action')->create(
 		{
+		queued_at		=> \'now()',
 		action_type => 'application.create',
 		row_id      => $self->application_id(),
 		}) || die 'Unable to queue notification.';
@@ -124,11 +125,13 @@ sub update
 		{
 		$schema->resultset('Action')->create(
 			{
+			queued_at		=> \'now()',
 			action_type => 'application.finalize',
 			row_id      => $self->application_id(),
 			}) || die 'Could not queue notification: ' . $!;
 		$schema->resultset('AuditLog')->create(
 			{
+			change_time				=> \'now()',
 			change_type       => 'finalize_application',
 			notes             => 'Finalized Application ID ' . $self->application_id() . ' - ' . $self->final_result(),
 			changed_member_id => $self->member_id(),
@@ -138,6 +141,7 @@ sub update
 		{
 		$schema->resultset('Action')->create(
 			{
+			queued_at		=> \'now()',
 			action_type => 'application.mark_submitted',
 			row_id      => $self->application_id(),
 			}) || die 'Could not queue notification: ' . $!;
@@ -146,6 +150,7 @@ sub update
 		{
 		$schema->resultset('Action')->create(
 			{
+			queued_at		=> \'now()',
 			action_type => 'application.attach_picture',
 			row_id      => $self->application_id(),
 			}) || die 'Could not queue notification: ' . $!;
@@ -154,6 +159,7 @@ sub update
 		{
 		$schema->resultset('Action')->create(
 			{
+			queued_at		=> \'now()',
 			action_type => 'application.attach_form',
 			row_id      => $self->application_id(),
 			}) || die 'Could not queue notification: ' . $!;
@@ -162,6 +168,7 @@ sub update
 		{
 		$schema->resultset('Action')->create(
 			{
+			queued_at		=> \'now()',
 			action_type => 'application.update',
 			row_id      => $self->application_id(),
 			}) || die 'Could not queue notification: ' . $!;
@@ -179,6 +186,7 @@ sub link_picture
 		my $member = $self->member();
 		$member->create_related('changed_audits',
 			{
+			change_time	=> \'now()',
 			change_type => 'attach_photo_from_application',
 			notes       => 'Attached image ID ' . $self->picture_id(),
 			});
@@ -197,6 +205,7 @@ sub unlink_picture
 			{
 			$member->create_related('changed_audits',
 				{
+				change_time	=> \'now()',
 				change_type => 'remove_photo_from_application',
 				notes       => 'Detached image ID ' . $self->picture_id(),
 				});

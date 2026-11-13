@@ -93,6 +93,7 @@ sub insert
 
 	$schema->resultset('Action')->create(
 		{
+		queued_at		=> \'now()',
 		action_type => 'storage.request',
 		row_id      => $self->request_id(),
 		}) || die 'Could not queue notification: ' . $!;
@@ -111,6 +112,7 @@ sub update
 		{
 		$self->result_source()->schema()->resultset('AuditLog')->create(
 			{
+			change_time				=> \'now()',
 			change_type       => 'hide_request',
 			notes             => 'Hid request ' . $self->request_id(),
 			changed_member_id => $self->member_id(),

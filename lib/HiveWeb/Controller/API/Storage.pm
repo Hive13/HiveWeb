@@ -72,9 +72,10 @@ sub request :Local :Args(0)
 		}
 	my $request = $c->user->create_related('requests',
 		{
-		notes   => $in->{notes},
-		type_id => $in->{type_id},
-		slot_id => $in->{slot_id},
+		created_at	=> \'now()',
+		notes   		=> $in->{notes},
+		type_id 		=> $in->{type_id},
+		slot_id 		=> $in->{slot_id},
 		}) || die $!;
 	$out->{response}   = \1;
 	$out->{request_id} = $request->request_id();

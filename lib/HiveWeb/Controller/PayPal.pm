@@ -26,6 +26,7 @@ sub ipn :Local :Args(0)
 
 			my $message = $c->model('DB::IPNMessage')->create(
 				{
+				received_at	=> \'now()',
 				txn_id      => $parameters->{txn_id},
 				payer_email => $parameters->{payer_email},
 				raw         => $parameters,

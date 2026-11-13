@@ -19,7 +19,7 @@ sub fill_out
 	
 	$schema->txn_do(sub
 		{
-		$response = $survey->create_related('responses', { member_id => $member_id }) || die $!;
+		$response = $survey->create_related('responses', { member_id => $member_id, created_at => \'now()' }) || die $!;
 
 		my @questions = $survey->questions();
 		foreach my $question (@questions)

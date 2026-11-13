@@ -46,6 +46,7 @@ while (my $candidate = $candidates->next())
 			my $member = $candidate->member();
 			$schema->resultset('Action')->create(
 				{
+				queued_at					=> \'now()',
 				queuing_member_id => $member->member_id(),
 				action_type       => 'storage.renew_remind',
 				row_id            => $candidate->slot_id(),

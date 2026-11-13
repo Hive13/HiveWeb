@@ -48,9 +48,10 @@ sub upload :Local :Args(0)
 
 			my $db_image = $c->model('DB::Image')->create(
 				{
-				image        => $img_data,
-				thumbnail    => $thumb_data,
-				content_type => $image->type(),
+				created_at		=> \'now()',
+				image        	=> $img_data,
+				thumbnail    	=> $thumb_data,
+				content_type 	=> $image->type(),
 				}) || die $!;
 			$out->{image_id} = $db_image->image_id();
 			});

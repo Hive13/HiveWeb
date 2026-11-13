@@ -185,6 +185,7 @@ sub register :Local :Args(0)
 	$c->model('DB')->schema()->txn_do(
 	sub
 		{
+		$form->{created_at} = \'now()';
 		my $member = $c->model('DB::Member')->create($form) || die $!;
 		$member->set_password($password);
 		$c->authenticate({ password => $password, 'dbix_class' => { result => $member } }) || die $!;
@@ -232,6 +233,7 @@ sub cancel :Local :Args(0)
 
 		$c->model('DB::Action')->create(
 			{
+			queued_at		=> \'now()',
 			action_type => 'notify.term',
 			row_id      => $response->survey_response_id(),
 			}) || die 'Could not queue notification: ' . $!;

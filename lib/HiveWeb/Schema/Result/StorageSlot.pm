@@ -96,6 +96,7 @@ sub update
 			$change->{change_type} = 'unassign_slot';
 			$change->{notes}       = 'Unassigned slot ' . $self->slot_id();
 			}
+		$change->{change_time} = \'now()',
 		$schema->resultset('AuditLog')->create($change);
 		}
 
@@ -103,12 +104,14 @@ sub update
 		{
 		$schema->resultset('AuditLog')->create(
 			{
+			change_time				=> \'now()',
 			change_type       => 'assign_slot',
 			notes             => 'Assigned slot ' . $self->slot_id(),
 			changed_member_id => $new_member_id,
 			});
 		$schema->resultset('Action')->create(
 			{
+			queued_at		=> \'now()',
 			action_type => 'storage.assign',
 			row_id      => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;
@@ -118,12 +121,14 @@ sub update
 		{
 		$schema->resultset('AuditLog')->create(
 			{
+			change_time				=> \'now()',
 			change_type       => 'renew_slot',
 			notes             => 'Renew slot ' . $self->slot_id(),
 			changed_member_id => $new_member_id,
 			});
 		$schema->resultset('Action')->create(
 			{
+			queued_at		=> \'now()',
 			action_type => 'storage.renew',
 			row_id      => $self->slot_id(),
 			}) || die 'Could not queue notification: ' . $!;

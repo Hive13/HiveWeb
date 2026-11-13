@@ -97,6 +97,7 @@ while (my $candidate = $candidates->next())
 					last if ($candidate->in_group($message->[$i]->{group_id}));
 					$schema->resultset('Action')->create(
 						{
+						queued_at					=> \'now()',
 						queuing_member_id => $candidate->member_id(),
 						action_type       => $config->{late_email},
 						row_id            => $candidate->member_id(),
