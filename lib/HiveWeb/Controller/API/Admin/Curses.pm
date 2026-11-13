@@ -177,7 +177,7 @@ sub cast :Local :Args(0)
 					});
 				my $mc = $c->model('DB::MemberCurse')->create(
 					{
-					issued_at					=> \'now()'
+					issued_at					=> \'now()',
 					member_id         => $member->member_id(),
 					curse_id          => $in->{curse_id},
 					issuing_member_id => $c->user()->member_id(),
