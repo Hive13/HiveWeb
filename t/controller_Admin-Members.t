@@ -4,7 +4,7 @@ use Test::More;
 
 
 use Catalyst::Test 'HiveWeb';
-use HiveWeb::Controller::Admin::Members;
+use HiveWeb::Controller::Admin;
 
 ok( request('/admin/members')->is_success, 'Request should succeed' );
 done_testing();
