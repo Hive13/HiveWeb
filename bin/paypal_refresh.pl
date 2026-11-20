@@ -15,7 +15,12 @@ my $schema  = HiveWeb::Schema->connect($config->{"Model::DB"}->{connect_info}) |
 my $queue   = $schema->resultset('Action')->search({ action_type => 'paypal.refresh' }) || die $!;
 my $pending = $queue->count();
 
-return if !$pending;
+## R.M.A - 2024-08-14: below line yields error: "Can't return outside a subroutine" 
+#return if !$pending;
+if (!$pending) {
+	print("Nothing to process\n");
+	exit(0);
+}
 
 my $candidates = $schema->resultset('IPNMessage')->search({ member_id => undef });
 while (my $candidate = $candidates->next())

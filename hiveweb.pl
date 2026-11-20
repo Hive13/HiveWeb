@@ -107,12 +107,12 @@
 			notify_cancel  =>
 				{
 				subject => 'Member Subscription Cancelled',
-				to      => 'intwebsandbox@hive13.org',
+				to      => 'leadership@hive13.org',
 				},
 			notify_failed  =>
 				{
 				subject => 'Member Payment Failed',
-				to      => 'intwebsandbox@hive13.org',
+				to      => 'leadership@hive13.org',
 				},
 			password_reset =>
 				{

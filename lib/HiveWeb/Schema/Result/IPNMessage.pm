@@ -275,7 +275,7 @@ sub process
 				{
 				create_time	=> \'now()',
 				type    		=> 'ipn.unknown_type',
-				message 		=> "Unknown payment type $type in message $self->ipn_message_id"
+				message => "Unknown payment type $type in message " . $self->ipn_message_id()
 				});
 			}
 		}
